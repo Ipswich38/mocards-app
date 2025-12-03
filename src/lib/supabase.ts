@@ -10,6 +10,7 @@ export interface Clinic {
   id: string;
   clinic_code: string;
   clinic_name: string;
+  password_hash: string;
   contact_email?: string;
   contact_phone?: string;
   address?: string;
@@ -65,6 +66,7 @@ export interface CardTransaction {
 export interface AdminUser {
   id: string;
   username: string;
+  password_hash: string;
   role: string;
   created_at: string;
 }
@@ -102,14 +104,13 @@ export const dbOperations = {
         clinic:clinics(*),
         perks:card_perks(*)
       `)
-      .eq('control_number', controlNumber)
-      .single();
+      .eq('control_number', controlNumber);
 
     if (passcode) {
       query = query.eq('passcode', passcode);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.single();
     if (error) throw error;
     return data as Card;
   },

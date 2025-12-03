@@ -6,7 +6,7 @@ interface ClinicManagementProps {
   adminUserId: string;
 }
 
-export function ClinicManagement({ adminUserId }: ClinicManagementProps) {
+export function ClinicManagement({ }: ClinicManagementProps) {
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(true);

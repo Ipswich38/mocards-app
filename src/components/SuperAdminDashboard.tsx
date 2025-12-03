@@ -7,10 +7,8 @@ interface SuperAdminDashboardProps {
   onBack: () => void;
 }
 
-export function SuperAdminDashboard({ token, onBack }: SuperAdminDashboardProps) {
+export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'clinics' | 'analytics'>('overview');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Mock admin user ID - in production, get this from JWT token
   const adminUserId = 'admin-user-id';
