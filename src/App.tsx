@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { LandingPage } from './components/LandingPage';
 import { PatientCardView } from './components/PatientCardView';
-import { ClinicDashboard } from './components/ClinicDashboard';
+import { ProductionClinicDashboard } from './components/ProductionClinicDashboard';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 
 export type ViewMode = 'landing' | 'patient' | 'clinic' | 'superadmin';
@@ -52,8 +52,10 @@ export default function App() {
       )}
 
       {viewMode === 'clinic' && clinicCredentials && (
-        <ClinicDashboard
-          clinicCredentials={clinicCredentials}
+        <ProductionClinicDashboard
+          clinicId={clinicCredentials.clinicId}
+          clinicCode={clinicCredentials.clinicCode}
+          clinicName={clinicCredentials.clinicName}
           onBack={handleBackToHome}
         />
       )}

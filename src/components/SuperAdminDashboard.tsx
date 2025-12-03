@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CardGenerationSystem } from './CardGenerationSystem';
-import { ClinicManagement } from './ClinicManagement';
+import { ProductionClinicManagement } from './ProductionClinicManagement';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -136,7 +136,7 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
 
         {activeTab === 'clinics' && (
           <div className="space-y-6">
-            <ClinicManagement adminUserId={adminUserId} />
+            <ProductionClinicManagement />
           </div>
         )}
 
