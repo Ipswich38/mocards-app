@@ -76,7 +76,7 @@ export const dbOperations = {
   // Card operations
   async createCardBatch(batchData: { batch_number: string; total_cards: number; created_by: string }) {
     const { data, error } = await supabase
-      .from('card_batches')
+      .from('mocards.card_batches')
       .insert(batchData)
       .select()
       .single();
@@ -87,7 +87,7 @@ export const dbOperations = {
 
   async createCard(cardData: Omit<Card, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await supabase
-      .from('cards')
+      .from('mocards.cards')
       .insert(cardData)
       .select()
       .single();
@@ -98,7 +98,7 @@ export const dbOperations = {
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
     let query = supabase
-      .from('cards')
+      .from('mocards.cards')
       .select(`
         *,
         clinic:clinics(*),
@@ -117,7 +117,7 @@ export const dbOperations = {
 
   async activateCard(cardId: string, clinicId: string) {
     const { data, error } = await supabase
-      .from('cards')
+      .from('mocards.cards')
       .update({
         status: 'activated',
         assigned_clinic_id: clinicId,
@@ -179,7 +179,7 @@ export const dbOperations = {
 
   async getClinicCards(clinicId: string) {
     const { data, error } = await supabase
-      .from('cards')
+      .from('mocards.cards')
       .select(`
         *,
         perks:card_perks(*)
