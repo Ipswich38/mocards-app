@@ -61,20 +61,13 @@ export const enhancedCardSystem = {
       const timestamp = Date.now();
       const batchNumber = `MOB-${timestamp.toString().slice(-8)}`;
 
-      // Create batch record with metadata
+      // Create batch record (simplified for current schema)
       const { data: batch, error: batchError } = await supabase
         .from('card_batches')
         .insert({
           batch_number: batchNumber,
           total_cards: totalCards,
-          created_by: adminUserId,
-          batch_status: 'generating',
-          batch_metadata: {
-            generation_timestamp: new Date().toISOString(),
-            admin_user: adminUserId,
-            intended_distribution: distributionPlan || 'general',
-            expiry_period: 12 // 12 months validity
-          }
+          created_by: adminUserId
         })
         .select()
         .single();
@@ -140,12 +133,7 @@ export const enhancedCardSystem = {
             card_id: card.id,
             transaction_type: 'created',
             performed_by: 'admin',
-            performed_by_id: adminUserId,
-            details: {
-              batch_number: batchNumber,
-              card_position: i,
-              incomplete_passcode: incompletePasscode
-            }
+            performed_by_id: adminUserId
           });
 
         generatedCards.push({
@@ -155,15 +143,6 @@ export const enhancedCardSystem = {
           card_metadata: cardMetadata
         } as EnhancedCardData);
       }
-
-      // Update batch status to completed
-      await supabase
-        .from('card_batches')
-        .update({
-          batch_status: 'completed',
-          cards_generated: totalCards
-        })
-        .eq('id', batch.id);
 
       return {
         batch: { ...batch, cards_generated: totalCards } as EnhancedCardBatch,
