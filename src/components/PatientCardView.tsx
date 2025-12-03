@@ -1,6 +1,8 @@
 
+import { Card } from '../lib/supabase';
+
 interface PatientCardViewProps {
-  cardData: any;
+  cardData: Card;
   onBack: () => void;
 }
 
@@ -16,10 +18,10 @@ const PERK_DETAILS = {
 };
 
 export function PatientCardView({ cardData, onBack }: PatientCardViewProps) {
-  const perksArray = Object.entries(cardData.perks).map(([key, perk]: [string, any]) => ({
-    key,
+  const perksArray = (cardData.perks || []).map((perk) => ({
+    key: perk.perk_type,
     ...perk,
-    ...PERK_DETAILS[key as keyof typeof PERK_DETAILS]
+    ...PERK_DETAILS[perk.perk_type as keyof typeof PERK_DETAILS]
   }));
 
   return (
@@ -51,13 +53,13 @@ export function PatientCardView({ cardData, onBack }: PatientCardViewProps) {
 
           <div className="relative mb-8">
             <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">Card Number</div>
-            <div className="text-2xl tracking-widest font-mono">{cardData.controlNumber}</div>
+            <div className="text-2xl tracking-widest font-mono">{cardData.control_number}</div>
           </div>
 
           <div className="relative flex items-end justify-between">
             <div>
               <div className="text-xs uppercase tracking-widest text-gray-400 mb-1">Location</div>
-              <div className="text-lg tracking-wide">{cardData.locationCode}</div>
+              <div className="text-lg tracking-wide">{cardData.location_code}</div>
             </div>
             <div className="text-right">
               <div className="text-3xl tracking-wider">MOCARDS</div>
@@ -128,9 +130,9 @@ export function PatientCardView({ cardData, onBack }: PatientCardViewProps) {
                     {perk.description}
                   </div>
 
-                  {perk.claimedAt && (
+                  {perk.claimed_at && (
                     <div className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-300">
-                      Claimed: {new Date(perk.claimedAt).toLocaleDateString('en-US', {
+                      Claimed: {new Date(perk.claimed_at).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
@@ -146,7 +148,7 @@ export function PatientCardView({ cardData, onBack }: PatientCardViewProps) {
         <div className="bg-gray-900 text-white rounded-2xl p-5">
           <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">How to Use</div>
           <div className="text-sm leading-relaxed">
-            Visit any participating dental clinic and present your card number <span className="font-mono text-blue-300">{cardData.controlNumber}</span> with your passcode to redeem perks.
+            Visit any participating dental clinic and present your card number <span className="font-mono text-blue-300">{cardData.control_number}</span> with your passcode to redeem perks.
           </div>
         </div>
       </div>

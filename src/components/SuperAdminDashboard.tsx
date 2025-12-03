@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { CardGenerationSystem } from './CardGenerationSystem';
+import { ClinicManagement } from './ClinicManagement';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -7,41 +8,13 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ token, onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'clinics' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'clinics' | 'analytics'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleCreateClinic = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // Mock admin user ID - in production, get this from JWT token
+  const adminUserId = 'admin-user-id';
 
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-82b648e5/admin/create-clinic`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || ''
-          },
-          body: JSON.stringify({})
-        }
-      );
-
-      const data = await response.json();
-
-      if (!data.success) {
-        setError(data.error || 'Failed to create clinic');
-      }
-    } catch (err) {
-      console.error('Error creating clinic:', err);
-      setError('Failed to connect to server');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,6 +43,16 @@ export function SuperAdminDashboard({ token, onBack }: SuperAdminDashboardProps)
               }`}
             >
               Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('cards')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'cards'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Card Generation
             </button>
             <button
               onClick={() => setActiveTab('clinics')}
@@ -147,25 +130,15 @@ export function SuperAdminDashboard({ token, onBack }: SuperAdminDashboardProps)
           </div>
         )}
 
+        {activeTab === 'cards' && (
+          <div className="space-y-6">
+            <CardGenerationSystem adminUserId={adminUserId} />
+          </div>
+        )}
+
         {activeTab === 'clinics' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Clinic Management</h3>
-                <button
-                  onClick={handleCreateClinic}
-                  disabled={loading}
-                  className="bg-gray-900 text-white px-4 py-2 rounded-xl font-medium hover:bg-black transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Creating...' : 'Add Clinic'}
-                </button>
-              </div>
-              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-              <div className="text-center py-8 text-gray-500">
-                No clinics registered yet. Use the "Add Clinic" button to register the first clinic.
-              </div>
-            </div>
+            <ClinicManagement adminUserId={adminUserId} />
           </div>
         )}
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { dbOperations } from '../lib/supabase';
 
 interface LandingPageProps {
   onPatientView: (data: any) => void;
@@ -28,31 +28,16 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
     setError('');
 
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-82b648e5/cards/public-view`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`
-          },
-          body: JSON.stringify({
-            controlNumber: cardControl,
-            passcode: cardPasscode
-          })
-        }
-      );
+      const card = await dbOperations.getCardByControlNumber(cardControl, cardPasscode);
 
-      const data = await response.json();
-
-      if (data.success) {
-        onPatientView(data.card);
+      if (card) {
+        onPatientView(card);
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError('Invalid control number or passcode');
       }
     } catch (err) {
       console.error('Error looking up card:', err);
-      setError('Failed to connect to server');
+      setError('Card not found or invalid credentials');
     } finally {
       setLoading(false);
     }
@@ -64,28 +49,24 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
     setError('');
 
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-82b648e5/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`
-          },
-          body: JSON.stringify({
-            type: 'clinic',
-            username: clinicCode,
-            password: clinicPassword
-          })
+      const clinic = await dbOperations.getClinicByCode(clinicCode);
+
+      if (clinic) {
+        // In production, use proper password hashing comparison
+        const isValidPassword = btoa(clinicPassword) === clinic.password_hash;
+
+        if (isValidPassword) {
+          onClinicView({
+            clinicId: clinic.id,
+            clinicCode: clinic.clinic_code,
+            clinicName: clinic.clinic_name,
+            token: `clinic-${clinic.id}` // Simple token for demo
+          });
+        } else {
+          setError('Invalid password');
         }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        onClinicView({ clinicCode, token: data.token });
       } else {
-        setError(data.error || 'Invalid clinic credentials');
+        setError('Clinic not found');
       }
     } catch (err) {
       console.error('Error logging in clinic:', err);
@@ -101,28 +82,19 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
     setError('');
 
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-82b648e5/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`
-          },
-          body: JSON.stringify({
-            type: 'admin',
-            username: adminUser,
-            password: adminPass
-          })
+      const admin = await dbOperations.getAdminByUsername(adminUser);
+
+      if (admin) {
+        // For demo, using simple password check. In production, use proper bcrypt
+        const isValidPassword = adminPass === 'admin123'; // Default password from setup
+
+        if (isValidPassword) {
+          onSuperAdminView(`admin-${admin.id}`);
+        } else {
+          setError('Invalid password');
         }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        onSuperAdminView(data.token);
       } else {
-        setError(data.error || 'Invalid admin credentials');
+        setError('Admin user not found');
       }
     } catch (err) {
       console.error('Error logging in admin:', err);
