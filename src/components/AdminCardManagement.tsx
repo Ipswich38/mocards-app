@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { enhancedCardSystem, type EnhancedCardData, type EnhancedCardBatch } from '../lib/enhanced-card-system';
 
 interface AdminCardManagementProps {
@@ -158,7 +158,7 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
               <div>Status</div>
             </div>
 
-            {lastCards.slice(0, 5).map((card, index) => (
+            {lastCards.slice(0, 5).map((card) => (
               <div key={card.id} className="grid grid-cols-4 gap-2 text-sm py-2 border-b border-gray-100">
                 <div className="font-mono text-blue-600">{card.control_number}</div>
                 <div className="font-mono text-orange-600">{card.incomplete_passcode}</div>

@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import type { Card, CardBatch } from './supabase';
 
 // Enhanced card types for production system
 export interface EnhancedCardData {

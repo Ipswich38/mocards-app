@@ -5,8 +5,6 @@ import type {
   SubscriptionPlan,
   CreateClinicData,
   ClinicSale,
-  PerkRedemption,
-  MonthlyReport,
   ClinicDashboardStats,
   CardActivationData,
   PerkRedemptionData
@@ -217,12 +215,12 @@ export const productionOperations = {
       // Check clinic monthly limit
       const { data: clinic, error: clinicError } = await supabase
         .from('mocards_clinics')
-        .select('monthly_card_limit, cards_issued_this_month')
+        .select('monthly_card_limit, cards_issued_this_month, commission_rate, total_revenue')
         .eq('id', clinicId)
         .single();
 
       if (clinicError) throw clinicError;
-      if (clinic.cards_issued_this_month >= clinic.monthly_card_limit) {
+      if ((clinic as any).cards_issued_this_month >= (clinic as any).monthly_card_limit) {
         throw new Error('Monthly card activation limit reached');
       }
 
@@ -248,7 +246,7 @@ export const productionOperations = {
       // Record the sale if sale amount provided
       let saleRecord = null;
       if (activationData.sale_amount && activationData.sale_amount > 0) {
-        const commissionRate = clinic.commission_rate || 10;
+        const commissionRate = (clinic as any).commission_rate || 10;
         const commissionAmount = (activationData.sale_amount * commissionRate) / 100;
 
         const { data: sale, error: saleError } = await supabase
@@ -274,7 +272,7 @@ export const productionOperations = {
         await supabase
           .from('mocards_clinics')
           .update({
-            total_revenue: (clinic.total_revenue || 0) + activationData.sale_amount
+            total_revenue: ((clinic as any).total_revenue || 0) + activationData.sale_amount
           })
           .eq('id', clinicId);
       }
