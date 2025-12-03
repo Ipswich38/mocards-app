@@ -141,8 +141,8 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
                 <p className="text-gray-900">{lastBatch.total_cards}</p>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Status:</span>
-                <p className="text-gray-900 capitalize">{lastBatch.batch_status}</p>
+                <span className="font-medium text-gray-700">Cards Generated:</span>
+                <p className="text-gray-900">{lastBatch.cards_generated || lastBatch.total_cards}</p>
               </div>
             </div>
           </div>

@@ -28,14 +28,13 @@ export interface EnhancedCardBatch {
   id: string;
   batch_number: string;
   total_cards: number;
-  cards_generated: number;
+  cards_generated?: number;
   created_by: string;
-  batch_status: 'generating' | 'completed' | 'distributed';
-  batch_metadata: {
-    generation_timestamp: string;
-    admin_user: string;
-    intended_distribution: string;
-    expiry_period: number;
+  batch_metadata?: {
+    generation_timestamp?: string;
+    admin_user?: string;
+    intended_distribution?: string;
+    expiry_period?: number;
   };
   created_at: string;
 }

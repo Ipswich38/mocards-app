@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { productionOperations } from '../lib/production-operations';
+import { ClinicCardManagement } from './ClinicCardManagement';
 import type {
   ClinicDashboardStats,
   CardActivationData,
@@ -20,7 +21,7 @@ export function ProductionClinicDashboard({
   clinicName,
   onBack
 }: ProductionClinicDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'activate' | 'redeem' | 'cards' | 'sales'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'activate' | 'redeem' | 'cards' | 'enhanced' | 'sales'>('dashboard');
   const [stats, setStats] = useState<ClinicDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -196,6 +197,7 @@ export function ProductionClinicDashboard({
           <div className="flex gap-2">
             {[
               { id: 'dashboard', name: 'Dashboard' },
+              { id: 'enhanced', name: 'Enhanced Cards' },
               { id: 'activate', name: 'Activate Card' },
               { id: 'redeem', name: 'Redeem Perk' },
               { id: 'cards', name: 'My Cards' },
@@ -297,6 +299,15 @@ export function ProductionClinicDashboard({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Enhanced Card Management Tab */}
+        {activeTab === 'enhanced' && (
+          <ClinicCardManagement
+            clinicId={clinicId}
+            clinicName={clinicName}
+            clinicCode={clinicCode}
+          />
         )}
 
         {/* Card Activation Tab */}

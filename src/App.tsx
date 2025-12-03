@@ -3,8 +3,9 @@ import { LandingPage } from './components/LandingPage';
 import { PatientCardView } from './components/PatientCardView';
 import { ProductionClinicDashboard } from './components/ProductionClinicDashboard';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
+import { CardholderLookup } from './components/CardholderLookup';
 
-export type ViewMode = 'landing' | 'patient' | 'clinic' | 'superadmin';
+export type ViewMode = 'landing' | 'patient' | 'clinic' | 'superadmin' | 'cardholder';
 
 export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('landing');
@@ -34,6 +35,11 @@ export default function App() {
     setViewMode('superadmin');
   };
 
+  const handleCardholderView = (prefilledData?: { control: string; passcode: string }) => {
+    setCardData(prefilledData || null);
+    setViewMode('cardholder');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       {viewMode === 'landing' && (
@@ -41,6 +47,7 @@ export default function App() {
           onPatientView={handlePatientView}
           onClinicView={handleClinicView}
           onSuperAdminView={handleSuperAdminView}
+          onCardholderView={handleCardholderView}
         />
       )}
 
@@ -65,6 +72,20 @@ export default function App() {
           token={adminToken}
           onBack={handleBackToHome}
         />
+      )}
+
+      {viewMode === 'cardholder' && (
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-7xl mx-auto px-4">
+            <button
+              onClick={handleBackToHome}
+              className="mb-6 text-sm text-gray-600 hover:text-gray-900 transition-colors uppercase tracking-wider hover:bg-gray-100 px-4 py-2 rounded-lg"
+            >
+              ← Back to Home
+            </button>
+            <CardholderLookup prefilledData={cardData} />
+          </div>
+        </div>
       )}
     </div>
   );

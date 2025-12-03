@@ -6,9 +6,10 @@ interface LandingPageProps {
   onPatientView: (data: any) => void;
   onClinicView: (credentials: any) => void;
   onSuperAdminView: (token: string) => void;
+  onCardholderView: (prefilledData?: { control: string; passcode: string }) => void;
 }
 
-export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: LandingPageProps) {
+export function LandingPage({ onPatientView, onClinicView, onSuperAdminView, onCardholderView }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
   const [cardControl, setCardControl] = useState('');
   const [cardPasscode, setCardPasscode] = useState('');
@@ -25,23 +26,12 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
 
   const handlePatientLookup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
-    try {
-      const card = await dbOperations.getCardByControlNumber(cardControl, cardPasscode);
-
-      if (card) {
-        onPatientView(card);
-      } else {
-        setError('Invalid control number or passcode');
-      }
-    } catch (err) {
-      console.error('Error looking up card:', err);
-      setError('Card not found or invalid credentials');
-    } finally {
-      setLoading(false);
-    }
+    // Pass the entered values to the enhanced cardholder view
+    onCardholderView({
+      control: cardControl,
+      passcode: cardPasscode
+    });
   };
 
   const handleClinicLogin = async (e: React.FormEvent) => {
@@ -204,26 +194,24 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
                 <form onSubmit={handlePatientLookup} className="space-y-4" onClick={e => e.stopPropagation()}>
                   <input
                     type="text"
-                    placeholder="Control Number (e.g. MO-001)"
+                    placeholder="Control Number (e.g. MOC-001)"
                     value={cardControl}
                     onChange={(e) => setCardControl(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   <input
                     type="password"
-                    placeholder="6-Digit Passcode"
+                    placeholder="Passcode (e.g. CAV1234)"
                     value={cardPasscode}
                     onChange={(e) => setCardPasscode(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 text-white py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    className="w-full bg-blue-600 text-white py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors"
                   >
-                    {loading ? 'Verifying...' : 'Access Card →'}
+                    Check Card Status →
                   </button>
-                  {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                 </form>
               )}
             </div>
