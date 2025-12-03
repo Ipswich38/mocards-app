@@ -50,7 +50,6 @@ export function ProductionClinicDashboard({
   const [foundCard, setFoundCard] = useState<any>(null);
   const [cards, setCards] = useState<any[]>([]);
   const [sales, setSales] = useState<ClinicSale[]>([]);
-  const [redemptions, setRedemptions] = useState<any[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -85,14 +84,7 @@ export function ProductionClinicDashboard({
     }
   };
 
-  const loadRedemptions = async () => {
-    try {
-      const redemptionsData = await productionOperations.getClinicPerkRedemptions(clinicId);
-      setRedemptions(redemptionsData);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load redemptions');
-    }
-  };
+  // Removed unused loadRedemptions function
 
   const handleActivateCard = async (e: React.FormEvent) => {
     e.preventDefault();
