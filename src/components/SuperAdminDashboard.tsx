@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CardGenerationSystem } from './CardGenerationSystem';
 import { ProductionClinicManagement } from './ProductionClinicManagement';
+import { AdminCardManagement } from './AdminCardManagement';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -8,7 +9,7 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'clinics' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'enhanced' | 'clinics' | 'analytics'>('overview');
 
   // Mock admin user ID - in production, get this from JWT token
   const adminUserId = '609e400b-27bf-476a-a5f5-7d793d85293f'; // Demo admin ID
@@ -51,6 +52,16 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
               }`}
             >
               Card Generation
+            </button>
+            <button
+              onClick={() => setActiveTab('enhanced')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'enhanced'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Enhanced Cards
             </button>
             <button
               onClick={() => setActiveTab('clinics')}
@@ -131,6 +142,12 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
         {activeTab === 'cards' && (
           <div className="space-y-6">
             <CardGenerationSystem adminUserId={adminUserId} />
+          </div>
+        )}
+
+        {activeTab === 'enhanced' && (
+          <div className="space-y-6">
+            <AdminCardManagement adminUserId={adminUserId} />
           </div>
         )}
 
