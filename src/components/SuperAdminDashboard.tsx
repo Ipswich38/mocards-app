@@ -11,7 +11,7 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'clinics' | 'analytics'>('overview');
 
   // Mock admin user ID - in production, get this from JWT token
-  const adminUserId = 'admin-user-id';
+  const adminUserId = '609e400b-27bf-476a-a5f5-7d793d85293f'; // Demo admin ID
 
 
   return (

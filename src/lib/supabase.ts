@@ -76,7 +76,7 @@ export const dbOperations = {
   // Card operations
   async createCardBatch(batchData: { batch_number: string; total_cards: number; created_by: string }) {
     const { data, error } = await supabase
-      .from('mocards.card_batches')
+      .from('card_batches')
       .insert(batchData)
       .select()
       .single();
@@ -87,7 +87,7 @@ export const dbOperations = {
 
   async createCard(cardData: Omit<Card, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await supabase
-      .from('mocards.cards')
+      .from('cards')
       .insert(cardData)
       .select()
       .single();
@@ -98,10 +98,10 @@ export const dbOperations = {
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
     let query = supabase
-      .from('mocards.cards')
+      .from('cards')
       .select(`
         *,
-        clinic:clinics(*),
+        clinic:mocards_clinics(*),
         perks:card_perks(*)
       `)
       .eq('control_number', controlNumber);
@@ -117,7 +117,7 @@ export const dbOperations = {
 
   async activateCard(cardId: string, clinicId: string) {
     const { data, error } = await supabase
-      .from('mocards.cards')
+      .from('cards')
       .update({
         status: 'activated',
         assigned_clinic_id: clinicId,
@@ -153,7 +153,7 @@ export const dbOperations = {
   // Clinic operations
   async createClinic(clinicData: Omit<Clinic, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await supabase
-      .from('clinics')
+      .from('mocards_clinics')
       .insert({
         ...clinicData,
         created_at: new Date().toISOString(),
@@ -168,7 +168,7 @@ export const dbOperations = {
 
   async getClinicByCode(clinicCode: string) {
     const { data, error } = await supabase
-      .from('clinics')
+      .from('mocards_clinics')
       .select('*')
       .eq('clinic_code', clinicCode)
       .single();
@@ -179,7 +179,7 @@ export const dbOperations = {
 
   async getClinicCards(clinicId: string) {
     const { data, error } = await supabase
-      .from('mocards.cards')
+      .from('cards')
       .select(`
         *,
         perks:card_perks(*)
@@ -208,7 +208,7 @@ export const dbOperations = {
   // Admin operations
   async createAdminUser(userData: { username: string; password_hash: string; role?: string }) {
     const { data, error } = await supabase
-      .from('admin_users')
+      .from('mocards_admin_users')
       .insert({
         ...userData,
         created_at: new Date().toISOString()
@@ -222,7 +222,7 @@ export const dbOperations = {
 
   async getAdminByUsername(username: string) {
     const { data, error } = await supabase
-      .from('admin_users')
+      .from('mocards_admin_users')
       .select('*')
       .eq('username', username)
       .single();
