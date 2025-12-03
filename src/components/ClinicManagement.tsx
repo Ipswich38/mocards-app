@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Clinic } from '../lib/supabase';
+import bcrypt from 'bcryptjs';
 
 interface ClinicManagementProps {
   adminUserId: string;
@@ -56,8 +57,9 @@ export function ClinicManagement({ adminUserId }: ClinicManagementProps) {
         newClinic.clinic_code = `CLINIC${timestamp}`;
       }
 
-      // Hash password (in production, use proper bcrypt)
-      const passwordHash = btoa(newClinic.password); // Base64 encoding for demo
+      // Hash password using bcrypt
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(newClinic.password, saltRounds);
 
       const clinicData = {
         clinic_code: newClinic.clinic_code,

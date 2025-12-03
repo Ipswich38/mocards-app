@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { dbOperations } from '../lib/supabase';
+import bcrypt from 'bcryptjs';
 
 interface LandingPageProps {
   onPatientView: (data: any) => void;
@@ -52,8 +53,8 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
       const clinic = await dbOperations.getClinicByCode(clinicCode);
 
       if (clinic) {
-        // In production, use proper password hashing comparison
-        const isValidPassword = btoa(clinicPassword) === clinic.password_hash;
+        // Use bcrypt to compare the password with the stored hash
+        const isValidPassword = await bcrypt.compare(clinicPassword, clinic.password_hash);
 
         if (isValidPassword) {
           onClinicView({
@@ -85,8 +86,8 @@ export function LandingPage({ onPatientView, onClinicView, onSuperAdminView }: L
       const admin = await dbOperations.getAdminByUsername(adminUser);
 
       if (admin) {
-        // For demo, using simple password check. In production, use proper bcrypt
-        const isValidPassword = adminPass === 'admin123'; // Default password from setup
+        // Use bcrypt to compare the password with the stored hash
+        const isValidPassword = await bcrypt.compare(adminPass, admin.password_hash);
 
         if (isValidPassword) {
           onSuperAdminView(`admin-${admin.id}`);
