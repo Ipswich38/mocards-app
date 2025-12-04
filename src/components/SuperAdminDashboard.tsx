@@ -18,13 +18,12 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Admin Legal Notice */}
-      <div className="bg-red-50 border-b border-red-200 py-3 px-4">
+      {/* Admin Notice */}
+      <div className="bg-gray-50 border-b border-gray-200 py-3 px-4">
         <div className="max-w-7xl mx-auto">
-          <p className="text-sm text-red-800 text-center">
-            🚨 <strong>ADMIN RESPONSIBILITY:</strong> You are solely responsible for platform compliance and lawful use.
-            <span className="ml-2">Platform developer assumes no liability for operations or misuse.</span>
-            <span className="ml-2 font-semibold">Use for legitimate dental loyalty programs only.</span>
+          <p className="text-sm text-gray-700 text-center">
+            🔧 <strong>Admin Dashboard:</strong> Manage your MOCARDS platform responsibly.
+            <span className="ml-2 text-gray-600">For legitimate dental loyalty programs • Review Legal Disclaimer for important terms</span>
           </p>
         </div>
       </div>

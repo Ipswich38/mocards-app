@@ -155,7 +155,7 @@ export function LegalFooter() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-600">
-              © 2024 MOCARDS Platform. For legitimate dental clinic use only.
+              © 2025 MOCARDS Platform. Empowering dental clinics with smart loyalty solutions.
             </div>
 
             <div className="flex space-x-6 text-sm">
@@ -179,10 +179,8 @@ export function LegalFooter() {
               </button>
             </div>
           </div>
-
-          <div className="mt-4 pt-4 border-t text-xs text-gray-500 text-center">
-            <p>⚠️ This platform is for card management only. No financial transactions are processed through this system.</p>
-            <p className="mt-1">Platform developed as contracted technical service. Developer assumes no liability for platform use or misuse.</p>
+            <div className="mt-4 pt-4 border-t text-xs text-gray-400 text-center">
+            <p>Secure loyalty card management • No payment processing • View our Legal Disclaimer for important information</p>
           </div>
         </div>
       </footer>

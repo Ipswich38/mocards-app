@@ -149,13 +149,12 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView }
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Legal Notice Banner */}
-      <div className="bg-yellow-50 border-b border-yellow-200 py-2 px-4">
+      {/* Notice Banner */}
+      <div className="bg-blue-50 border-b border-blue-200 py-2 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-xs text-yellow-800">
-            ⚠️ <strong>LEGAL NOTICE:</strong> This platform is for legitimate dental clinic loyalty programs only.
-            No financial transactions are processed through this system.
-            <span className="ml-2 text-yellow-700">Platform developed as contracted service - developer assumes no liability for misuse.</span>
+          <p className="text-xs text-blue-800">
+            ✨ <strong>Welcome to MOCARDS:</strong> Secure loyalty card management for dental clinics and patients.
+            <span className="ml-2 text-blue-700">No payment processing • Card management only</span>
           </p>
         </div>
       </div>
