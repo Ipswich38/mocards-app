@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { CardGenerationSystem } from './CardGenerationSystem';
 import { ProductionClinicManagement } from './ProductionClinicManagement';
 import { AdminCardManagement } from './AdminCardManagement';
 import { AdminCardAssignment } from './AdminCardAssignment';
@@ -10,7 +9,7 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'enhanced' | 'assignment' | 'clinics' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'clinics' | 'analytics'>('overview');
 
   // Mock admin user ID - in production, get this from JWT token
   const adminUserId = '609e400b-27bf-476a-a5f5-7d793d85293f'; // Demo admin ID
@@ -54,16 +53,6 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
               Overview
             </button>
             <button
-              onClick={() => setActiveTab('cards')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'cards'
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              Card Generation
-            </button>
-            <button
               onClick={() => setActiveTab('enhanced')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'enhanced'
@@ -71,7 +60,7 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              Enhanced Cards
+              MOCARDS Generator
             </button>
             <button
               onClick={() => setActiveTab('assignment')}
@@ -156,12 +145,6 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'cards' && (
-          <div className="space-y-6">
-            <CardGenerationSystem adminUserId={adminUserId} />
           </div>
         )}
 
