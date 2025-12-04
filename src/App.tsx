@@ -20,11 +20,6 @@ export default function App() {
     setAdminToken(null);
   };
 
-  const handlePatientView = (data: any) => {
-    setCardData(data);
-    setViewMode('patient');
-  };
-
   const handleClinicView = (credentials: any) => {
     setClinicCredentials(credentials);
     setViewMode('clinic');
@@ -44,7 +39,6 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       {viewMode === 'landing' && (
         <LandingPage
-          onPatientView={handlePatientView}
           onClinicView={handleClinicView}
           onSuperAdminView={handleSuperAdminView}
           onCardholderView={handleCardholderView}

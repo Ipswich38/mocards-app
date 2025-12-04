@@ -3,13 +3,12 @@ import { dbOperations } from '../lib/supabase';
 import bcrypt from 'bcryptjs';
 
 interface LandingPageProps {
-  onPatientView: (data: any) => void;
   onClinicView: (credentials: any) => void;
   onSuperAdminView: (token: string) => void;
   onCardholderView: (prefilledData?: { control: string; passcode: string }) => void;
 }
 
-export function LandingPage({ onPatientView, onClinicView, onSuperAdminView, onCardholderView }: LandingPageProps) {
+export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
   const [cardControl, setCardControl] = useState('');
   const [cardPasscode, setCardPasscode] = useState('');

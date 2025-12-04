@@ -52,8 +52,7 @@ export const enhancedCardSystem = {
   // Generate enhanced card batches with metadata
   async createEnhancedCardBatch(
     adminUserId: string,
-    totalCards: number = 10,
-    distributionPlan?: string
+    totalCards: number = 10
   ): Promise<{ batch: EnhancedCardBatch; cards: EnhancedCardData[] }> {
     try {
       // Generate unique batch number with timestamp

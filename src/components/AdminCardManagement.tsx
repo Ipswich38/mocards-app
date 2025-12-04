@@ -20,8 +20,7 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
     try {
       const result = await enhancedCardSystem.createEnhancedCardBatch(
         adminUserId,
-        batchCount,
-        distributionPlan
+        batchCount
       );
 
       setLastBatch(result.batch);

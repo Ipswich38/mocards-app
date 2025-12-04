@@ -162,14 +162,6 @@ export function AdminCardAssignment() {
     }
   };
 
-  const getClinicAssignedCards = async (clinicId: string) => {
-    const { data, error } = await supabase
-      .from('cards')
-      .select('id', { count: 'exact', head: true })
-      .eq('assigned_clinic_id', clinicId);
-
-    return error ? 0 : (data?.length || 0);
-  };
 
   return (
     <div className="space-y-6">
