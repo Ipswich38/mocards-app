@@ -149,6 +149,17 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView }
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Legal Notice Banner */}
+      <div className="bg-yellow-50 border-b border-yellow-200 py-2 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-xs text-yellow-800">
+            ⚠️ <strong>LEGAL NOTICE:</strong> This platform is for legitimate dental clinic loyalty programs only.
+            No financial transactions are processed through this system.
+            <span className="ml-2 text-yellow-700">Platform developed as contracted service - developer assumes no liability for misuse.</span>
+          </p>
+        </div>
+      </div>
+
       <header className="py-8 px-6 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white text-xl font-bold">M</div>

@@ -18,6 +18,16 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Admin Legal Notice */}
+      <div className="bg-red-50 border-b border-red-200 py-3 px-4">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-sm text-red-800 text-center">
+            🚨 <strong>ADMIN RESPONSIBILITY:</strong> You are solely responsible for platform compliance and lawful use.
+            <span className="ml-2">Platform developer assumes no liability for operations or misuse.</span>
+            <span className="ml-2 font-semibold">Use for legitimate dental loyalty programs only.</span>
+          </p>
+        </div>
+      </div>
       <div className="bg-white border-b border-gray-200 py-6 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">

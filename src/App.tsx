@@ -4,6 +4,7 @@ import { PatientCardView } from './components/PatientCardView';
 import { ProductionClinicDashboard } from './components/ProductionClinicDashboard';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { CardholderLookup } from './components/CardholderLookup';
+import { LegalFooter } from './components/LegalFooter';
 
 export type ViewMode = 'landing' | 'patient' | 'clinic' | 'superadmin' | 'cardholder';
 
@@ -81,6 +82,8 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <LegalFooter />
     </div>
   );
 }
