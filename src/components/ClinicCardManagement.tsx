@@ -125,16 +125,24 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
 
     try {
       // Find the card
-      const { data: card, error: cardError } = await supabase
+      const { data: cards, error: cardError } = await supabase
         .from('cards')
         .select('*')
         .eq('control_number', activationForm.control_number)
         .eq('assigned_clinic_id', clinicId)
-        .eq('status', 'unactivated')
-        .single();
+        .eq('status', 'unactivated');
 
       if (cardError) throw cardError;
-      if (!card) throw new Error('Card not found or already activated');
+
+      if (!cards || cards.length === 0) {
+        throw new Error('Card not found. Please check the control number or ensure the card is assigned to your clinic and not already activated.');
+      }
+
+      if (cards.length > 1) {
+        throw new Error('Multiple cards found with the same control number. Please contact support.');
+      }
+
+      const card = cards[0];
 
       // Complete passcode with clinic location code
       const completePasscode = `${clinicCode}${card.passcode}`;
