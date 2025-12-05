@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { dbOperations, Card } from '../lib/supabase';
+import { dbOperations, Card, Appointment } from '../lib/supabase';
 
 interface ClinicDashboardProps {
   clinicCredentials: {
@@ -12,21 +12,24 @@ interface ClinicDashboardProps {
 }
 
 export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'redemptions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'redemptions' | 'appointments'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchControl, setSearchControl] = useState('');
   const [foundCard, setFoundCard] = useState<Card | null>(null);
   const [clinicCards, setClinicCards] = useState<Card[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState({
     activeCards: 0,
     todayRedemptions: 0,
-    totalValue: 0
+    totalValue: 0,
+    pendingAppointments: 0
   });
 
   useEffect(() => {
     loadClinicCards();
     loadStats();
+    loadAppointments();
   }, []);
 
   const loadClinicCards = async () => {
@@ -60,9 +63,27 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         });
       });
 
-      setStats({ activeCards, todayRedemptions, totalValue });
+      // Load appointments to get pending count
+      const appointmentsData = await dbOperations.getAppointments({
+        clinic_id: clinicCredentials.clinicId,
+        status: 'waiting_for_approval'
+      });
+      const pendingAppointments = appointmentsData.length;
+
+      setStats({ activeCards, todayRedemptions, totalValue, pendingAppointments });
     } catch (err) {
       console.error('Error loading stats:', err);
+    }
+  };
+
+  const loadAppointments = async () => {
+    try {
+      const appointmentsData = await dbOperations.getAppointments({
+        clinic_id: clinicCredentials.clinicId
+      });
+      setAppointments(appointmentsData);
+    } catch (err) {
+      console.error('Error loading appointments:', err);
     }
   };
 
@@ -158,6 +179,96 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     return names[perkType] || perkType;
   };
 
+  const handleApproveAppointment = async (appointmentId: string) => {
+    try {
+      await dbOperations.updateAppointmentStatus(
+        appointmentId,
+        'approved',
+        'clinic',
+        clinicCredentials.clinicId,
+        'Appointment approved by clinic'
+      );
+
+      await dbOperations.createAppointmentNotification({
+        appointment_id: appointmentId,
+        notification_type: 'approved',
+        recipient_type: 'admin',
+        message: 'Appointment has been approved by the clinic'
+      });
+
+      loadAppointments();
+      loadStats();
+      setError('');
+    } catch (err) {
+      console.error('Error approving appointment:', err);
+      setError('Failed to approve appointment');
+    }
+  };
+
+  const handleRequestReschedule = async (appointmentId: string) => {
+    try {
+      await dbOperations.updateAppointmentStatus(
+        appointmentId,
+        'pending_reschedule',
+        'clinic',
+        clinicCredentials.clinicId,
+        'Clinic requested reschedule'
+      );
+
+      await dbOperations.createAppointmentNotification({
+        appointment_id: appointmentId,
+        notification_type: 'reschedule_request',
+        recipient_type: 'admin',
+        message: 'Clinic has requested to reschedule this appointment'
+      });
+
+      loadAppointments();
+      loadStats();
+      setError('');
+    } catch (err) {
+      console.error('Error requesting reschedule:', err);
+      setError('Failed to request reschedule');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'waiting_for_approval':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'approved':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending_reschedule':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'approved_reschedule':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'waiting_for_approval':
+        return 'Waiting for Approval';
+      case 'approved':
+        return 'Approved';
+      case 'pending_reschedule':
+        return 'Reschedule Requested';
+      case 'approved_reschedule':
+        return 'Rescheduled';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'completed':
+        return 'Completed';
+      default:
+        return status;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 py-6 px-6">
@@ -206,6 +317,21 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
             >
               Redemptions
             </button>
+            <button
+              onClick={() => setActiveTab('appointments')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                activeTab === 'appointments'
+                  ? 'bg-teal-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Appointments
+              {stats.pendingAppointments > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {stats.pendingAppointments}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -219,7 +345,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
 
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Active Cards</div>
                 <div className="text-3xl text-gray-900 mb-1">{stats.activeCards}</div>
@@ -229,6 +355,11 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                 <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Redemptions Today</div>
                 <div className="text-3xl text-gray-900 mb-1">{stats.todayRedemptions}</div>
                 <div className="text-sm text-gray-500">Perks redeemed today</div>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Pending Appointments</div>
+                <div className="text-3xl text-gray-900 mb-1">{stats.pendingAppointments}</div>
+                <div className="text-sm text-gray-500">Awaiting your approval</div>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Total Value</div>
@@ -361,6 +492,150 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'appointments' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Appointment Management</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Review and manage appointment requests from cardholders. Approve appointments or request reschedule if needed.
+              </p>
+
+              {appointments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No appointments found for your clinic.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {appointments.map((appointment) => (
+                    <div key={appointment.id} className="border border-gray-200 rounded-xl p-6 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h4 className="text-lg font-medium text-gray-900">
+                              {getPerkDisplayName(appointment.perk_type)}
+                            </h4>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(appointment.status)}`}>
+                              {getStatusLabel(appointment.status)}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
+                            <div>
+                              <strong>Date:</strong> {new Date(appointment.appointment_date).toLocaleDateString()}
+                            </div>
+                            <div>
+                              <strong>Time:</strong> {appointment.appointment_time}
+                            </div>
+                            <div>
+                              <strong>Card:</strong> {appointment.control_number}
+                            </div>
+                            <div>
+                              <strong>Day:</strong> {new Date(appointment.appointment_date).toLocaleDateString(undefined, { weekday: 'long' })}
+                            </div>
+                          </div>
+
+                          {appointment.cardholder_phone && (
+                            <div className="text-sm text-gray-600 mb-2">
+                              <strong>Contact:</strong> {appointment.cardholder_phone}
+                              {appointment.cardholder_email && ` | ${appointment.cardholder_email}`}
+                            </div>
+                          )}
+
+                          {appointment.cardholder_notes && (
+                            <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                              <div className="text-sm font-medium text-blue-900 mb-1">Patient Notes:</div>
+                              <div className="text-sm text-blue-700">{appointment.cardholder_notes}</div>
+                            </div>
+                          )}
+
+                          {appointment.admin_notes && (
+                            <div className="bg-gray-50 p-3 rounded-lg mb-3">
+                              <div className="text-sm font-medium text-gray-900 mb-1">Admin Notes:</div>
+                              <div className="text-sm text-gray-700">{appointment.admin_notes}</div>
+                            </div>
+                          )}
+
+                          {appointment.reschedule_reason && (
+                            <div className="bg-orange-50 p-3 rounded-lg mb-3">
+                              <div className="text-sm font-medium text-orange-900 mb-1">Reschedule Reason:</div>
+                              <div className="text-sm text-orange-700">{appointment.reschedule_reason}</div>
+                            </div>
+                          )}
+
+                          <div className="text-xs text-gray-400">
+                            Booked on {new Date(appointment.created_at).toLocaleString()}
+                          </div>
+                        </div>
+
+                        {appointment.status === 'waiting_for_approval' && (
+                          <div className="flex gap-3 ml-6">
+                            <button
+                              onClick={() => handleApproveAppointment(appointment.id)}
+                              className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleRequestReschedule(appointment.id)}
+                              className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+                            >
+                              Request Reschedule
+                            </button>
+                          </div>
+                        )}
+
+                        {appointment.status === 'approved' && (
+                          <div className="ml-6">
+                            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-medium">
+                              ✓ Approved
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {appointment.approved_at && `Approved ${new Date(appointment.approved_at).toLocaleString()}`}
+                            </div>
+                          </div>
+                        )}
+
+                        {(appointment.status === 'pending_reschedule' || appointment.status === 'approved_reschedule') && (
+                          <div className="ml-6">
+                            <div className="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg text-sm font-medium">
+                              📅 Reschedule Requested
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Waiting for new date/time
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div className="text-sm font-medium text-gray-500 mb-2">Pending Approval</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {appointments.filter(a => a.status === 'waiting_for_approval').length}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div className="text-sm font-medium text-gray-500 mb-2">Approved</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {appointments.filter(a => a.status === 'approved').length}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div className="text-sm font-medium text-gray-500 mb-2">Reschedule Requests</div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {appointments.filter(a => a.status === 'pending_reschedule' || a.status === 'approved_reschedule').length}
+                </div>
+              </div>
             </div>
           </div>
         )}

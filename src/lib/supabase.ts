@@ -71,6 +71,57 @@ export interface AdminUser {
   created_at: string;
 }
 
+export interface Appointment {
+  id: string;
+  card_id?: string;
+  control_number: string;
+  passcode: string;
+  appointment_date: string;
+  appointment_time: string;
+  perk_type: string;
+  cardholder_phone?: string;
+  cardholder_email?: string;
+  cardholder_notes?: string;
+  assigned_clinic_id?: string;
+  status: 'waiting_for_approval' | 'approved' | 'pending_reschedule' | 'approved_reschedule' | 'cancelled' | 'completed';
+  booked_by_admin_id?: string;
+  approved_by_clinic_id?: string;
+  approved_at?: string;
+  original_date?: string;
+  original_time?: string;
+  reschedule_reason?: string;
+  reschedule_requested_at?: string;
+  reschedule_approved_at?: string;
+  clinic_contact_notes?: string;
+  admin_notes?: string;
+  created_at: string;
+  updated_at: string;
+  clinic?: Clinic;
+  card?: Card;
+}
+
+export interface AppointmentStatusHistory {
+  id: string;
+  appointment_id: string;
+  old_status?: string;
+  new_status: string;
+  changed_by: 'admin' | 'clinic';
+  changed_by_id?: string;
+  reason?: string;
+  created_at: string;
+}
+
+export interface AppointmentNotification {
+  id: string;
+  appointment_id: string;
+  notification_type: 'booking_request' | 'approved' | 'reschedule_request' | 'cancelled';
+  recipient_type: 'admin' | 'clinic' | 'cardholder';
+  recipient_id?: string;
+  message?: string;
+  read_at?: string;
+  created_at: string;
+}
+
 // Utility functions for database operations
 export const dbOperations = {
   // Card operations
@@ -229,6 +280,179 @@ export const dbOperations = {
 
     if (error) throw error;
     return data as AdminUser;
+  },
+
+  // Appointment operations
+  async createAppointment(appointmentData: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert({
+        ...appointmentData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Appointment;
+  },
+
+  async getAppointments(filters?: {
+    status?: string;
+    clinic_id?: string;
+    admin_id?: string;
+    date_from?: string;
+    date_to?: string;
+  }) {
+    let query = supabase
+      .from('appointments')
+      .select(`
+        *,
+        clinic:mocards_clinics(*),
+        card:cards(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.clinic_id) {
+      query = query.eq('assigned_clinic_id', filters.clinic_id);
+    }
+    if (filters?.admin_id) {
+      query = query.eq('booked_by_admin_id', filters.admin_id);
+    }
+    if (filters?.date_from) {
+      query = query.gte('appointment_date', filters.date_from);
+    }
+    if (filters?.date_to) {
+      query = query.lte('appointment_date', filters.date_to);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Appointment[];
+  },
+
+  async getAppointmentById(id: string) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        clinic:mocards_clinics(*),
+        card:cards(*)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as Appointment;
+  },
+
+  async updateAppointmentStatus(
+    appointmentId: string,
+    newStatus: Appointment['status'],
+    changedBy: 'admin' | 'clinic',
+    changedById: string,
+    reason?: string
+  ) {
+    const { data, error } = await supabase.rpc('update_appointment_status', {
+      p_appointment_id: appointmentId,
+      p_new_status: newStatus,
+      p_changed_by: changedBy,
+      p_changed_by_id: changedById,
+      p_reason: reason
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  async rescheduleAppointment(
+    appointmentId: string,
+    newDate: string,
+    newTime: string,
+    rescheduleReason: string,
+    changedBy: 'admin' | 'clinic',
+    changedById: string
+  ) {
+    const { data, error } = await supabase.rpc('reschedule_appointment', {
+      p_appointment_id: appointmentId,
+      p_new_date: newDate,
+      p_new_time: newTime,
+      p_reschedule_reason: rescheduleReason,
+      p_changed_by: changedBy,
+      p_changed_by_id: changedById
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getAppointmentHistory(appointmentId: string) {
+    const { data, error } = await supabase
+      .from('appointment_status_history')
+      .select('*')
+      .eq('appointment_id', appointmentId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data as AppointmentStatusHistory[];
+  },
+
+  async createAppointmentNotification(notificationData: Omit<AppointmentNotification, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('appointment_notifications')
+      .insert({
+        ...notificationData,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as AppointmentNotification;
+  },
+
+  async getUnreadNotifications(recipientType: 'admin' | 'clinic' | 'cardholder', recipientId?: string) {
+    let query = supabase
+      .from('appointment_notifications')
+      .select('*')
+      .eq('recipient_type', recipientType)
+      .is('read_at', null)
+      .order('created_at', { ascending: false });
+
+    if (recipientId) {
+      query = query.eq('recipient_id', recipientId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as AppointmentNotification[];
+  },
+
+  async markNotificationAsRead(notificationId: string) {
+    const { data, error } = await supabase
+      .from('appointment_notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', notificationId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as AppointmentNotification;
+  },
+
+  async getAllClinics() {
+    const { data, error } = await supabase
+      .from('mocards_clinics')
+      .select('*')
+      .eq('status', 'active')
+      .order('clinic_name');
+
+    if (error) throw error;
+    return data as Clinic[];
   }
 };
 

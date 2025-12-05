@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ProductionClinicManagement } from './ProductionClinicManagement';
 import { AdminCardManagement } from './AdminCardManagement';
 import { AdminCardAssignment } from './AdminCardAssignment';
+import { AdminAppointmentBooking } from './AdminAppointmentBooking';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -9,7 +10,7 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'clinics' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics'>('overview');
 
   // Mock admin user ID - in production, get this from JWT token
   const adminUserId = '609e400b-27bf-476a-a5f5-7d793d85293f'; // Demo admin ID
@@ -71,6 +72,16 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
               }`}
             >
               Card Assignment
+            </button>
+            <button
+              onClick={() => setActiveTab('appointments')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'appointments'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Appointments
             </button>
             <button
               onClick={() => setActiveTab('clinics')}
@@ -157,6 +168,12 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
         {activeTab === 'assignment' && (
           <div className="space-y-6">
             <AdminCardAssignment />
+          </div>
+        )}
+
+        {activeTab === 'appointments' && (
+          <div className="space-y-6">
+            <AdminAppointmentBooking adminUserId={adminUserId} />
           </div>
         )}
 
