@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CalendarPickerProps {
   selectedDate: string;
@@ -39,7 +39,6 @@ export function CalendarPicker({
   // Generate calendar days
   const generateCalendarDays = () => {
     const firstDay = new Date(currentMonth);
-    const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
 
