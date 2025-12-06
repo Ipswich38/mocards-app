@@ -3,6 +3,7 @@ import { ProductionClinicManagement } from './ProductionClinicManagement';
 import { AdminCardManagement } from './AdminCardManagement';
 import { AdminCardAssignment } from './AdminCardAssignment';
 import { AdminAppointmentBooking } from './AdminAppointmentBooking';
+import { AnalyticsDashboard } from './AnalyticsDashboard';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -185,19 +186,7 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Usage Analytics</h3>
-              <div className="text-center py-8 text-gray-500">
-                Analytics dashboard coming soon. Monitor system usage, popular perks, and clinic performance.
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-              <div className="text-center py-8 text-gray-500">
-                No recent system activity to display.
-              </div>
-            </div>
+            <AnalyticsDashboard />
           </div>
         )}
       </div>

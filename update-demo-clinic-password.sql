@@ -5,6 +5,7 @@ SET password_hash = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/ig
 WHERE clinic_code = 'DEMO001';
 
 -- Verify the update
+
 SELECT 'Updated Demo Clinic Password:' as status,
        clinic_code,
        clinic_name,
