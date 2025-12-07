@@ -4,6 +4,7 @@ import { AdminCardManagement } from './AdminCardManagement';
 import { AdminCardAssignment } from './AdminCardAssignment';
 import { AdminAppointmentBooking } from './AdminAppointmentBooking';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { useAutoLogout } from '../hooks/useAutoLogout';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -12,9 +13,36 @@ interface SuperAdminDashboardProps {
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics'>('overview');
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
 
   // Mock admin user ID - in production, get this from JWT token
   const adminUserId = '609e400b-27bf-476a-a5f5-7d793d85293f'; // Demo admin ID
+
+  const handleLogout = () => {
+    // Clear any stored admin session data
+    localStorage.removeItem('admin-session');
+    sessionStorage.removeItem('admin-token');
+
+    // Navigate back to login
+    onBack();
+  };
+
+  const handleWarning = () => {
+    setShowLogoutWarning(true);
+  };
+
+  const extendSession = () => {
+    setShowLogoutWarning(false);
+    // resetTimer is called automatically by user activity
+  };
+
+  // Auto-logout after 30 minutes of inactivity
+  useAutoLogout({
+    onLogout: handleLogout,
+    timeout: 30 * 60 * 1000, // 30 minutes
+    warningTime: 5 * 60 * 1000, // 5 minutes before timeout
+    onWarning: handleWarning
+  });
 
 
   return (
@@ -49,6 +77,18 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
                 <div className="text-lg text-gray-900 tracking-tight">Admin</div>
               </div>
             </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="text-xs sm:text-sm text-gray-500 hover:text-red-600 transition-colors uppercase tracking-wider hover:bg-red-50 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border border-transparent hover:border-red-200"
+              title="Logout"
+            >
+              <span className="hidden sm:inline">Logout</span>
+              <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
 
           <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
@@ -198,6 +238,39 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
           </div>
         )}
       </div>
+
+      {/* Auto-logout Warning Modal */}
+      {showLogoutWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 mb-4">
+                <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.866-.833-2.636 0L3.168 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Session Expiring Soon</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Your admin session will expire in 5 minutes due to inactivity. Would you like to extend your session?
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={extendSession}
+                  className="bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors"
+                >
+                  Extend Session
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-gray-200 text-gray-900 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Logout Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

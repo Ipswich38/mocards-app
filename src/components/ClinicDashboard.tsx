@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Card, Appointment } from '../lib/supabase';
+import { useAutoLogout } from '../hooks/useAutoLogout';
 
 interface ClinicDashboardProps {
   clinicCredentials: {
@@ -19,11 +20,38 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
   const [foundCard, setFoundCard] = useState<Card | null>(null);
   const [clinicCards, setClinicCards] = useState<Card[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [stats, setStats] = useState({
     activeCards: 0,
     todayRedemptions: 0,
     totalValue: 0,
     pendingAppointments: 0
+  });
+
+  const handleLogout = () => {
+    // Clear any stored clinic session data
+    localStorage.removeItem('clinic-session');
+    sessionStorage.removeItem('clinic-token');
+
+    // Navigate back to login
+    onBack();
+  };
+
+  const handleWarning = () => {
+    setShowLogoutWarning(true);
+  };
+
+  const extendSession = () => {
+    setShowLogoutWarning(false);
+    // resetTimer is called automatically by user activity
+  };
+
+  // Auto-logout after 30 minutes of inactivity
+  useAutoLogout({
+    onLogout: handleLogout,
+    timeout: 30 * 60 * 1000, // 30 minutes
+    warningTime: 5 * 60 * 1000, // 5 minutes before timeout
+    onWarning: handleWarning
   });
 
   useEffect(() => {
@@ -273,7 +301,8 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 py-4 sm:py-6 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Header with title and logout */}
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 sm:gap-6">
               <button
                 onClick={onBack}
@@ -287,7 +316,21 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
               </div>
             </div>
 
-            <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="text-xs sm:text-sm text-gray-500 hover:text-red-600 transition-colors uppercase tracking-wider hover:bg-red-50 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border border-transparent hover:border-red-200"
+              title="Logout"
+            >
+              <span className="hidden sm:inline">Logout</span>
+              <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Navigation tabs */}
+          <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
@@ -334,7 +377,6 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                 )}
               </button>
             </div>
-          </div>
         </div>
       </div>
 
@@ -642,6 +684,39 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
           </div>
         )}
       </div>
+
+      {/* Auto-logout Warning Modal */}
+      {showLogoutWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 mb-4">
+                <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.866-.833-2.636 0L3.168 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Session Expiring Soon</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Your clinic session will expire in 5 minutes due to inactivity. Would you like to extend your session?
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={extendSession}
+                  className="bg-teal-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                >
+                  Extend Session
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-gray-200 text-gray-900 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                >
+                  Logout Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
