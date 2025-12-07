@@ -4,6 +4,7 @@ import { AdminCardManagement } from './AdminCardManagement';
 import { AdminCardAssignment } from './AdminCardAssignment';
 import { AdminAppointmentBooking } from './AdminAppointmentBooking';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { AdminSystemReset } from './AdminSystemReset';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 
 interface SuperAdminDashboardProps {
@@ -12,7 +13,7 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics' | 'reset'>('overview');
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
 
   // Mock admin user ID - in production, get this from JWT token
@@ -152,6 +153,16 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
             >
               Analytics
             </button>
+            <button
+              onClick={() => setActiveTab('reset')}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'reset'
+                  ? 'bg-red-600 text-white'
+                  : 'text-red-600 hover:bg-red-50 border border-red-200'
+              }`}
+            >
+              <span className="hidden sm:inline">System</span> Reset
+            </button>
           </div>
         </div>
       </div>
@@ -235,6 +246,12 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             <AnalyticsDashboard />
+          </div>
+        )}
+
+        {activeTab === 'reset' && (
+          <div className="space-y-6">
+            <AdminSystemReset />
           </div>
         )}
       </div>
