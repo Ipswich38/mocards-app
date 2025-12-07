@@ -123,15 +123,15 @@ export function CalendarPicker({
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl p-6 shadow-sm ${className}`}>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium text-gray-900">
+    <div className={`bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm ${className}`}>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900">
           {viewMode === 'calendar' ? 'Select Date' : 'Select Time'}
         </h3>
         {viewMode === 'time' && (
           <button
             onClick={() => setViewMode('calendar')}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded"
           >
             ← Change Date
           </button>
@@ -141,23 +141,23 @@ export function CalendarPicker({
       {viewMode === 'calendar' && (
         <div>
           {/* Month Navigation */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <button
               onClick={goToPreviousMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h4 className="text-lg font-medium">
+            <h4 className="text-base sm:text-lg font-medium text-center">
               {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
             </h4>
             <button
               onClick={goToNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -166,8 +166,9 @@ export function CalendarPicker({
           {/* Day Names */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {dayNames.map(day => (
-              <div key={day} className="text-center text-xs text-gray-500 font-medium py-2">
-                {day}
+              <div key={day} className="text-center text-xs font-medium text-gray-500 py-1 sm:py-2">
+                <span className="hidden sm:inline">{day}</span>
+                <span className="sm:hidden">{day.charAt(0)}</span>
               </div>
             ))}
           </div>
@@ -180,12 +181,12 @@ export function CalendarPicker({
                 onClick={() => !day.isDisabled && handleDateSelect(day.dateStr)}
                 disabled={day.isDisabled}
                 className={`
-                  p-3 text-sm rounded-lg transition-colors relative
+                  p-2 sm:p-3 text-xs sm:text-sm rounded-lg transition-colors relative touch-manipulation min-h-[2.5rem] sm:min-h-[3rem]
                   ${!day.isCurrentMonth
                     ? 'text-gray-300'
                     : day.isDisabled
                     ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600 active:bg-blue-100'
                   }
                   ${day.isSelected ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
                   ${day.isToday && !day.isSelected ? 'bg-blue-100 text-blue-600 font-medium' : ''}
@@ -193,15 +194,15 @@ export function CalendarPicker({
               >
                 {day.day}
                 {day.isToday && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></span>
                 )}
               </button>
             ))}
           </div>
 
           {selectedDate && (
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-              <div className="text-sm text-blue-700">
+            <div className="mt-4 sm:mt-6 p-3 bg-blue-50 rounded-lg">
+              <div className="text-xs sm:text-sm text-blue-700">
                 <strong>Selected Date:</strong> {new Date(selectedDate).toLocaleDateString()}
               </div>
             </div>
@@ -212,21 +213,21 @@ export function CalendarPicker({
       {viewMode === 'time' && selectedDate && (
         <div>
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600">
+            <div className="text-xs sm:text-sm text-gray-600">
               <strong>Date:</strong> {new Date(selectedDate).toLocaleDateString()}
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
             {timeSlots.map(time => (
               <button
                 key={time}
                 onClick={() => handleTimeSelect(time)}
                 className={`
-                  p-3 text-sm rounded-lg transition-colors border
+                  p-2 sm:p-3 text-xs sm:text-sm rounded-lg transition-colors border touch-manipulation min-h-[2.5rem]
                   ${selectedTime === time
                     ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300 active:bg-blue-100'
                   }
                 `}
               >
@@ -237,7 +238,7 @@ export function CalendarPicker({
 
           {selectedTime && (
             <div className="mt-4 p-3 bg-green-50 rounded-lg">
-              <div className="text-sm text-green-700">
+              <div className="text-xs sm:text-sm text-green-700">
                 <strong>Selected Time:</strong> {selectedTime}
               </div>
             </div>
@@ -247,9 +248,9 @@ export function CalendarPicker({
 
       {/* Summary */}
       {selectedDate && selectedTime && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg border-t border-gray-200">
-          <h4 className="font-medium text-gray-900 mb-2">Appointment Summary</h4>
-          <div className="text-sm text-gray-600 space-y-1">
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-lg border-t border-gray-200">
+          <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2">Appointment Summary</h4>
+          <div className="text-xs sm:text-sm text-gray-600 space-y-1">
             <div><strong>Date:</strong> {new Date(selectedDate).toLocaleDateString()}</div>
             <div><strong>Time:</strong> {selectedTime}</div>
             <div><strong>Day:</strong> {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long' })}</div>

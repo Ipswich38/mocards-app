@@ -20,33 +20,41 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Notice */}
-      <div className="bg-gray-50 border-b border-gray-200 py-3 px-4">
+      <div className="bg-gray-50 border-b border-gray-200 py-2 sm:py-3 px-3 sm:px-4">
         <div className="max-w-7xl mx-auto">
-          <p className="text-sm text-gray-700 text-center">
-            🔧 <strong>Admin Dashboard:</strong> Manage your MOCARDS platform responsibly.
-            <span className="ml-2 text-gray-600">For legitimate dental loyalty programs • Review Legal Disclaimer for important terms</span>
+          <p className="text-xs sm:text-sm text-gray-700 text-center">
+            🔧 <strong>Admin Dashboard:</strong> Manage responsibly
+            <span className="hidden sm:inline"> your MOCARDS platform</span>.
+            <span className="block sm:inline sm:ml-2 text-gray-600 text-xs mt-1 sm:mt-0">
+              <span className="hidden sm:inline">For legitimate dental loyalty programs • </span>Review Legal Disclaimer
+            </span>
           </p>
         </div>
       </div>
-      <div className="bg-white border-b border-gray-200 py-6 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <button
-              onClick={onBack}
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors uppercase tracking-wider hover:bg-gray-50 px-4 py-2 rounded-lg"
-            >
-              ← Back
-            </button>
-            <div>
-              <div className="text-2xl text-gray-900 tracking-tight">Super Admin</div>
-              <div className="text-sm text-gray-500">System Management Portal</div>
+      <div className="bg-white border-b border-gray-200 py-4 sm:py-6 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4 sm:mb-0">
+            <div className="flex items-center gap-3 sm:gap-6">
+              <button
+                onClick={onBack}
+                className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors uppercase tracking-wider hover:bg-gray-50 px-2 sm:px-4 py-1 sm:py-2 rounded-lg"
+              >
+                ← Back
+              </button>
+              <div className="hidden sm:block">
+                <div className="text-xl sm:text-2xl text-gray-900 tracking-tight">Super Admin</div>
+                <div className="text-sm text-gray-500">System Management Portal</div>
+              </div>
+              <div className="sm:hidden">
+                <div className="text-lg text-gray-900 tracking-tight">Admin</div>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'overview'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -56,27 +64,27 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
             </button>
             <button
               onClick={() => setActiveTab('enhanced')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'enhanced'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              MOCARDS Generator
+              <span className="hidden sm:inline">MOCARDS</span> Generator
             </button>
             <button
               onClick={() => setActiveTab('assignment')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'assignment'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              Card Assignment
+              <span className="hidden sm:inline">Card</span> Assignment
             </button>
             <button
               onClick={() => setActiveTab('appointments')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'appointments'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -86,7 +94,7 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
             </button>
             <button
               onClick={() => setActiveTab('clinics')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'clinics'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -96,7 +104,7 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'analytics'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -108,29 +116,29 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Total Clinics</div>
-                <div className="text-3xl text-gray-900 mb-1">0</div>
-                <div className="text-sm text-gray-500">Registered clinics</div>
+          <div className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Clinics</div>
+                <div className="text-2xl sm:text-3xl text-gray-900 mb-1">0</div>
+                <div className="text-xs sm:text-sm text-gray-500">Registered</div>
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Total Cards</div>
-                <div className="text-3xl text-gray-900 mb-1">0</div>
-                <div className="text-sm text-gray-500">Patient cards issued</div>
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Cards</div>
+                <div className="text-2xl sm:text-3xl text-gray-900 mb-1">0</div>
+                <div className="text-xs sm:text-sm text-gray-500">Issued</div>
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
                 <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Redemptions</div>
-                <div className="text-3xl text-gray-900 mb-1">0</div>
-                <div className="text-sm text-gray-500">Total perks redeemed</div>
+                <div className="text-2xl sm:text-3xl text-gray-900 mb-1">0</div>
+                <div className="text-xs sm:text-sm text-gray-500">Total perks</div>
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">System Value</div>
-                <div className="text-3xl text-gray-900 mb-1">₱0</div>
-                <div className="text-sm text-gray-500">Total rewards value</div>
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Value</div>
+                <div className="text-2xl sm:text-3xl text-gray-900 mb-1">₱0</div>
+                <div className="text-xs sm:text-sm text-gray-500">Rewards</div>
               </div>
             </div>
 

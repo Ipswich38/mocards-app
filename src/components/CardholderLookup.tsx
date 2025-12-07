@@ -135,29 +135,29 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 p-4 sm:p-0">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
           MOCARDS Loyalty Card Checker
         </h1>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Enter your card details to check status, validity, and available perks
         </p>
       </div>
 
       {/* Lookup Form */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white shadow rounded-xl sm:rounded-lg p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Control Number
             </label>
             <input
               type="text"
               value={controlNumber}
               onChange={(e) => setControlNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-lg"
+              className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-xl font-mono text-base sm:text-lg"
               placeholder="MOC-12345678-001"
               disabled={isLoading}
             />
@@ -167,14 +167,14 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Passcode
             </label>
             <input
               type="text"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-lg"
+              className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-xl font-mono text-base sm:text-lg"
               placeholder="CAV1234"
               disabled={isLoading}
             />
@@ -186,7 +186,7 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
           <button
             type="submit"
             disabled={isLoading || !controlNumber || !passcode}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-lg font-medium"
+            className="w-full bg-blue-600 text-white py-3 sm:py-4 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg font-medium transition-colors"
           >
             {isLoading ? 'Checking Card...' : '🔍 Check Card Status'}
           </button>
@@ -201,16 +201,16 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
 
       {/* Card Details */}
       {cardDetails && (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-xl sm:rounded-lg overflow-hidden">
           {/* Card Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-bold">MOCARDS Loyalty Card</h2>
-                <p className="text-blue-100 font-mono">{cardDetails.control_number}</p>
+                <h2 className="text-xl sm:text-2xl font-bold">MOCARDS Loyalty Card</h2>
+                <p className="text-blue-100 font-mono text-sm sm:text-base break-all">{cardDetails.control_number}</p>
               </div>
-              <div className="text-right">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(cardDetails.status)}`}>
+              <div className="text-left sm:text-right">
+                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(cardDetails.status)}`}>
                   {getStatusText(cardDetails.status)}
                 </span>
               </div>
@@ -218,22 +218,22 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
           </div>
 
           {/* Card Info */}
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 sm:p-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <h3 className="font-medium text-gray-900 mb-2">Card Information</h3>
-                <div className="space-y-2 text-sm">
-                  <p><strong>Passcode:</strong> <span className="font-mono">{cardDetails.passcode}</span></p>
+                <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Card Information</h3>
+                <div className="space-y-2 text-xs sm:text-sm">
+                  <p><strong>Passcode:</strong> <span className="font-mono break-all">{cardDetails.passcode}</span></p>
                   <p><strong>Status:</strong> {getStatusText(cardDetails.status)}</p>
                   {cardDetails.clinic_name && (
-                    <p><strong>Clinic:</strong> {cardDetails.clinic_name}</p>
+                    <p><strong>Clinic:</strong> <span className="break-words">{cardDetails.clinic_name}</span></p>
                   )}
                 </div>
               </div>
 
               <div>
-                <h3 className="font-medium text-gray-900 mb-2">Validity</h3>
-                <div className="space-y-2 text-sm">
+                <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Validity</h3>
+                <div className="space-y-2 text-xs sm:text-sm">
                   {cardDetails.activated_at && (
                     <p><strong>Activated:</strong> {new Date(cardDetails.activated_at).toLocaleDateString()}</p>
                   )}
@@ -258,22 +258,22 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
 
             {/* Perks Section */}
             <div>
-              <h3 className="font-medium text-gray-900 mb-3">Available Benefits</h3>
+              <h3 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Available Benefits</h3>
               {cardDetails.perks.length === 0 ? (
-                <p className="text-gray-500 text-sm">No perks available for this card.</p>
+                <p className="text-gray-500 text-xs sm:text-sm">No perks available for this card.</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {cardDetails.perks.map(perk => (
                     <div
                       key={perk.id}
-                      className={`p-3 rounded-md border ${
+                      className={`p-3 rounded-xl border ${
                         perk.claimed
                           ? 'bg-gray-50 border-gray-200'
                           : 'bg-green-50 border-green-200'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className={`font-medium ${perk.claimed ? 'text-gray-500' : 'text-green-700'}`}>
+                        <span className={`font-medium text-sm sm:text-base ${perk.claimed ? 'text-gray-500' : 'text-green-700'}`}>
                           {perk.claimed ? '❌' : '✅'} {formatPerkName(perk.perk_type)}
                         </span>
                       </div>
@@ -288,8 +288,8 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
               )}
 
               {/* Perk Summary */}
-              <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                <p className="text-sm text-blue-700">
+              <div className="mt-4 p-3 bg-blue-50 rounded-xl">
+                <p className="text-xs sm:text-sm text-blue-700">
                   <strong>Perk Status:</strong>{' '}
                   {cardDetails.perks.filter(p => !p.claimed).length} of {cardDetails.perks.length} benefits remaining
                 </p>
@@ -297,9 +297,9 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
             </div>
 
             {/* Instructions */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-md">
-              <h4 className="font-medium text-gray-900 mb-2">How to Use Your Card</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+              <h4 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">How to Use Your Card</h4>
+              <ul className="text-xs sm:text-sm text-gray-600 space-y-1">
                 <li>• Visit any partner clinic with your card</li>
                 <li>• Present your control number and passcode</li>
                 <li>• Clinic staff will redeem your benefits</li>
@@ -311,9 +311,9 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
       )}
 
       {/* Help Section */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h3 className="font-medium text-yellow-900 mb-2">Need Help?</h3>
-        <div className="text-sm text-yellow-800 space-y-1">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <h3 className="font-medium text-yellow-900 mb-2 text-sm sm:text-base">Need Help?</h3>
+        <div className="text-xs sm:text-sm text-yellow-800 space-y-1">
           <p>• Can't find your control number? Check the front of your physical card</p>
           <p>• Passcode format: 3 letters + 4 numbers (e.g., CAV1234, MNL5678)</p>
           <p>• Card not working? Contact your clinic or call support</p>

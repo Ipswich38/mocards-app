@@ -39,31 +39,31 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="bg-white shadow rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Enhanced Card Generation System
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Generate card batches with location-based passcode system
         </p>
       </div>
 
       {/* Generation Controls */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white shadow rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
           Generate New Card Batch
         </h3>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Number of Cards
               </label>
               <select
                 value={batchCount}
                 onChange={(e) => setBatchCount(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg text-sm sm:text-base"
                 disabled={isGenerating}
               >
                 <option value={10}>10 Cards</option>
@@ -74,13 +74,13 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Distribution Plan
               </label>
               <select
                 value={distributionPlan}
                 onChange={(e) => setDistributionPlan(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg text-sm sm:text-base"
                 disabled={isGenerating}
               >
                 <option value="general">General Distribution</option>
@@ -94,7 +94,7 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
           <button
             onClick={handleGenerateBatch}
             disabled={isGenerating}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-3 sm:py-4 px-4 rounded-xl text-sm sm:text-base font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isGenerating ? 'Generating Cards...' : `Generate ${batchCount} Cards`}
           </button>
@@ -108,11 +108,11 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
       </div>
 
       {/* Enhanced Workflow Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-3">
           🎯 Enhanced Card System Workflow
         </h3>
-        <div className="space-y-2 text-blue-800">
+        <div className="space-y-2 text-sm sm:text-base text-blue-800">
           <p><strong>Step 1:</strong> Admin generates batch with incomplete passcodes (4 digits only)</p>
           <p><strong>Step 2:</strong> Clinics receive cards and assign 3-character location codes</p>
           <p><strong>Step 3:</strong> Complete passcode is formed (e.g., CAV1234)</p>
@@ -123,17 +123,17 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
 
       {/* Last Generated Batch */}
       {lastBatch && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white shadow rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
             Latest Generated Batch
           </h3>
 
           {/* Batch Info */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="bg-gray-50 rounded-xl p-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
               <div>
                 <span className="font-medium text-gray-700">Batch Number:</span>
-                <p className="text-gray-900 font-mono">{lastBatch.batch_number}</p>
+                <p className="text-gray-900 font-mono text-xs sm:text-sm">{lastBatch.batch_number}</p>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Total Cards:</span>
@@ -149,25 +149,25 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
           {/* Cards Preview */}
           <h4 className="font-medium text-gray-900 mb-3">Generated Cards Preview</h4>
 
-          <div className="space-y-2">
-            <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 border-b">
-              <div>Control Number</div>
-              <div>Incomplete Passcode</div>
-              <div>Complete Example</div>
-              <div>Status</div>
+          <div className="space-y-2 overflow-x-auto">
+            <div className="grid grid-cols-4 gap-2 min-w-full text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 border-b">
+              <div className="min-w-0">Control Number</div>
+              <div className="min-w-0">Incomplete Passcode</div>
+              <div className="min-w-0">Complete Example</div>
+              <div className="min-w-0">Status</div>
             </div>
 
             {lastCards.slice(0, 5).map((card) => (
-              <div key={card.id} className="grid grid-cols-4 gap-2 text-sm py-2 border-b border-gray-100">
-                <div className="font-mono text-blue-600">{card.control_number}</div>
-                <div className="font-mono text-orange-600">{card.incomplete_passcode}</div>
-                <div className="font-mono text-green-600">CAV{card.incomplete_passcode}</div>
-                <div className="capitalize text-gray-600">{card.status}</div>
+              <div key={card.id} className="grid grid-cols-4 gap-2 text-xs sm:text-sm py-2 border-b border-gray-100">
+                <div className="font-mono text-blue-600 truncate">{card.control_number}</div>
+                <div className="font-mono text-orange-600 truncate">{card.incomplete_passcode}</div>
+                <div className="font-mono text-green-600 truncate">CAV{card.incomplete_passcode}</div>
+                <div className="capitalize text-gray-600 truncate">{card.status}</div>
               </div>
             ))}
 
             {lastCards.length > 5 && (
-              <div className="text-sm text-gray-500 py-2">
+              <div className="text-xs sm:text-sm text-gray-500 py-2">
                 ... and {lastCards.length - 5} more cards
               </div>
             )}
@@ -188,11 +188,11 @@ export function AdminCardManagement({ adminUserId }: AdminCardManagementProps) {
       )}
 
       {/* Instructions */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-yellow-900 mb-3">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-yellow-900 mb-3">
           📋 Next Steps for Clinics
         </h3>
-        <div className="space-y-2 text-yellow-800 text-sm">
+        <div className="space-y-2 text-yellow-800 text-xs sm:text-sm">
           <p>1. Distribute generated cards to partner clinics</p>
           <p>2. Clinics will assign 3-character location codes (e.g., CAV for Cavite)</p>
           <p>3. Complete passcodes will be formed automatically</p>

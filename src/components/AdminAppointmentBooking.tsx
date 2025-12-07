@@ -224,32 +224,32 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Appointment Management</h2>
-          <p className="text-gray-600">Centralized appointment booking for MOCARDS perks</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Appointment Management</h2>
+          <p className="text-sm sm:text-base text-gray-600">Centralized appointment booking for MOCARDS perks</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2">
           <button
             onClick={() => setActiveTab('book')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === 'book'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            Book Appointment
+            <span className="hidden sm:inline">Book</span> Appointment
           </button>
           <button
             onClick={() => setActiveTab('manage')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === 'manage'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            Manage Appointments
+            <span className="hidden sm:inline">Manage</span> Appointments
           </button>
         </div>
       </div>
@@ -268,14 +268,14 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
       )}
 
       {activeTab === 'book' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Card Validation */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Step 1: Validate MOCARD</h3>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Step 1: Validate MOCARD</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Control Number
                 </label>
                 <input
@@ -283,12 +283,12 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                   value={controlNumber}
                   onChange={(e) => setControlNumber(e.target.value)}
                   placeholder="e.g. MO-C000001-001"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Passcode
                 </label>
                 <input
@@ -297,24 +297,24 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                   onChange={(e) => setPasscode(e.target.value)}
                   placeholder="6-digit passcode"
                   maxLength={6}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
 
               <button
                 onClick={validateCard}
                 disabled={loading || !controlNumber || !passcode}
-                className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl text-sm sm:text-base font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {loading ? 'Validating...' : 'Validate Card'}
               </button>
             </div>
 
             {validatedCard && (
-              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-medium text-green-800 mb-2">Card Validated ✓</h4>
-                <div className="text-sm text-green-700 space-y-1">
-                  <div><strong>Control:</strong> {validatedCard.control_number}</div>
+              <div className="mt-4 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="font-medium text-green-800 mb-2 text-sm sm:text-base">Card Validated ✓</h4>
+                <div className="text-xs sm:text-sm text-green-700 space-y-1">
+                  <div><strong>Control:</strong> <span className="break-all">{validatedCard.control_number}</span></div>
                   <div><strong>Status:</strong> {validatedCard.status}</div>
                   <div><strong>Clinic:</strong> {validatedCard.clinic?.clinic_name || 'Not assigned'}</div>
                   <div><strong>Available Perks:</strong> {validatedCard.perks?.filter(p => !p.claimed).length || 0}</div>
@@ -325,19 +325,19 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
 
           {/* Appointment Details */}
           {validatedCard && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Step 2: Appointment Details</h3>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Step 2: Appointment Details</h3>
 
               <div className="space-y-4">
                 {/* Perk Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     Select Perk Type
                   </label>
                   <select
                     value={selectedPerkType}
                     onChange={(e) => setSelectedPerkType(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-blue-500 transition-colors"
                   >
                     <option value="">Choose a perk...</option>
                     {perkTypes
@@ -354,7 +354,7 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                     }
                   </select>
                   {selectedPerkType && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
                       {perkTypes.find(p => p.value === selectedPerkType)?.description}
                     </p>
                   )}
@@ -382,9 +382,9 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                 )}
 
                 {/* Contact Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Phone Number
                     </label>
                     <input
@@ -392,12 +392,12 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                       value={cardholderPhone}
                       onChange={(e) => setCardholderPhone(e.target.value)}
                       placeholder="Cardholder's phone"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-blue-500 transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Email Address
                     </label>
                     <input
@@ -405,7 +405,7 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                       value={cardholderEmail}
                       onChange={(e) => setCardholderEmail(e.target.value)}
                       placeholder="Cardholder's email"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-blue-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -443,8 +443,8 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
           {/* Calendar */}
           {validatedCard && selectedPerkType && (
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Step 3: Select Date & Time</h3>
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Step 3: Select Date & Time</h3>
 
                 <CalendarPicker
                   selectedDate={selectedDate}
@@ -461,7 +461,7 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                     <button
                       onClick={bookAppointment}
                       disabled={loading}
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50 text-lg"
+                      className="w-full bg-green-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50 text-base sm:text-lg"
                     >
                       {loading ? 'Booking Appointment...' : 'Book Appointment'}
                     </button>
@@ -476,13 +476,13 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
       {activeTab === 'manage' && (
         <div className="space-y-6">
           {/* Filter */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">Filter by Status:</label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 transition-colors"
+                className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
               >
                 <option value="">All Appointments</option>
                 <option value="waiting_for_approval">Waiting for Approval</option>
@@ -492,36 +492,36 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                 <option value="cancelled">Cancelled</option>
                 <option value="completed">Completed</option>
               </select>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs sm:text-sm text-gray-500">
                 {appointments.length} appointment{appointments.length !== 1 ? 's' : ''} found
               </span>
             </div>
           </div>
 
           {/* Appointments List */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
             {appointments.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
+              <div className="p-6 sm:p-8 text-center text-gray-500 text-sm sm:text-base">
                 No appointments found. Start by booking your first appointment.
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
                 {appointments.map((appointment) => (
-                  <div key={appointment.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
+                  <div key={appointment.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="font-medium text-gray-900">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                             {perkTypes.find(p => p.value === appointment.perk_type)?.label || appointment.perk_type}
                           </h4>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(appointment.status)}`}>
+                          <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium border self-start ${getStatusColor(appointment.status)}`}>
                             {getStatusLabel(appointment.status)}
                           </span>
                         </div>
 
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            <div><strong>Card:</strong> {appointment.control_number}</div>
+                        <div className="text-xs sm:text-sm text-gray-600 space-y-1">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
+                            <div><strong>Card:</strong> <span className="break-all">{appointment.control_number}</span></div>
                             <div><strong>Date:</strong> {new Date(appointment.appointment_date).toLocaleDateString()}</div>
                             <div><strong>Time:</strong> {appointment.appointment_time}</div>
                           </div>
@@ -532,13 +532,13 @@ export function AdminAppointmentBooking({ adminUserId }: AdminAppointmentBooking
                             <div><strong>Contact:</strong> {appointment.cardholder_phone}</div>
                           )}
                           {appointment.cardholder_notes && (
-                            <div><strong>Notes:</strong> {appointment.cardholder_notes}</div>
+                            <div><strong>Notes:</strong> <span className="break-words">{appointment.cardholder_notes}</span></div>
                           )}
                         </div>
                       </div>
 
-                      <div className="text-xs text-gray-400 ml-4">
-                        Created {new Date(appointment.created_at).toLocaleString()}
+                      <div className="text-xs text-gray-400 sm:ml-4 self-start sm:self-auto">
+                        Created {new Date(appointment.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
