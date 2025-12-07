@@ -5,6 +5,7 @@ import { AdminCardAssignment } from './AdminCardAssignment';
 import { AdminAppointmentBooking } from './AdminAppointmentBooking';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { AdminSystemReset } from './AdminSystemReset';
+import { AdminProfileManagement } from './AdminProfileManagement';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 
 interface SuperAdminDashboardProps {
@@ -13,7 +14,7 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics' | 'reset'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics' | 'reset' | 'profile'>('overview');
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
 
   // Mock admin user ID - in production, get this from JWT token
@@ -163,6 +164,16 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
             >
               <span className="hidden sm:inline">System</span> Reset
             </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'profile'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span className="hidden sm:inline">Admin</span> Profile
+            </button>
           </div>
         </div>
       </div>
@@ -252,6 +263,12 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
         {activeTab === 'reset' && (
           <div className="space-y-6">
             <AdminSystemReset />
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <AdminProfileManagement />
           </div>
         )}
       </div>

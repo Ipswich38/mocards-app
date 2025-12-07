@@ -6,9 +6,10 @@ interface LandingPageProps {
   onClinicView: (credentials: any) => void;
   onSuperAdminView: (token: string) => void;
   onCardholderView: (prefilledData?: { control: string; passcode: string }) => void;
+  onITAccess: () => void;
 }
 
-export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView }: LandingPageProps) {
+export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, onITAccess }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
   const [cardControl, setCardControl] = useState('');
   const [cardPasscode, setCardPasscode] = useState('');
@@ -273,6 +274,19 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView }
           </div>
         </div>
       </main>
+
+      {/* IT Access - Hidden at bottom */}
+      <div className="fixed bottom-4 right-4">
+        <button
+          onClick={onITAccess}
+          className="group bg-gray-800 hover:bg-red-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 opacity-30 hover:opacity-100"
+          title="IT Access"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
