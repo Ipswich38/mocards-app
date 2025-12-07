@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 interface DashboardMetrics {
-  timestamp: string;
+  event_timestamp: string;
   total_users_online: number;
   cards_generated_today: number;
   active_clinic_sessions: number;
@@ -314,7 +314,7 @@ export const ITDashboard: React.FC = () => {
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Last Updated</span>
               <span className="text-sm font-medium">
-                {metrics?.timestamp ? formatTimestamp(metrics.timestamp) : 'N/A'}
+                {metrics?.event_timestamp ? formatTimestamp(metrics.event_timestamp) : 'N/A'}
               </span>
             </div>
           </div>

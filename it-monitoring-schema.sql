@@ -252,7 +252,7 @@ DECLARE
   result JSON;
 BEGIN
   SELECT json_build_object(
-    'timestamp', NOW(),
+    'event_timestamp', NOW(),
     'active_users', (
       SELECT COUNT(DISTINCT session_id)
       FROM it_session_tracking
@@ -289,7 +289,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION get_recent_activity_feed(limit_count INTEGER DEFAULT 100)
 RETURNS TABLE (
   id UUID,
-  timestamp TIMESTAMP,
+  "timestamp" TIMESTAMP,
   actor_display VARCHAR(255),
   action_summary TEXT,
   severity VARCHAR(10),
@@ -299,13 +299,13 @@ BEGIN
   RETURN QUERY
   SELECT
     al.id,
-    al.timestamp,
+    al."timestamp",
     COALESCE(al.actor_name, al.actor_type || ' #' || SUBSTRING(al.actor_id::text, 1, 8)) as actor_display,
     al.action_type || ' on ' || COALESCE(al.target_name, al.target_type) as action_summary,
     al.severity,
     al.details
   FROM it_activity_logs al
-  ORDER BY al.timestamp DESC
+  ORDER BY al."timestamp" DESC
   LIMIT limit_count;
 END;
 $$ LANGUAGE plpgsql;
@@ -378,7 +378,7 @@ CREATE OR REPLACE VIEW it_live_dashboard AS
 SELECT
   'system_overview' as section,
   json_build_object(
-    'timestamp', NOW(),
+    'event_timestamp', NOW(),
     'total_users_online', (
       SELECT COUNT(DISTINCT session_id) FROM it_session_tracking
       WHERE session_end IS NULL AND last_activity > NOW() - INTERVAL '15 minutes'
@@ -392,7 +392,7 @@ SELECT
     ),
     'errors_last_hour', (
       SELECT COUNT(*) FROM it_error_tracking
-      WHERE timestamp > NOW() - INTERVAL '1 hour'
+      WHERE "timestamp" > NOW() - INTERVAL '1 hour'
     ),
     'database_connections', (
       SELECT COUNT(*) FROM pg_stat_activity WHERE state = 'active'
