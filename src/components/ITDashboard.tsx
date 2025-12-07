@@ -96,10 +96,10 @@ export const ITDashboard: React.FC = () => {
     try {
       await supabase.rpc('log_it_activity', {
         p_actor_type: 'it_admin',
-        p_actor_id: null,
-        p_actor_name: 'IT Dashboard User',
         p_action_type: action,
         p_action_category: 'user_interaction',
+        p_actor_id: null,
+        p_actor_name: 'IT Dashboard User',
         p_details: details,
         p_severity: 'info'
       });

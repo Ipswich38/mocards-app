@@ -64,10 +64,10 @@ export const AdminProfileManagement: React.FC = () => {
       // Log the profile access
       await supabase.rpc('log_it_activity', {
         p_actor_type: 'admin',
-        p_actor_id: mockProfile.id,
-        p_actor_name: mockProfile.full_name,
         p_action_type: 'profile_accessed',
         p_action_category: 'authentication',
+        p_actor_id: mockProfile.id,
+        p_actor_name: mockProfile.full_name,
         p_severity: 'info'
       });
 
@@ -112,10 +112,10 @@ export const AdminProfileManagement: React.FC = () => {
       // Log the profile update
       await supabase.rpc('log_it_activity', {
         p_actor_type: 'admin',
-        p_actor_id: profile.id,
-        p_actor_name: profile.full_name,
         p_action_type: 'profile_updated',
         p_action_category: 'authentication',
+        p_actor_id: profile.id,
+        p_actor_name: profile.full_name,
         p_details: {
           updated_fields: ['username', 'email', 'full_name'],
           old_values: {
@@ -178,10 +178,10 @@ export const AdminProfileManagement: React.FC = () => {
       // Log the password change
       await supabase.rpc('log_it_activity', {
         p_actor_type: 'admin',
-        p_actor_id: profile.id,
-        p_actor_name: profile.full_name,
         p_action_type: 'password_changed',
         p_action_category: 'security_event',
+        p_actor_id: profile.id,
+        p_actor_name: profile.full_name,
         p_details: {
           timestamp: new Date().toISOString(),
           security_level: 'high'

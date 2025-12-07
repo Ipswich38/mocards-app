@@ -191,10 +191,10 @@ CREATE INDEX IF NOT EXISTS idx_it_session_tracking_active ON public.it_session_t
 -- Function to log activity automatically
 CREATE OR REPLACE FUNCTION log_it_activity(
   p_actor_type VARCHAR(20),
-  p_actor_id UUID DEFAULT NULL,
-  p_actor_name VARCHAR(255) DEFAULT NULL,
   p_action_type VARCHAR(50),
   p_action_category VARCHAR(30),
+  p_actor_id UUID DEFAULT NULL,
+  p_actor_name VARCHAR(255) DEFAULT NULL,
   p_target_type VARCHAR(30) DEFAULT NULL,
   p_target_id UUID DEFAULT NULL,
   p_target_name VARCHAR(255) DEFAULT NULL,
@@ -320,8 +320,8 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     PERFORM log_it_activity(
-      'system', NULL, 'System', 'card_created', 'card_management',
-      'card', NEW.id, NEW.control_number,
+      'system', 'card_created', 'card_management',
+      NULL, 'System', 'card', NEW.id, NEW.control_number,
       json_build_object('status', NEW.status, 'location', NEW.location_code),
       NULL, NULL, NULL, 'info'
     );
@@ -329,8 +329,8 @@ BEGIN
   ELSIF TG_OP = 'UPDATE' THEN
     IF OLD.status != NEW.status THEN
       PERFORM log_it_activity(
-        'system', NULL, 'System', 'card_status_changed', 'card_management',
-        'card', NEW.id, NEW.control_number,
+        'system', 'card_status_changed', 'card_management',
+        NULL, 'System', 'card', NEW.id, NEW.control_number,
         json_build_object('old_status', OLD.status, 'new_status', NEW.status),
         NULL, NULL, NULL, 'info'
       );

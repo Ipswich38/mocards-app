@@ -52,10 +52,10 @@ export const ITAccessLogin: React.FC<ITAccessLoginProps> = ({ onLogin, onBack })
         // Log the IT access login
         await supabase.rpc('log_it_activity', {
           p_actor_type: 'it_admin',
-          p_actor_id: null,
-          p_actor_name: validUser.full_name,
           p_action_type: 'it_access_login',
           p_action_category: 'authentication',
+          p_actor_id: null,
+          p_actor_name: validUser.full_name,
           p_details: {
             username: validUser.username,
             role: validUser.role,
@@ -75,10 +75,10 @@ export const ITAccessLogin: React.FC<ITAccessLoginProps> = ({ onLogin, onBack })
         // Log failed login attempt
         await supabase.rpc('log_it_activity', {
           p_actor_type: 'system',
-          p_actor_id: null,
-          p_actor_name: 'Security Monitor',
           p_action_type: 'it_access_login_failed',
           p_action_category: 'security_event',
+          p_actor_id: null,
+          p_actor_name: 'Security Monitor',
           p_details: {
             attempted_username: credentials.username,
             ip_address: 'unknown',
