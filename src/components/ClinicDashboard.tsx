@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Card, Appointment } from '../lib/supabase';
 import { useAutoLogout } from '../hooks/useAutoLogout';
+import { ClinicPerkCustomization } from './ClinicPerkCustomization';
 
 interface ClinicDashboardProps {
   clinicCredentials: {
@@ -13,7 +14,7 @@ interface ClinicDashboardProps {
 }
 
 export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'redemptions' | 'appointments'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'redemptions' | 'appointments' | 'perks'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchControl, setSearchControl] = useState('');
@@ -376,6 +377,16 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setActiveTab('perks')}
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'perks'
+                    ? 'bg-teal-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <span className="hidden sm:inline">Perk</span> Settings
+              </button>
             </div>
         </div>
       </div>
@@ -537,6 +548,15 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'perks' && (
+          <div className="space-y-6">
+            <ClinicPerkCustomization
+              clinicId={clinicCredentials.clinicId}
+              clinicName={clinicCredentials.clinicName}
+            />
           </div>
         )}
 

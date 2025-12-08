@@ -6,6 +6,7 @@ import { AdminAppointmentBooking } from './AdminAppointmentBooking';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { AdminSystemReset } from './AdminSystemReset';
 import { AdminProfileManagement } from './AdminProfileManagement';
+import { AdminPerkManagement } from './AdminPerkManagement';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 
 interface SuperAdminDashboardProps {
@@ -14,7 +15,7 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'analytics' | 'reset' | 'profile'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'enhanced' | 'assignment' | 'appointments' | 'clinics' | 'perks' | 'analytics' | 'reset' | 'profile'>('overview');
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
 
   // Mock admin user ID - in production, get this from JWT token
@@ -145,6 +146,16 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
               Clinics
             </button>
             <button
+              onClick={() => setActiveTab('perks')}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'perks'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span className="hidden sm:inline">Perk</span> Management
+            </button>
+            <button
               onClick={() => setActiveTab('analytics')}
               className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'analytics'
@@ -251,6 +262,12 @@ export function SuperAdminDashboard({ onBack }: SuperAdminDashboardProps) {
         {activeTab === 'clinics' && (
           <div className="space-y-6">
             <ProductionClinicManagement />
+          </div>
+        )}
+
+        {activeTab === 'perks' && (
+          <div className="space-y-6">
+            <AdminPerkManagement adminUserId={adminUserId} />
           </div>
         )}
 

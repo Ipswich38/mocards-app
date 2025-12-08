@@ -122,6 +122,61 @@ export interface AppointmentNotification {
   created_at: string;
 }
 
+// Enhanced Perk Management Types
+export interface PerkTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  perk_type: string;
+  default_value: number;
+  category?: string;
+  icon?: string;
+  is_active: boolean;
+  is_system_default: boolean;
+  created_by_admin_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PerkCategory {
+  id: string;
+  name: string;
+  description?: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ClinicPerkCustomization {
+  id: string;
+  clinic_id: string;
+  perk_template_id: string;
+  custom_name?: string;
+  custom_description?: string;
+  custom_value?: number;
+  is_enabled: boolean;
+  requires_appointment: boolean;
+  max_redemptions_per_card: number;
+  valid_from?: string;
+  valid_until?: string;
+  terms_and_conditions?: string;
+  created_at: string;
+  updated_at: string;
+  perk_template?: PerkTemplate;
+  clinic?: Clinic;
+}
+
+export interface PerkUsageAnalytics {
+  id: string;
+  perk_template_id: string;
+  clinic_id: string;
+  card_id: string;
+  redemption_date: string;
+  redemption_value: number;
+  month_year: string;
+  created_at: string;
+}
+
 // Utility functions for database operations
 export const dbOperations = {
   // Card operations
@@ -453,6 +508,239 @@ export const dbOperations = {
 
     if (error) throw error;
     return data as Clinic[];
+  },
+
+  // Perk Template Operations (Admin CRUD)
+  async createPerkTemplate(templateData: Omit<PerkTemplate, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('perk_templates')
+      .insert({
+        ...templateData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PerkTemplate;
+  },
+
+  async getAllPerkTemplates() {
+    const { data, error } = await supabase
+      .from('perk_templates')
+      .select('*')
+      .order('category', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data as PerkTemplate[];
+  },
+
+  async getActivePerkTemplates() {
+    const { data, error } = await supabase
+      .from('perk_templates')
+      .select('*')
+      .eq('is_active', true)
+      .order('category', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data as PerkTemplate[];
+  },
+
+  async getPerkTemplateById(id: string) {
+    const { data, error } = await supabase
+      .from('perk_templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as PerkTemplate;
+  },
+
+  async updatePerkTemplate(id: string, updates: Partial<PerkTemplate>) {
+    const { data, error } = await supabase
+      .from('perk_templates')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PerkTemplate;
+  },
+
+  async deletePerkTemplate(id: string) {
+    // Check if it's a system default (cannot be deleted)
+    const template = await this.getPerkTemplateById(id);
+    if (template.is_system_default) {
+      throw new Error('System default perks cannot be deleted');
+    }
+
+    const { data, error } = await supabase
+      .from('perk_templates')
+      .delete()
+      .eq('id', id)
+      .eq('is_system_default', false)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Perk Categories Operations
+  async getAllPerkCategories() {
+    const { data, error } = await supabase
+      .from('perk_categories')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+    return data as PerkCategory[];
+  },
+
+  async createPerkCategory(categoryData: Omit<PerkCategory, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('perk_categories')
+      .insert({
+        ...categoryData,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PerkCategory;
+  },
+
+  async updatePerkCategory(id: string, updates: Partial<PerkCategory>) {
+    const { data, error } = await supabase
+      .from('perk_categories')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PerkCategory;
+  },
+
+  // Clinic Perk Customization Operations
+  async getClinicPerkCustomizations(clinicId: string) {
+    const { data, error } = await supabase
+      .from('clinic_perk_customizations')
+      .select(`
+        *,
+        perk_template:perk_templates(*)
+      `)
+      .eq('clinic_id', clinicId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ClinicPerkCustomization[];
+  },
+
+  async getActiveClinicPerkCustomizations(clinicId: string) {
+    const { data, error } = await supabase
+      .from('clinic_perk_customizations')
+      .select(`
+        *,
+        perk_template:perk_templates(*)
+      `)
+      .eq('clinic_id', clinicId)
+      .eq('is_enabled', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ClinicPerkCustomization[];
+  },
+
+  async updateClinicPerkCustomization(id: string, updates: Partial<ClinicPerkCustomization>) {
+    const { data, error } = await supabase
+      .from('clinic_perk_customizations')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as ClinicPerkCustomization;
+  },
+
+  async createClinicPerkCustomization(customizationData: Omit<ClinicPerkCustomization, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('clinic_perk_customizations')
+      .insert({
+        ...customizationData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as ClinicPerkCustomization;
+  },
+
+  // Perk Usage Analytics
+  async recordPerkUsage(usageData: Omit<PerkUsageAnalytics, 'id' | 'created_at' | 'month_year'>) {
+    const redemptionDate = new Date(usageData.redemption_date);
+    const monthYear = `${redemptionDate.getFullYear()}-${(redemptionDate.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    const { data, error } = await supabase
+      .from('perk_usage_analytics')
+      .insert({
+        ...usageData,
+        month_year: monthYear,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PerkUsageAnalytics;
+  },
+
+  async getClinicPerkAnalytics(clinicId: string, monthYear?: string) {
+    let query = supabase
+      .from('perk_usage_analytics')
+      .select('*')
+      .eq('clinic_id', clinicId);
+
+    if (monthYear) {
+      query = query.eq('month_year', monthYear);
+    }
+
+    const { data, error } = await query
+      .order('redemption_date', { ascending: false });
+
+    if (error) throw error;
+    return data as PerkUsageAnalytics[];
+  },
+
+  async getPerkTemplateUsageStats(templateId: string, monthYear?: string) {
+    let query = supabase
+      .from('perk_usage_analytics')
+      .select('*')
+      .eq('perk_template_id', templateId);
+
+    if (monthYear) {
+      query = query.eq('month_year', monthYear);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data as PerkUsageAnalytics[];
   }
 };
 
