@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   dbOperations,
   PerkTemplate,
-  PerkCategory,
-  ClinicPerkCustomization
+  PerkCategory
 } from '../lib/supabase';
 import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Search } from 'lucide-react';
 

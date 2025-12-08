@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   dbOperations,
-  ClinicPerkCustomization as PerkCustomization,
-  PerkTemplate
+  ClinicPerkCustomization as PerkCustomization
 } from '../lib/supabase';
-import { Edit, Save, X, Toggle, Calendar, DollarSign, FileText, Settings } from 'lucide-react';
+import { Save, X, Calendar, DollarSign, FileText, Settings, ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface ClinicPerkCustomizationProps {
   clinicId: string;
@@ -298,7 +297,7 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
                       }`}
                       title={customization.is_enabled ? 'Disable perk' : 'Enable perk'}
                     >
-                      <Toggle size={16} />
+                      {customization.is_enabled ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                     </button>
                     <button
                       onClick={() => handleEditPerk(customization)}
