@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Card, Appointment } from '../lib/supabase';
-import { useAutoLogout } from '../hooks/useAutoLogout';
+// Removed useAutoLogout hook dependency
 import { ClinicPerkCustomization } from './ClinicPerkCustomization';
 
 interface ClinicDashboardProps {
@@ -38,22 +38,13 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     onBack();
   };
 
-  const handleWarning = () => {
-    setShowLogoutWarning(true);
-  };
-
   const extendSession = () => {
     setShowLogoutWarning(false);
     // resetTimer is called automatically by user activity
   };
 
-  // Auto-logout after 30 minutes of inactivity
-  useAutoLogout({
-    onLogout: handleLogout,
-    timeout: 30 * 60 * 1000, // 30 minutes
-    warningTime: 5 * 60 * 1000, // 5 minutes before timeout
-    onWarning: handleWarning
-  });
+  // Auto-logout removed for streamlined version
+  // TODO: Implement simple timeout if needed
 
   useEffect(() => {
     loadClinicCards();

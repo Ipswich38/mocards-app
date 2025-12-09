@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { supabase, dbOperations } from '../lib/supabase';
+import { streamlinedOps, codeUtils } from '../lib/streamlined-operations';
+import { Search, CreditCard, ArrowLeft, CheckCircle, AlertCircle, Calendar, MapPin } from 'lucide-react';
 
 interface CardDetails {
   id: string;
@@ -12,16 +13,19 @@ interface CardDetails {
   perks: Array<{
     id: string;
     perk_type: string;
+    perk_value: number;
     claimed: boolean;
     claimed_at?: string;
   }>;
 }
 
 interface CardholderLookupProps {
+  onBack?: () => void;
+  onCardFound?: (cardData: CardDetails) => void;
   prefilledData?: { control: string; passcode: string } | null;
 }
 
-export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
+export function CardholderLookup({ onBack, onCardFound, prefilledData }: CardholderLookupProps) {
   const [controlNumber, setControlNumber] = useState(prefilledData?.control || '');
   const [passcode, setPasscode] = useState(prefilledData?.passcode || '');
   const [cardDetails, setCardDetails] = useState<CardDetails | null>(null);
@@ -39,23 +43,12 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
     setCardDetails(null);
 
     try {
-      // Use the enhanced lookup with automatic code normalization
-      const card = await dbOperations.getCardByControlNumberNormalized(controlNumber.trim(), passcode.trim());
+      // Normalize the input codes
+      const normalizedControl = codeUtils.normalizeControlNumber(controlNumber.trim());
+      const normalizedPasscode = codeUtils.normalizePasscode(passcode.trim());
 
-      if (!card) {
-        setError('Card not found. Please check your control number and passcode.');
-        return;
-      }
-
-      // Get perks for this card
-      const { data: perks, error: perksError } = await supabase
-        .from('card_perks')
-        .select('id, perk_type, claimed, claimed_at')
-        .eq('card_id', card.id);
-
-      if (perksError) {
-        console.error('Error fetching perks:', perksError);
-      }
+      // Look up the card using streamlined operations
+      const card = await streamlinedOps.lookupCard(normalizedControl, normalizedPasscode);
 
       const cardDetails: CardDetails = {
         id: card.id,
@@ -64,15 +57,22 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
         status: card.status,
         activated_at: card.activated_at,
         expires_at: card.expires_at,
-        clinic_name: (card.clinic as any)?.clinic_name,
-        perks: perks || []
+        clinic_name: card.clinics?.clinic_name,
+        perks: card.card_perks || []
       };
 
       setCardDetails(cardDetails);
 
-    } catch (err) {
-      console.error('Error looking up card:', err);
-      setError('Error looking up card. Please try again.');
+      // If callback is provided, call it
+      if (onCardFound) {
+        onCardFound(cardDetails);
+      }
+    } catch (err: any) {
+      if (err.message.includes('PGRST116') || err.message.includes('not found')) {
+        setError('Card not found. Please check your control number and passcode.');
+      } else {
+        setError('Error looking up card. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -83,227 +83,247 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
     lookupCard();
   };
 
-  const formatPerkName = (perkType: string) => {
-    const perkNames: Record<string, string> = {
-      consultation: 'Free Consultation',
-      cleaning: 'Teeth Cleaning',
-      extraction: 'Tooth Extraction',
-      fluoride: 'Fluoride Treatment',
-      whitening: 'Teeth Whitening',
-      xray: 'X-Ray',
-      denture: 'Denture Adjustment',
-      braces: 'Braces Consultation'
-    };
-    return perkNames[perkType] || perkType;
+  const formatPerkType = (perkType: string) => {
+    return perkType.charAt(0).toUpperCase() + perkType.slice(1).replace('_', ' ');
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP'
+    }).format(amount);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'activated': return 'text-green-600 bg-green-100';
-      case 'unactivated': return 'text-orange-600 bg-orange-100';
-      case 'expired': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'activated': return 'bg-green-100 text-green-800';
+      case 'assigned': return 'bg-yellow-100 text-yellow-800';
+      case 'unassigned': return 'bg-gray-100 text-gray-800';
+      case 'expired': return 'bg-red-100 text-red-800';
+      case 'suspended': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'activated': return '✅ Active';
-      case 'unactivated': return '⏳ Not Activated';
-      case 'expired': return '❌ Expired';
-      default: return status;
-    }
-  };
-
-  const isExpired = (expiresAt?: string) => {
-    if (!expiresAt) return false;
-    return new Date(expiresAt) < new Date();
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 p-4 sm:p-0">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-          MOCARDS Loyalty Card Checker
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          Enter your card details to check status, validity, and available perks
-        </p>
-      </div>
-
-      {/* Lookup Form */}
-      <div className="bg-white shadow rounded-xl sm:rounded-lg p-4 sm:p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-              Control Number
-            </label>
-            <input
-              type="text"
-              value={controlNumber}
-              onChange={(e) => setControlNumber(e.target.value)}
-              className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-xl font-mono text-base sm:text-lg"
-              placeholder="MOC-12345678-001"
-              disabled={isLoading}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Found on your physical loyalty card
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-              Passcode
-            </label>
-            <input
-              type="text"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-xl font-mono text-base sm:text-lg"
-              placeholder="CAV1234"
-              disabled={isLoading}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              3-letter location code + 4 digits (e.g., CAV1234)
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading || !controlNumber || !passcode}
-            className="w-full bg-blue-600 text-white py-3 sm:py-4 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg font-medium transition-colors"
-          >
-            {isLoading ? 'Checking Card...' : '🔍 Check Card Status'}
-          </button>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back
+            </button>
           )}
-        </form>
-      </div>
-
-      {/* Card Details */}
-      {cardDetails && (
-        <div className="bg-white shadow rounded-xl sm:rounded-lg overflow-hidden">
-          {/* Card Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold">MOCARDS Loyalty Card</h2>
-                <p className="text-blue-100 font-mono text-sm sm:text-base break-all">{cardDetails.control_number}</p>
-              </div>
-              <div className="text-left sm:text-right">
-                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(cardDetails.status)}`}>
-                  {getStatusText(cardDetails.status)}
-                </span>
-              </div>
-            </div>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900">Card Lookup</h1>
+            <p className="mt-2 text-lg text-gray-600">
+              Enter your card details to view your benefits
+            </p>
           </div>
+        </div>
 
-          {/* Card Info */}
-          <div className="p-4 sm:p-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            {error}
+          </div>
+        )}
+
+        {/* Lookup Form */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Card Information</h3>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <p><strong>Passcode:</strong> <span className="font-mono break-all">{cardDetails.passcode}</span></p>
-                  <p><strong>Status:</strong> {getStatusText(cardDetails.status)}</p>
-                  {cardDetails.clinic_name && (
-                    <p><strong>Clinic:</strong> <span className="break-words">{cardDetails.clinic_name}</span></p>
-                  )}
-                </div>
+                <label htmlFor="control" className="block text-sm font-medium text-gray-700 mb-2">
+                  Control Number
+                </label>
+                <input
+                  type="text"
+                  id="control"
+                  value={controlNumber}
+                  onChange={(e) => setControlNumber(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., PHL-BTH123-0001"
+                  disabled={isLoading}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter with or without dashes - system will auto-format
+                </p>
               </div>
 
               <div>
-                <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Validity</h3>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  {cardDetails.activated_at && (
-                    <p><strong>Activated:</strong> {new Date(cardDetails.activated_at).toLocaleDateString()}</p>
-                  )}
-                  {cardDetails.expires_at && (
-                    <p><strong>Expires:</strong>
-                      <span className={isExpired(cardDetails.expires_at) ? 'text-red-600 font-medium' : 'text-green-600'}>
-                        {' '}{new Date(cardDetails.expires_at).toLocaleDateString()}
-                      </span>
-                    </p>
-                  )}
-                  {cardDetails.status === 'activated' && cardDetails.expires_at && (
-                    <p className="text-xs text-gray-500">
-                      {isExpired(cardDetails.expires_at)
-                        ? '⚠️ Card has expired'
-                        : '✅ Card is valid'
-                      }
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Perks Section */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Available Benefits</h3>
-              {cardDetails.perks.length === 0 ? (
-                <p className="text-gray-500 text-xs sm:text-sm">No perks available for this card.</p>
-              ) : (
-                <div className="grid grid-cols-1 gap-2">
-                  {cardDetails.perks.map(perk => (
-                    <div
-                      key={perk.id}
-                      className={`p-3 rounded-xl border ${
-                        perk.claimed
-                          ? 'bg-gray-50 border-gray-200'
-                          : 'bg-green-50 border-green-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`font-medium text-sm sm:text-base ${perk.claimed ? 'text-gray-500' : 'text-green-700'}`}>
-                          {perk.claimed ? '❌' : '✅'} {formatPerkName(perk.perk_type)}
-                        </span>
-                      </div>
-                      {perk.claimed && perk.claimed_at && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Used on {new Date(perk.claimed_at).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Perk Summary */}
-              <div className="mt-4 p-3 bg-blue-50 rounded-xl">
-                <p className="text-xs sm:text-sm text-blue-700">
-                  <strong>Perk Status:</strong>{' '}
-                  {cardDetails.perks.filter(p => !p.claimed).length} of {cardDetails.perks.length} benefits remaining
+                <label htmlFor="passcode" className="block text-sm font-medium text-gray-700 mb-2">
+                  Passcode
+                </label>
+                <input
+                  type="text"
+                  id="passcode"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., 001-1234"
+                  disabled={isLoading}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  3-digit location code + 4-digit number
                 </p>
               </div>
             </div>
 
+            <button
+              type="submit"
+              disabled={isLoading || !controlNumber || !passcode}
+              className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Looking up...
+                </>
+              ) : (
+                <>
+                  <Search className="h-5 w-5 mr-2" />
+                  Look Up Card
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Card Details */}
+        {cardDetails && (
+          <div className="space-y-6">
+            {/* Card Information */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="flex items-center">
+                  <CreditCard className="h-6 w-6 text-white mr-3" />
+                  <h2 className="text-xl font-semibold text-white">Card Information</h2>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Control Number</p>
+                    <p className="mt-1 text-lg font-mono text-gray-900">{cardDetails.control_number}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <span className={`inline-flex mt-1 px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(cardDetails.status)}`}>
+                      {cardDetails.status.charAt(0).toUpperCase() + cardDetails.status.slice(1)}
+                    </span>
+                  </div>
+
+                  {cardDetails.clinic_name && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Assigned Clinic</p>
+                      <p className="mt-1 text-sm text-gray-900 flex items-center">
+                        <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                        {cardDetails.clinic_name}
+                      </p>
+                    </div>
+                  )}
+
+                  {cardDetails.expires_at && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Expires</p>
+                      <p className="mt-1 text-sm text-gray-900 flex items-center">
+                        <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                        {new Date(cardDetails.expires_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {cardDetails.activated_at && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-700">
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
+                      Card activated on {new Date(cardDetails.activated_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Card Benefits */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                <h2 className="text-xl font-semibold text-white">Available Benefits</h2>
+              </div>
+
+              <div className="p-6">
+                {cardDetails.perks && cardDetails.perks.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {cardDetails.perks.map((perk) => (
+                      <div
+                        key={perk.id}
+                        className={`border rounded-lg p-4 ${
+                          perk.claimed
+                            ? 'bg-gray-50 border-gray-200'
+                            : 'bg-white border-green-200 hover:border-green-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900">{formatPerkType(perk.perk_type)}</h3>
+                            <p className="text-lg font-semibold text-green-600 mt-1">
+                              {formatCurrency(perk.perk_value)}
+                            </p>
+                            {perk.claimed && perk.claimed_at && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                Claimed on {new Date(perk.claimed_at).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                          <div className="ml-3">
+                            {perk.claimed ? (
+                              <CheckCircle className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <div className="h-5 w-5 rounded-full border-2 border-green-300"></div>
+                            )}
+                          </div>
+                        </div>
+
+                        {!perk.claimed && (
+                          <div className="mt-3">
+                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                              Available
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No benefits available for this card.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Instructions */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-              <h4 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">How to Use Your Card</h4>
-              <ul className="text-xs sm:text-sm text-gray-600 space-y-1">
-                <li>• Visit any partner clinic with your card</li>
-                <li>• Present your control number and passcode</li>
-                <li>• Clinic staff will redeem your benefits</li>
-                <li>• Benefits expire with your card validity date</li>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-blue-900 mb-2">How to Use Your Benefits</h3>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Present this card information at your assigned clinic</li>
+                <li>• The clinic will verify your card details and claim the benefit</li>
+                <li>• Each benefit can only be claimed once per card</li>
+                <li>• Benefits expire on the date shown above</li>
+                <li>• Contact your clinic if you have any questions</li>
               </ul>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Help Section */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-        <h3 className="font-medium text-yellow-900 mb-2 text-sm sm:text-base">Need Help?</h3>
-        <div className="text-xs sm:text-sm text-yellow-800 space-y-1">
-          <p>• Can't find your control number? Check the front of your physical card</p>
-          <p>• Passcode format: 3 letters + 4 numbers (e.g., CAV1234, MNL5678)</p>
-          <p>• Card not working? Contact your clinic or call support</p>
-        </div>
+        )}
       </div>
     </div>
   );
