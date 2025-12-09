@@ -22,6 +22,8 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showAddClinicModal, setShowAddClinicModal] = useState(false);
+  const [pendingBatch, setPendingBatch] = useState<any>(null);
 
   // State for data
   const [stats, setStats] = useState({
@@ -39,9 +41,11 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
   // Form states
   const [batchForm, setBatchForm] = useState({
     batch_number: '',
-    total_cards: 50,
+    total_cards: 500,
     location_code: '',
     notes: '',
+    assignment_option: 'later', // 'later', 'existing', 'new'
+    selected_clinic_id: '',
   });
 
   const [clinicForm, setClinicForm] = useState({
@@ -92,6 +96,26 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
     setSuccess('');
 
     try {
+      // Check assignment option
+      if (batchForm.assignment_option === 'existing' && !batchForm.selected_clinic_id) {
+        setError('Please select a clinic for assignment');
+        setLoading(false);
+        return;
+      }
+
+      if (batchForm.assignment_option === 'new') {
+        // Show add clinic modal and pause generation
+        setPendingBatch({
+          batch_number: batchForm.batch_number || codeUtils.generateBatchNumber(),
+          total_cards: batchForm.total_cards,
+          location_code: batchForm.location_code,
+          notes: batchForm.notes,
+        });
+        setShowAddClinicModal(true);
+        setLoading(false);
+        return;
+      }
+
       // Create the batch
       const batchNumber = batchForm.batch_number || codeUtils.generateBatchNumber();
       const newBatch = await streamlinedOps.createCardBatch({
@@ -109,12 +133,26 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
         batchForm.total_cards
       );
 
-      setSuccess(`Successfully generated batch ${batchNumber} with ${batchForm.total_cards} cards`);
+      let successMessage = `Successfully generated batch ${batchNumber} with ${batchForm.total_cards} cards`;
+
+      // Handle immediate assignment if selected
+      if (batchForm.assignment_option === 'existing' && batchForm.selected_clinic_id) {
+        const assignedCount = await streamlinedOps.assignCardsToClinic(
+          batchForm.selected_clinic_id,
+          batchForm.total_cards
+        );
+        const selectedClinic = clinics.find(c => c.id === batchForm.selected_clinic_id);
+        successMessage += ` and assigned all ${assignedCount} cards to ${selectedClinic?.clinic_name}`;
+      }
+
+      setSuccess(successMessage);
       setBatchForm({
         batch_number: '',
-        total_cards: 50,
+        total_cards: 500,
         location_code: '',
         notes: '',
+        assignment_option: 'later',
+        selected_clinic_id: '',
       });
 
       // Reload data
@@ -126,7 +164,80 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
     }
   };
 
-  // Create new clinic
+  // Create new clinic from modal and continue with batch generation
+  const handleCreateClinicFromModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const newClinic = await streamlinedOps.createClinic({
+        ...clinicForm,
+        status: 'active',
+        password_hash: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // Demo hash for 'clinic123'
+      });
+
+      // Close modal and continue with pending batch generation
+      setShowAddClinicModal(false);
+
+      if (pendingBatch) {
+        // Create the batch
+        const newBatch = await streamlinedOps.createCardBatch({
+          batch_number: pendingBatch.batch_number,
+          total_cards: pendingBatch.total_cards,
+          created_by: 'Admin',
+          notes: pendingBatch.notes,
+        });
+
+        // Generate cards for the batch
+        await streamlinedOps.generateCardsForBatch(
+          newBatch.id,
+          newBatch.batch_number,
+          pendingBatch.location_code,
+          pendingBatch.total_cards
+        );
+
+        // Assign cards to the new clinic
+        const assignedCount = await streamlinedOps.assignCardsToClinic(
+          newClinic.id,
+          pendingBatch.total_cards
+        );
+
+        setSuccess(`Successfully created clinic "${newClinic.clinic_name}", generated batch ${pendingBatch.batch_number} with ${pendingBatch.total_cards} cards, and assigned all ${assignedCount} cards to the new clinic`);
+
+        setPendingBatch(null);
+        setBatchForm({
+          batch_number: '',
+          total_cards: 500,
+          location_code: '',
+          notes: '',
+          assignment_option: 'later',
+          selected_clinic_id: '',
+        });
+      }
+
+      setClinicForm({
+        clinic_name: '',
+        clinic_code: '',
+        contact_person: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        province: '',
+      });
+
+      // Reload data
+      await loadDashboardData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to create clinic and generate cards');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create new clinic (regular function for clinics tab)
   const handleCreateClinic = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -352,11 +463,13 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
                       type="number"
                       required
                       min="1"
-                      max="1000"
+                      max="10000"
                       value={batchForm.total_cards}
                       onChange={(e) => setBatchForm(prev => ({ ...prev, total_cards: parseInt(e.target.value) }))}
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Default: 500"
                     />
+                    <p className="mt-1 text-xs text-gray-500">Default is 500 cards per batch</p>
                   </div>
 
                   <div>
@@ -384,6 +497,83 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Optional notes about this batch"
                   />
+                </div>
+
+                {/* Assignment Options */}
+                <div className="border-t pt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Card Assignment Options</label>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <input
+                        id="assign_later"
+                        name="assignment_option"
+                        type="radio"
+                        value="later"
+                        checked={batchForm.assignment_option === 'later'}
+                        onChange={(e) => setBatchForm(prev => ({ ...prev, assignment_option: e.target.value as any }))}
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                      />
+                      <label htmlFor="assign_later" className="ml-3 block text-sm text-gray-900">
+                        <span className="font-medium">Assign Later</span>
+                        <span className="block text-gray-500">Generate cards and assign to clinics later</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        id="assign_existing"
+                        name="assignment_option"
+                        type="radio"
+                        value="existing"
+                        checked={batchForm.assignment_option === 'existing'}
+                        onChange={(e) => setBatchForm(prev => ({ ...prev, assignment_option: e.target.value as any }))}
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                      />
+                      <label htmlFor="assign_existing" className="ml-3 block text-sm text-gray-900">
+                        <span className="font-medium">Assign to Existing Clinic</span>
+                        <span className="block text-gray-500">Choose from current clinic list</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        id="assign_new"
+                        name="assignment_option"
+                        type="radio"
+                        value="new"
+                        checked={batchForm.assignment_option === 'new'}
+                        onChange={(e) => setBatchForm(prev => ({ ...prev, assignment_option: e.target.value as any }))}
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                      />
+                      <label htmlFor="assign_new" className="ml-3 block text-sm text-gray-900">
+                        <span className="font-medium">Create New Clinic & Assign</span>
+                        <span className="block text-gray-500">Add a new clinic and assign cards immediately</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Clinic Selection for Existing Option */}
+                  {batchForm.assignment_option === 'existing' && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700">Select Clinic *</label>
+                      <select
+                        required
+                        value={batchForm.selected_clinic_id}
+                        onChange={(e) => setBatchForm(prev => ({ ...prev, selected_clinic_id: e.target.value }))}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Choose a clinic</option>
+                        {clinics.filter(c => c.status === 'active').map((clinic) => (
+                          <option key={clinic.id} value={clinic.id}>
+                            {clinic.clinic_name} ({clinic.clinic_code})
+                          </option>
+                        ))}
+                      </select>
+                      {clinics.filter(c => c.status === 'active').length === 0 && (
+                        <p className="mt-1 text-sm text-red-600">No active clinics found. Please create a clinic first.</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -583,6 +773,107 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
           </div>
         )}
       </div>
+
+      {/* Add Clinic Modal */}
+      {showAddClinicModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Create New Clinic</h3>
+                <button
+                  onClick={() => {
+                    setShowAddClinicModal(false);
+                    setPendingBatch(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateClinicFromModal} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Clinic Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={clinicForm.clinic_name}
+                    onChange={(e) => setClinicForm(prev => ({ ...prev, clinic_name: e.target.value }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter clinic name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Clinic Code *</label>
+                  <input
+                    type="text"
+                    required
+                    value={clinicForm.clinic_code}
+                    onChange={(e) => setClinicForm(prev => ({ ...prev, clinic_code: e.target.value.toUpperCase() }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter unique clinic code"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Contact Person</label>
+                  <input
+                    type="text"
+                    value={clinicForm.contact_person}
+                    onChange={(e) => setClinicForm(prev => ({ ...prev, contact_person: e.target.value }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Contact person name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    value={clinicForm.email}
+                    onChange={(e) => setClinicForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="clinic@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">City</label>
+                  <input
+                    type="text"
+                    value={clinicForm.city}
+                    onChange={(e) => setClinicForm(prev => ({ ...prev, city: e.target.value }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="City name"
+                  />
+                </div>
+
+                <div className="flex justify-between space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddClinicModal(false);
+                      setPendingBatch(null);
+                    }}
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {loading ? 'Creating...' : 'Create & Assign'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
