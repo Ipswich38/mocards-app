@@ -177,6 +177,68 @@ export interface PerkUsageAnalytics {
   created_at: string;
 }
 
+// Enhanced Card Management Types
+export interface CodeGenerationSettings {
+  id: string;
+  setting_type: 'batch' | 'control' | 'passcode' | 'location';
+  generation_mode: 'auto' | 'manual' | 'range';
+  pattern_template?: string;
+  location_prefix?: string;
+  auto_range_start?: number;
+  auto_range_end?: number;
+  current_sequence: number;
+  is_active: boolean;
+  metadata: Record<string, any>;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LocationCode {
+  id: string;
+  code: string;
+  location_name: string;
+  description?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CardCodeHistory {
+  id: string;
+  card_id: string;
+  change_type: 'created' | 'control_updated' | 'passcode_updated' | 'batch_updated';
+  old_value?: string;
+  new_value?: string;
+  field_name?: string;
+  changed_by?: string;
+  change_reason?: string;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
+export interface SystemVersion {
+  id: string;
+  component: 'cards' | 'batches' | 'settings' | 'codes';
+  version_number: number;
+  change_description?: string;
+  changed_by?: string;
+  created_at: string;
+}
+
+export interface UserSessionState {
+  id: string;
+  user_id?: string;
+  user_type: 'admin' | 'clinic' | 'cardholder';
+  component_name: string;
+  form_data: Record<string, any>;
+  draft_state: Record<string, any>;
+  last_saved: string;
+  expires_at: string;
+}
+
 // Utility functions for database operations
 export const dbOperations = {
   // Card operations
@@ -741,6 +803,412 @@ export const dbOperations = {
 
     if (error) throw error;
     return data as PerkUsageAnalytics[];
+  },
+
+  // Enhanced Card Management Operations
+
+  // Code Generation Settings
+  async getCodeGenerationSettings() {
+    const { data, error } = await supabase
+      .from('code_generation_settings')
+      .select('*')
+      .order('setting_type', { ascending: true })
+      .order('generation_mode', { ascending: true });
+
+    if (error) throw error;
+    return data as CodeGenerationSettings[];
+  },
+
+  async updateCodeGenerationSetting(id: string, updates: Partial<CodeGenerationSettings>) {
+    const { data, error } = await supabase
+      .from('code_generation_settings')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CodeGenerationSettings;
+  },
+
+  async createCodeGenerationSetting(setting: Omit<CodeGenerationSettings, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('code_generation_settings')
+      .insert({
+        ...setting,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CodeGenerationSettings;
+  },
+
+  // Location Codes Management
+  async getLocationCodes() {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    return data as LocationCode[];
+  },
+
+  async getAllLocationCodes() {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+    return data as LocationCode[];
+  },
+
+  async createLocationCode(locationCode: Omit<LocationCode, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .insert({
+        ...locationCode,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as LocationCode;
+  },
+
+  async updateLocationCode(id: string, updates: Partial<LocationCode>) {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as LocationCode;
+  },
+
+  // Advanced Code Generation
+  async generateBatchNumber(mode: 'auto' | 'manual' | 'range', customInput?: string, locationPrefix?: string) {
+    const { data, error } = await supabase
+      .rpc('generate_batch_number', {
+        generation_mode: mode,
+        custom_input: customInput,
+        location_prefix: locationPrefix || 'PHL'
+      });
+
+    if (error) throw error;
+    return data as string;
+  },
+
+  async generateControlNumber(batchPrefix: string, cardIndex: number, mode: 'auto' | 'manual' | 'range' = 'auto', customFormat?: string) {
+    const { data, error } = await supabase
+      .rpc('generate_control_number', {
+        batch_prefix: batchPrefix,
+        card_index: cardIndex,
+        generation_mode: mode,
+        custom_format: customFormat
+      });
+
+    if (error) throw error;
+    return data as string;
+  },
+
+  async generatePasscode(locationCode: string, mode: 'auto' | 'manual' | 'range' = 'auto', customPasscode?: string) {
+    const { data, error } = await supabase
+      .rpc('generate_passcode', {
+        location_code: locationCode,
+        generation_mode: mode,
+        custom_passcode: customPasscode
+      });
+
+    if (error) throw error;
+    return data as string;
+  },
+
+  // Code Normalization (handles dashes automatically)
+  async normalizeCode(inputCode: string, codeType: 'control' | 'batch' | 'passcode') {
+    const { data, error } = await supabase
+      .rpc('normalize_code', {
+        input_code: inputCode,
+        code_type: codeType
+      });
+
+    if (error) throw error;
+    return data as string;
+  },
+
+  // Enhanced Card Lookup with automatic code normalization
+  async getCardByControlNumberNormalized(controlNumber: string, passcode?: string) {
+    // Normalize the codes first
+    const normalizedControl = await this.normalizeCode(controlNumber, 'control');
+    const normalizedPasscode = passcode ? await this.normalizeCode(passcode, 'passcode') : undefined;
+
+    return this.getCardByControlNumber(normalizedControl, normalizedPasscode);
+  },
+
+  // Card Code History
+  async getCardCodeHistory(cardId: string) {
+    const { data, error } = await supabase
+      .from('card_code_history')
+      .select('*')
+      .eq('card_id', cardId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as CardCodeHistory[];
+  },
+
+  async recordCardCodeChange(
+    cardId: string,
+    changeType: CardCodeHistory['change_type'],
+    fieldName: string,
+    oldValue: string,
+    newValue: string,
+    changedBy?: string,
+    reason?: string
+  ) {
+    const { data, error } = await supabase
+      .from('card_code_history')
+      .insert({
+        card_id: cardId,
+        change_type: changeType,
+        field_name: fieldName,
+        old_value: oldValue,
+        new_value: newValue,
+        changed_by: changedBy,
+        change_reason: reason,
+        metadata: {},
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CardCodeHistory;
+  },
+
+  // System Version Management for Real-time Updates
+  async getSystemVersions() {
+    const { data, error } = await supabase
+      .from('system_versions')
+      .select('*')
+      .order('component', { ascending: true });
+
+    if (error) throw error;
+    return data as SystemVersion[];
+  },
+
+  async getComponentVersion(component: SystemVersion['component']) {
+    const { data, error } = await supabase
+      .from('system_versions')
+      .select('*')
+      .eq('component', component)
+      .single();
+
+    if (error) throw error;
+    return data as SystemVersion;
+  },
+
+  // User Session State Management
+  async saveUserSessionState(userId: string, userType: UserSessionState['user_type'], componentName: string, formData: Record<string, any>, draftState: Record<string, any>) {
+    const { data, error } = await supabase
+      .from('user_session_state')
+      .upsert({
+        user_id: userId,
+        user_type: userType,
+        component_name: componentName,
+        form_data: formData,
+        draft_state: draftState,
+        last_saved: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as UserSessionState;
+  },
+
+  async getUserSessionState(userId: string, componentName: string) {
+    const { data, error } = await supabase
+      .from('user_session_state')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('component_name', componentName)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data as UserSessionState | null;
+  },
+
+  async clearExpiredSessions() {
+    const { error } = await supabase
+      .from('user_session_state')
+      .delete()
+      .lt('expires_at', new Date().toISOString());
+
+    if (error) throw error;
+  },
+
+  // Enhanced Card Operations with Admin Controls
+  async updateCardCodes(cardId: string, updates: {
+    control_number?: string;
+    passcode?: string;
+    location_code?: string;
+    admin_notes?: string;
+  }, adminId?: string) {
+    // Get current card data for history tracking
+    const currentCard = await supabase
+      .from('cards')
+      .select('control_number, passcode, location_code')
+      .eq('id', cardId)
+      .single();
+
+    if (currentCard.error) throw currentCard.error;
+
+    // Update the card
+    const { data, error } = await supabase
+      .from('cards')
+      .update({
+        ...updates,
+        admin_override: true,
+        last_modified_by: adminId,
+        last_modified_at: new Date().toISOString()
+      })
+      .eq('id', cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Record changes in history
+    for (const [field, newValue] of Object.entries(updates)) {
+      if (field in currentCard.data && newValue !== undefined) {
+        const oldValue = (currentCard.data as any)[field];
+        if (oldValue !== newValue) {
+          await this.recordCardCodeChange(
+            cardId,
+            field.includes('control') ? 'control_updated' : field.includes('passcode') ? 'passcode_updated' : 'batch_updated',
+            field,
+            oldValue,
+            newValue as string,
+            adminId,
+            'Admin manual update'
+          );
+        }
+      }
+    }
+
+    return data as Card;
+  },
+
+  async getCardBatchById(batchId: string) {
+    const { data, error } = await supabase
+      .from('card_batches')
+      .select('*')
+      .eq('id', batchId)
+      .single();
+
+    if (error) throw error;
+    return data as CardBatch;
+  },
+
+  // Generate cards with enhanced controls
+  async generateCardsWithSettings(
+    batchId: string,
+    count: number,
+    settings: {
+      generationMode: 'auto' | 'manual' | 'range';
+      locationCode: string;
+      customPrefix?: string;
+      startIndex?: number;
+      endIndex?: number;
+    },
+    adminId?: string
+  ) {
+    const cards = [];
+    const batch = await this.getCardBatchById(batchId);
+
+    for (let i = 0; i < count; i++) {
+      const cardIndex = (settings.startIndex || 1) + i;
+
+      // Generate control number
+      const controlNumber = await this.generateControlNumber(
+        batch.batch_number,
+        cardIndex,
+        settings.generationMode,
+        settings.customPrefix ? `${settings.customPrefix}-${cardIndex.toString().padStart(3, '0')}` : undefined
+      );
+
+      // Generate passcode
+      const passcode = await this.generatePasscode(
+        settings.locationCode,
+        settings.generationMode
+      );
+
+      const cardData = {
+        batch_id: batchId,
+        control_number: controlNumber,
+        passcode: passcode,
+        location_code: settings.locationCode,
+        status: 'unactivated' as const,
+        generation_method: settings.generationMode,
+        admin_override: settings.generationMode !== 'auto',
+        last_modified_by: adminId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      cards.push(cardData);
+    }
+
+    // Insert all cards
+    const { data, error } = await supabase
+      .from('cards')
+      .insert(cards)
+      .select();
+
+    if (error) throw error;
+
+    // Record creation history
+    for (const card of data) {
+      await this.recordCardCodeChange(
+        card.id,
+        'created',
+        'card_created',
+        '',
+        `Control: ${card.control_number}, Passcode: ${card.passcode}`,
+        adminId,
+        `Batch generation with ${settings.generationMode} mode`
+      );
+    }
+
+    return data as Card[];
+  },
+
+  // Additional method needed by AdminCardCodeManagement
+  async getAllCardBatches() {
+    const { data, error } = await supabase
+      .from('card_batches')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as CardBatch[];
   }
 };
 

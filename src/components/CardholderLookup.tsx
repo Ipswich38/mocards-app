@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, dbOperations } from '../lib/supabase';
 
 interface CardDetails {
   id: string;
@@ -39,41 +39,25 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
     setCardDetails(null);
 
     try {
-      // Look up card with clinic information
-      const { data: card, error: cardError } = await supabase
-        .from('cards')
-        .select(`
-          id,
-          control_number,
-          passcode,
-          status,
-          activated_at,
-          expires_at,
-          clinic:mocards_clinics(clinic_name)
-        `)
-        .eq('control_number', controlNumber.toUpperCase())
-        .eq('passcode', passcode.toUpperCase())
-        .single();
+      // Use the enhanced lookup with automatic code normalization
+      const card = await dbOperations.getCardByControlNumberNormalized(controlNumber.trim(), passcode.trim());
 
-      if (cardError) {
-        if (cardError.code === 'PGRST116') {
-          setError('Card not found. Please check your control number and passcode.');
-        } else {
-          throw cardError;
-        }
+      if (!card) {
+        setError('Card not found. Please check your control number and passcode.');
         return;
       }
 
-      // Get card perks
+      // Get perks for this card
       const { data: perks, error: perksError } = await supabase
         .from('card_perks')
         .select('id, perk_type, claimed, claimed_at')
-        .eq('card_id', card.id)
-        .order('perk_type');
+        .eq('card_id', card.id);
 
-      if (perksError) throw perksError;
+      if (perksError) {
+        console.error('Error fetching perks:', perksError);
+      }
 
-      setCardDetails({
+      const cardDetails: CardDetails = {
         id: card.id,
         control_number: card.control_number,
         passcode: card.passcode,
@@ -82,7 +66,9 @@ export function CardholderLookup({ prefilledData }: CardholderLookupProps) {
         expires_at: card.expires_at,
         clinic_name: (card.clinic as any)?.clinic_name,
         perks: perks || []
-      });
+      };
+
+      setCardDetails(cardDetails);
 
     } catch (err) {
       console.error('Error looking up card:', err);
