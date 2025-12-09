@@ -377,6 +377,17 @@ export const streamlinedOps = {
     return data as LocationCode[];
   },
 
+  async createLocationCode(locationData: Omit<LocationCode, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .insert([locationData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as LocationCode;
+  },
+
   async getAllBatches() {
     const { data, error } = await supabase
       .from('card_batches')

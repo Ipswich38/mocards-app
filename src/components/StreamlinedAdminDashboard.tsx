@@ -9,7 +9,8 @@ import {
   Package,
   ArrowLeft,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  MapPin
 } from 'lucide-react';
 
 interface StreamlinedAdminDashboardProps {
@@ -18,7 +19,7 @@ interface StreamlinedAdminDashboardProps {
 }
 
 export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'generate' | 'clinics' | 'assign'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'generate' | 'clinics' | 'assign' | 'locations'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -62,6 +63,12 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
   const [assignmentForm, setAssignmentForm] = useState({
     clinic_id: '',
     card_count: 10,
+  });
+
+  const [locationForm, setLocationForm] = useState({
+    code: '',
+    location_name: '',
+    description: '',
   });
 
   // Load data
@@ -272,6 +279,37 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
     }
   };
 
+  // Create new location code
+  const handleCreateLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await streamlinedOps.createLocationCode({
+        code: locationForm.code.toUpperCase(),
+        location_name: locationForm.location_name,
+        description: locationForm.description,
+        is_active: true,
+      });
+
+      setSuccess(`Successfully created location code: ${locationForm.code.toUpperCase()} - ${locationForm.location_name}`);
+      setLocationForm({
+        code: '',
+        location_name: '',
+        description: '',
+      });
+
+      // Reload data to update dropdown
+      await loadDashboardData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to create location code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Assign cards to clinic
   const handleAssignCards = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -368,6 +406,7 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
               { key: 'generate', label: 'Generate Cards', icon: Plus },
               { key: 'clinics', label: 'Manage Clinics', icon: Building2 },
               { key: 'assign', label: 'Assign Cards', icon: CreditCard },
+              { key: 'locations', label: 'Manage Locations', icon: MapPin },
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -769,6 +808,103 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
                   No unassigned cards available. Generate a new batch first.
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Manage Locations Tab */}
+        {activeTab === 'locations' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Create Location Form */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-6">Add New Location Code</h3>
+              <form onSubmit={handleCreateLocation} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Location Code *</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={3}
+                    value={locationForm.code}
+                    onChange={(e) => setLocationForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., 006"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">3-digit code for passcode generation</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Location Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={locationForm.location_name}
+                    onChange={(e) => setLocationForm(prev => ({ ...prev, location_name: e.target.value }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Bacolod"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <input
+                    type="text"
+                    value={locationForm.description}
+                    onChange={(e) => setLocationForm(prev => ({ ...prev, description: e.target.value }))}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Western Visayas"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  {loading ? 'Creating...' : 'Create Location Code'}
+                </button>
+              </form>
+            </div>
+
+            {/* Locations List */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">All Location Codes ({locationCodes.length})</h3>
+                <p className="text-sm text-gray-600 mt-1">Used for passcode generation during card creation</p>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {locationCodes.map((location) => (
+                  <div key={location.id} className="px-6 py-4 border-b border-gray-200 last:border-b-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {location.code}
+                          </span>
+                          <h4 className="text-sm font-medium text-gray-900 ml-3">{location.location_name}</h4>
+                        </div>
+                        {location.description && (
+                          <p className="text-sm text-gray-500 mt-1">{location.description}</p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">
+                          Generates passcodes: {location.code}-XXXX
+                        </p>
+                      </div>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        location.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {location.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {locationCodes.length === 0 && (
+                  <div className="px-6 py-8 text-center text-gray-500">
+                    <MapPin className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No location codes found. Add your first location code above.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
