@@ -1,23 +1,23 @@
--- -- ===================================================================
--- -- STREAMLINED MOCARDS CORE SCHEMA
--- -- Focused on: Card Generation → Clinic Management → Card Assignment
--- -- ===================================================================
+-- ===================================================================
+-- STREAMLINED MOCARDS CORE SCHEMA
+-- Focused on: Card Generation → Clinic Management → Card Assignment
+-- ===================================================================
 --
--- -- Clean existing schema (for fresh installation)
--- DROP TABLE IF EXISTS public.card_perks CASCADE;
--- DROP TABLE IF EXISTS public.cards CASCADE;
--- DROP TABLE IF EXISTS public.card_batches CASCADE;
--- DROP TABLE IF EXISTS public.clinics CASCADE;
--- DROP TABLE IF EXISTS public.admin_accounts CASCADE;
--- DROP TABLE IF EXISTS public.location_codes CASCADE;
+-- Clean existing schema (for fresh installation)
+DROP TABLE IF EXISTS public.card_perks CASCADE;
+DROP TABLE IF EXISTS public.cards CASCADE;
+DROP TABLE IF EXISTS public.card_batches CASCADE;
+DROP TABLE IF EXISTS public.clinics CASCADE;
+DROP TABLE IF EXISTS public.admin_accounts CASCADE;
+DROP TABLE IF EXISTS public.location_codes CASCADE;
+
+-- Drop functions if they exist
+DROP FUNCTION IF EXISTS assign_cards_to_clinic(UUID, INTEGER);
+DROP FUNCTION IF EXISTS generate_passcode(TEXT);
+DROP FUNCTION IF EXISTS generate_control_number(TEXT, INTEGER, TEXT);
 --
--- -- Drop functions if they exist
--- DROP FUNCTION IF EXISTS assign_cards_to_clinic(UUID, INTEGER);
--- DROP FUNCTION IF EXISTS generate_passcode(TEXT);
--- DROP FUNCTION IF EXISTS generate_control_number(TEXT, INTEGER, TEXT);
---
--- -- Core clinic management
--- CREATE TABLE IF NOT EXISTS public.clinics (
+-- Core clinic management
+CREATE TABLE IF NOT EXISTS public.clinics (
 --   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 --   clinic_name VARCHAR(255) NOT NULL UNIQUE,
 --   clinic_code VARCHAR(50) NOT NULL UNIQUE,
@@ -33,8 +33,8 @@
 --   updated_at TIMESTAMP DEFAULT NOW()
 -- );
 --
--- -- Card batch management for organized generation
--- CREATE TABLE IF NOT EXISTS public.card_batches (
+-- Card batch management for organized generation
+CREATE TABLE IF NOT EXISTS public.card_batches (
 --   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 --   batch_number VARCHAR(100) NOT NULL UNIQUE,
 --   total_cards INTEGER NOT NULL,
@@ -45,8 +45,8 @@
 --   notes TEXT
 -- );
 --
--- -- Core card management
--- CREATE TABLE IF NOT EXISTS public.cards (
+-- Core card management
+CREATE TABLE IF NOT EXISTS public.cards (
 --   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 --   batch_id UUID REFERENCES public.card_batches(id) ON DELETE CASCADE,
 --   clinic_id UUID REFERENCES public.clinics(id) ON DELETE SET NULL,
@@ -62,8 +62,8 @@
 --   updated_at TIMESTAMP DEFAULT NOW()
 -- );
 --
--- -- Simplified perk system (core dental services only)
--- CREATE TABLE IF NOT EXISTS public.card_perks (
+-- Simplified perk system (core dental services only)
+CREATE TABLE IF NOT EXISTS public.card_perks (
 --   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 --   card_id UUID REFERENCES public.cards(id) ON DELETE CASCADE,
 --   perk_type VARCHAR(50) NOT NULL CHECK (perk_type IN ('consultation', 'cleaning', 'xray', 'extraction', 'filling')),
@@ -74,8 +74,8 @@
 --   created_at TIMESTAMP DEFAULT NOW()
 -- );
 --
--- -- Admin accounts (simplified)
--- CREATE TABLE IF NOT EXISTS public.admin_accounts (
+-- Admin accounts (simplified)
+CREATE TABLE IF NOT EXISTS public.admin_accounts (
 --   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 --   username VARCHAR(50) UNIQUE NOT NULL,
 --   password_hash VARCHAR(255) NOT NULL,
@@ -86,8 +86,8 @@
 --   created_at TIMESTAMP DEFAULT NOW()
 -- );
 --
--- -- Location codes for passcode generation
--- CREATE TABLE IF NOT EXISTS public.location_codes (
+-- Location codes for passcode generation
+CREATE TABLE IF NOT EXISTS public.location_codes (
 --   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 --   code VARCHAR(3) NOT NULL UNIQUE,
 --   location_name VARCHAR(100) NOT NULL,
@@ -96,12 +96,12 @@
 --   created_at TIMESTAMP DEFAULT NOW()
 -- );
 --
--- -- ===================================================================
--- -- DEFAULT DATA
--- -- ===================================================================
+-- ===================================================================
+-- DEFAULT DATA
+-- ===================================================================
 --
--- -- Insert default location codes
--- INSERT INTO public.location_codes (code, location_name, description) VALUES
+-- Insert default location codes
+INSERT INTO public.location_codes (code, location_name, description) VALUES
 -- ('001', 'Metro Manila', 'National Capital Region'),
 -- ('002', 'Cebu', 'Central Visayas'),
 -- ('003', 'Davao', 'Davao Region'),
@@ -109,34 +109,34 @@
 -- ('005', 'Iloilo', 'Western Visayas')
 -- ON CONFLICT (code) DO NOTHING;
 --
--- -- Insert demo admin account
--- INSERT INTO public.admin_accounts (username, password_hash, full_name, email) VALUES
+-- Insert demo admin account
+INSERT INTO public.admin_accounts (username, password_hash, full_name, email) VALUES
 -- ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'admin@mocards.com')
 -- ON CONFLICT (username) DO NOTHING;
 --
--- -- Insert demo clinic
--- INSERT INTO public.clinics (clinic_name, clinic_code, contact_person, email, password_hash, city, province) VALUES
+-- Insert demo clinic
+INSERT INTO public.clinics (clinic_name, clinic_code, contact_person, email, password_hash, city, province) VALUES
 -- ('Demo Dental Clinic', 'DEMO001', 'Dr. Demo', 'demo@clinic.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Manila', 'Metro Manila')
 -- ON CONFLICT (clinic_code) DO NOTHING;
 --
--- -- ===================================================================
--- -- INDEXES FOR PERFORMANCE (Create after tables)
--- -- ===================================================================
+-- ===================================================================
+-- INDEXES FOR PERFORMANCE (Create after tables)
+-- ===================================================================
 --
--- CREATE INDEX IF NOT EXISTS idx_cards_control_number ON public.cards(control_number);
--- CREATE INDEX IF NOT EXISTS idx_cards_passcode ON public.cards(passcode);
--- CREATE INDEX IF NOT EXISTS idx_cards_status ON public.cards(status);
--- CREATE INDEX IF NOT EXISTS idx_cards_clinic_id ON public.cards(clinic_id);
--- CREATE INDEX IF NOT EXISTS idx_cards_batch_id ON public.cards(batch_id);
--- CREATE INDEX IF NOT EXISTS idx_card_perks_card_id ON public.card_perks(card_id);
--- CREATE INDEX IF NOT EXISTS idx_clinics_status ON public.clinics(status);
+CREATE INDEX IF NOT EXISTS idx_cards_control_number ON public.cards(control_number);
+CREATE INDEX IF NOT EXISTS idx_cards_passcode ON public.cards(passcode);
+CREATE INDEX IF NOT EXISTS idx_cards_status ON public.cards(status);
+CREATE INDEX IF NOT EXISTS idx_cards_clinic_id ON public.cards(clinic_id);
+CREATE INDEX IF NOT EXISTS idx_cards_batch_id ON public.cards(batch_id);
+CREATE INDEX IF NOT EXISTS idx_card_perks_card_id ON public.card_perks(card_id);
+CREATE INDEX IF NOT EXISTS idx_clinics_status ON public.clinics(status);
 --
--- -- ===================================================================
--- -- STORED FUNCTIONS FOR STREAMLINED OPERATIONS
--- -- ===================================================================
+-- ===================================================================
+-- STORED FUNCTIONS FOR STREAMLINED OPERATIONS
+-- ===================================================================
 --
--- -- Function to generate control numbers
--- CREATE OR REPLACE FUNCTION generate_control_number(
+-- Function to generate control numbers
+CREATE OR REPLACE FUNCTION generate_control_number(
 --   batch_prefix TEXT,
 --   sequence_number INTEGER,
 --   location_prefix TEXT DEFAULT 'PHL'
@@ -150,8 +150,8 @@
 -- END;
 -- $$ LANGUAGE plpgsql;
 --
--- -- Function to generate passcodes (location + random 4 digits)
--- CREATE OR REPLACE FUNCTION generate_passcode(
+-- Function to generate passcodes (location + random 4 digits)
+CREATE OR REPLACE FUNCTION generate_passcode(
 --   location_code TEXT
 -- ) RETURNS TEXT AS $$
 -- DECLARE
@@ -163,8 +163,8 @@
 -- END;
 -- $$ LANGUAGE plpgsql;
 --
--- -- Function to assign cards to clinic (created after tables exist)
--- CREATE OR REPLACE FUNCTION assign_cards_to_clinic(
+-- Function to assign cards to clinic (created after tables exist)
+CREATE OR REPLACE FUNCTION assign_cards_to_clinic(
 --   p_clinic_id UUID,
 --   p_card_count INTEGER
 -- ) RETURNS INTEGER AS $$
@@ -205,39 +205,39 @@
 -- END;
 -- $$ LANGUAGE plpgsql;
 --
--- -- ===================================================================
--- -- RLS POLICIES (SIMPLIFIED)
--- -- ===================================================================
+-- ===================================================================
+-- RLS POLICIES (SIMPLIFIED)
+-- ===================================================================
 --
--- ALTER TABLE public.clinics ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE public.card_batches ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE public.card_perks ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE public.admin_accounts ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE public.location_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clinics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.card_batches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.card_perks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.location_codes ENABLE ROW LEVEL SECURITY;
 --
--- -- Allow all access for now (to be restricted in production)
--- CREATE POLICY "Allow all operations" ON public.clinics FOR ALL USING (true);
--- CREATE POLICY "Allow all operations" ON public.cards FOR ALL USING (true);
--- CREATE POLICY "Allow all operations" ON public.card_batches FOR ALL USING (true);
--- CREATE POLICY "Allow all operations" ON public.card_perks FOR ALL USING (true);
--- CREATE POLICY "Allow all operations" ON public.admin_accounts FOR ALL USING (true);
--- CREATE POLICY "Allow all operations" ON public.location_codes FOR ALL USING (true);
+-- Allow all access for now (to be restricted in production)
+CREATE POLICY "Allow all operations" ON public.clinics FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON public.cards FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON public.card_batches FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON public.card_perks FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON public.admin_accounts FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON public.location_codes FOR ALL USING (true);
 --
--- -- ===================================================================
--- -- PERMISSIONS
--- -- ===================================================================
+-- ===================================================================
+-- PERMISSIONS
+-- ===================================================================
 --
--- GRANT ALL ON public.clinics TO anon, authenticated;
--- GRANT ALL ON public.cards TO anon, authenticated;
--- GRANT ALL ON public.card_batches TO anon, authenticated;
--- GRANT ALL ON public.card_perks TO anon, authenticated;
--- GRANT ALL ON public.admin_accounts TO anon, authenticated;
--- GRANT ALL ON public.location_codes TO anon, authenticated;
+GRANT ALL ON public.clinics TO anon, authenticated;
+GRANT ALL ON public.cards TO anon, authenticated;
+GRANT ALL ON public.card_batches TO anon, authenticated;
+GRANT ALL ON public.card_perks TO anon, authenticated;
+GRANT ALL ON public.admin_accounts TO anon, authenticated;
+GRANT ALL ON public.location_codes TO anon, authenticated;
 --
--- -- ===================================================================
--- -- SUMMARY
--- -- ===================================================================
+-- ===================================================================
+-- SUMMARY
+-- ===================================================================
 --
 -- /*
 -- STREAMLINED WORKFLOW:
