@@ -1,10 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Configuration
+// Configuration with validation
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://lxyexybnotixgpzflota.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Validate environment variables
+if (!supabaseUrl || supabaseUrl === 'https://lxyexybnotixgpzflota.supabase.co') {
+  console.warn('Using default Supabase URL. Please set VITE_SUPABASE_URL in your environment.');
+}
+
+if (!supabaseAnonKey || supabaseAnonKey === 'your-anon-key') {
+  console.warn('Using default Supabase key. Please set VITE_SUPABASE_ANON_KEY in your environment.');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false, // Disable session persistence for admin operations
+    autoRefreshToken: false,
+  },
+});
 
 // Core Types
 export interface Clinic {
@@ -109,35 +123,76 @@ export const streamlinedOps = {
     locationCode: string,
     cardCount: number
   ) {
-    const cards = [];
+    try {
+      // Validate inputs
+      if (!batchId || !batchNumber || !locationCode || cardCount <= 0) {
+        throw new Error('Invalid parameters for card generation');
+      }
 
-    for (let i = 1; i <= cardCount; i++) {
-      const controlNumber = await this.generateControlNumber(batchNumber, i);
-      const passcode = await this.generatePasscode(locationCode);
+      if (cardCount > 10000) {
+        throw new Error('Maximum 10,000 cards per batch allowed');
+      }
 
-      cards.push({
-        batch_id: batchId,
-        control_number: controlNumber,
-        passcode: passcode,
-        location_code: locationCode,
-        status: 'unassigned' as const,
-        generation_method: 'auto' as const,
-      });
+      // Verify location code exists
+      const { data: locationExists } = await supabase
+        .from('location_codes')
+        .select('code')
+        .eq('code', locationCode)
+        .eq('is_active', true)
+        .single();
+
+      if (!locationExists) {
+        throw new Error(`Location code '${locationCode}' not found or inactive`);
+      }
+
+      const cards = [];
+
+      for (let i = 1; i <= cardCount; i++) {
+        try {
+          const controlNumber = await this.generateControlNumber(batchNumber, i);
+          const passcode = await this.generatePasscode(locationCode);
+
+          cards.push({
+            batch_id: batchId,
+            control_number: controlNumber,
+            passcode: passcode,
+            location_code: locationCode,
+            status: 'unassigned' as const,
+            generation_method: 'auto' as const,
+          });
+        } catch (err) {
+          throw new Error(`Failed to generate card ${i}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('cards')
+        .insert(cards)
+        .select();
+
+      if (error) {
+        throw new Error(`Database error inserting cards: ${error.message}`);
+      }
+
+      if (!data || data.length !== cardCount) {
+        throw new Error(`Expected ${cardCount} cards, but only ${data?.length || 0} were created`);
+      }
+
+      // Create default perks for each card
+      for (const card of data) {
+        try {
+          await this.createDefaultPerksForCard(card.id);
+        } catch (err) {
+          console.warn(`Failed to create perks for card ${card.id}:`, err);
+          // Continue with other cards even if perks fail
+        }
+      }
+
+      return data as Card[];
+    } catch (err) {
+      console.error('Error generating cards for batch:', err);
+      throw err;
     }
-
-    const { data, error } = await supabase
-      .from('cards')
-      .insert(cards)
-      .select();
-
-    if (error) throw error;
-
-    // Create default perks for each card
-    for (const card of data) {
-      await this.createDefaultPerksForCard(card.id);
-    }
-
-    return data as Card[];
   },
 
   async generateControlNumber(batchNumber: string, sequenceNumber: number) {
@@ -378,14 +433,46 @@ export const streamlinedOps = {
   },
 
   async createLocationCode(locationData: Omit<LocationCode, 'id' | 'created_at'>) {
-    const { data, error } = await supabase
-      .from('location_codes')
-      .insert([locationData])
-      .select()
-      .single();
+    try {
+      // Validate input data
+      if (!locationData.code || !locationData.location_name) {
+        throw new Error('Location code and name are required');
+      }
 
-    if (error) throw error;
-    return data as LocationCode;
+      // Ensure code is 3 characters and uppercase
+      const sanitizedData = {
+        ...locationData,
+        code: locationData.code.trim().toUpperCase(),
+        location_name: locationData.location_name.trim(),
+        description: locationData.description?.trim() || null,
+      };
+
+      if (sanitizedData.code.length !== 3) {
+        throw new Error('Location code must be exactly 3 characters');
+      }
+
+      const { data, error } = await supabase
+        .from('location_codes')
+        .insert([sanitizedData])
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          throw new Error(`Location code '${sanitizedData.code}' already exists`);
+        }
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Failed to create location code - no data returned');
+      }
+
+      return data as LocationCode;
+    } catch (err) {
+      console.error('Error creating location code:', err);
+      throw err;
+    }
   },
 
   async getAllBatches() {
