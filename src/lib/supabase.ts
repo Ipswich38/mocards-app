@@ -33,7 +33,7 @@ export interface Card {
   control_number: string;
   passcode: string;
   location_code: string;
-  status: 'unactivated' | 'activated' | 'expired';
+  status: 'unassigned' | 'assigned' | 'activated' | 'expired' | 'suspended';
   assigned_clinic_id?: string;
   activated_at?: string;
   expires_at?: string;

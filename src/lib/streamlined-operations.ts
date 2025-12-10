@@ -329,6 +329,96 @@ export const streamlinedOps = {
   },
 
   // ============================================================================
+  // CARD ASSIGNMENT AND ACTIVATION OPERATIONS
+  // ============================================================================
+
+  async assignCardsToClinic(cardIds: string[], clinicId: string, assignedBy?: string) {
+    const { data, error } = await supabase
+      .from('cards')
+      .update({
+        clinic_id: clinicId,
+        status: 'assigned',
+        assigned_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', cardIds)
+      .eq('status', 'unassigned') // Only assign unassigned cards
+      .select();
+
+    if (error) throw error;
+
+    // Log the assignment
+    for (const card of data) {
+      try {
+        await this.logCardTransaction(card.id, 'assigned', assignedBy || 'system', {
+          assigned_to_clinic: clinicId,
+          previous_status: 'unassigned'
+        });
+      } catch (logError) {
+        console.warn(`Failed to log assignment for card ${card.id}:`, logError);
+      }
+    }
+
+    return data as Card[];
+  },
+
+  async activateCard(cardId: string, clinicId: string, activatedBy: string, activatedByName?: string) {
+    // First check if card is assigned to this clinic
+    const { data: cardCheck, error: checkError } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('id', cardId)
+      .eq('clinic_id', clinicId)
+      .eq('status', 'assigned')
+      .single();
+
+    if (checkError || !cardCheck) {
+      throw new Error('Card not found or not assigned to this clinic');
+    }
+
+    // Activate the card
+    const { data, error } = await supabase
+      .from('cards')
+      .update({
+        status: 'activated',
+        activated_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from activation
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Log the activation
+    await this.logCardTransaction(cardId, 'activated', activatedBy, {
+      activated_by_name: activatedByName,
+      activation_clinic: clinicId,
+      expires_at: data.expires_at,
+      previous_status: 'assigned'
+    });
+
+    return data as Card;
+  },
+
+  async logCardTransaction(cardId: string, transactionType: string, performedBy: string, details: Record<string, any>) {
+    const { error } = await supabase
+      .from('card_transactions')
+      .insert({
+        card_id: cardId,
+        transaction_type: transactionType,
+        performed_by: performedBy,
+        details: details,
+        created_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.warn(`Failed to log transaction for card ${cardId}:`, error);
+    }
+  },
+
+  // ============================================================================
   // CLINIC MANAGEMENT OPERATIONS
   // ============================================================================
 
@@ -398,17 +488,6 @@ export const streamlinedOps = {
   // CARD ASSIGNMENT OPERATIONS
   // ============================================================================
 
-  async assignCardsToClinic(clinicId: string, cardCount: number) {
-    const { data, error } = await supabase
-      .rpc('assign_cards_to_clinic', {
-        p_clinic_id: clinicId,
-        p_card_count: cardCount
-      });
-
-    if (error) throw error;
-    return data as number; // Returns number of cards assigned
-  },
-
   async getUnassignedCards(limit: number = 100) {
     const { data, error } = await supabase
       .from('cards')
@@ -436,34 +515,6 @@ export const streamlinedOps = {
 
     if (error) throw error;
     return data as (Card & { card_batches: { batch_number: string } })[];
-  },
-
-  async activateCard(controlNumber: string, passcode: string) {
-    // First verify the card exists and passcode matches
-    const { data: card, error: lookupError } = await supabase
-      .from('cards')
-      .select('*')
-      .eq('control_number', controlNumber.toUpperCase())
-      .eq('passcode', passcode.toUpperCase())
-      .eq('status', 'assigned')
-      .single();
-
-    if (lookupError) throw lookupError;
-
-    // Activate the card
-    const { data, error } = await supabase
-      .from('cards')
-      .update({
-        status: 'activated',
-        activated_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
-      })
-      .eq('id', card.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Card;
   },
 
   // ============================================================================

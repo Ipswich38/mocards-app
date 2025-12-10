@@ -142,7 +142,7 @@ export function StreamlinedAdminDashboard({ token, onBack }: StreamlinedAdminDas
       });
 
       // Generate cards for the batch
-      await streamlinedOps.generateCardsForBatch(
+      const generatedCards = await streamlinedOps.generateCardsForBatch(
         newBatch.id,
         newBatch.batch_number,
         batchForm.location_code,
@@ -153,12 +153,14 @@ export function StreamlinedAdminDashboard({ token, onBack }: StreamlinedAdminDas
 
       // Handle immediate assignment if selected
       if (batchForm.assignment_option === 'existing' && batchForm.selected_clinic_id) {
-        const assignedCount = await streamlinedOps.assignCardsToClinic(
+        const cardIds = generatedCards.map(card => card.id);
+        const assignedCards = await streamlinedOps.assignCardsToClinic(
+          cardIds,
           batchForm.selected_clinic_id,
-          batchForm.total_cards
+          'admin'
         );
         const selectedClinic = clinics.find(c => c.id === batchForm.selected_clinic_id);
-        successMessage += ` and assigned all ${assignedCount} cards to ${selectedClinic?.clinic_name}`;
+        successMessage += ` and assigned all ${assignedCards.length} cards to ${selectedClinic?.clinic_name}`;
       }
 
       setSuccess(successMessage);
@@ -207,7 +209,7 @@ export function StreamlinedAdminDashboard({ token, onBack }: StreamlinedAdminDas
         });
 
         // Generate cards for the batch
-        await streamlinedOps.generateCardsForBatch(
+        const generatedCards = await streamlinedOps.generateCardsForBatch(
           newBatch.id,
           newBatch.batch_number,
           pendingBatch.location_code,
@@ -215,12 +217,14 @@ export function StreamlinedAdminDashboard({ token, onBack }: StreamlinedAdminDas
         );
 
         // Assign cards to the new clinic
-        const assignedCount = await streamlinedOps.assignCardsToClinic(
+        const cardIds = generatedCards.map(card => card.id);
+        const assignedCards = await streamlinedOps.assignCardsToClinic(
+          cardIds,
           newClinic.id,
-          pendingBatch.total_cards
+          'admin'
         );
 
-        setSuccess(`Successfully created clinic "${newClinic.clinic_name}", generated batch ${pendingBatch.batch_number} with ${pendingBatch.total_cards} cards, and assigned all ${assignedCount} cards to the new clinic`);
+        setSuccess(`Successfully created clinic "${newClinic.clinic_name}", generated batch ${pendingBatch.batch_number} with ${pendingBatch.total_cards} cards, and assigned all ${assignedCards.length} cards to the new clinic`);
 
         setPendingBatch(null);
         setBatchForm({

@@ -38,7 +38,7 @@ export function CardGenerationSystem({ adminUserId }: CardGenerationSystemProps)
           control_number: controlNumber,
           passcode: passcode,
           location_code: 'MO',
-          status: 'unactivated' as const
+          status: 'unassigned' as const
         };
 
         const card = await dbOperations.createCard(cardData);

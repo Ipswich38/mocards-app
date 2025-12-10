@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Card, Appointment } from '../lib/supabase';
+import { streamlinedOps } from '../lib/streamlined-operations';
 // Removed useAutoLogout hook dependency
 import { ClinicPerkCustomization } from './ClinicPerkCustomization';
 
@@ -145,23 +146,34 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
 
   const handleActivateCard = async (cardId: string) => {
     try {
-      await dbOperations.activateCard(cardId, clinicCredentials.clinicId);
-      await dbOperations.logTransaction({
-        card_id: cardId,
-        transaction_type: 'activated',
-        performed_by: 'clinic',
-        performed_by_id: clinicCredentials.clinicId,
-        details: { clinic_name: clinicCredentials.clinicName }
-      });
+      // Prompt for staff member name who is activating the card
+      const staffName = prompt('Enter the name of the staff member activating this card:');
+
+      if (!staffName || staffName.trim() === '') {
+        setError('Staff name is required for card activation');
+        return;
+      }
+
+      // Use the new activation function with staff tracking
+      const activatedCard = await streamlinedOps.activateCard(
+        cardId,
+        clinicCredentials.clinicId,
+        clinicCredentials.clinicCode, // Staff ID/Code
+        staffName.trim() // Staff Name
+      );
 
       // Refresh data
       loadClinicCards();
       loadStats();
       setFoundCard(null);
       setSearchControl('');
-    } catch (err) {
+
+      // Show success message
+      setError('');
+      console.log(`Card ${activatedCard.control_number} activated by ${staffName}`);
+    } catch (err: any) {
       console.error('Error activating card:', err);
-      setError('Failed to activate card');
+      setError(err.message || 'Failed to activate card');
     }
   };
 
@@ -447,13 +459,25 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                       <div className="font-mono text-base sm:text-lg break-all">{foundCard.control_number}</div>
                       <div className="text-xs sm:text-sm text-gray-500">Status: {foundCard.status}</div>
                     </div>
-                    {foundCard.status === 'unactivated' && (
+                    {foundCard.status === 'assigned' && (
                       <button
                         onClick={() => handleActivateCard(foundCard.id)}
                         className="bg-teal-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors self-start sm:self-auto"
                       >
                         Activate Card
                       </button>
+                    )}
+
+                    {foundCard.status === 'unassigned' && (
+                      <span className="bg-gray-100 text-gray-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium self-start sm:self-auto">
+                        Not Assigned to Clinic
+                      </span>
+                    )}
+
+                    {foundCard.status === 'activated' && (
+                      <span className="bg-green-100 text-green-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium self-start sm:self-auto">
+                        ✅ Already Activated
+                      </span>
                     )}
                   </div>
 
