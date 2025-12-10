@@ -95,6 +95,41 @@ export interface AdminAccount {
   created_at: string;
 }
 
+export interface SystemConfig {
+  id: string;
+  config_key: string;
+  config_value: string;
+  config_type: 'string' | 'number' | 'boolean' | 'json';
+  description?: string;
+  category: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TextLabel {
+  id: string;
+  label_key: string;
+  label_value: string;
+  label_category: string;
+  description?: string;
+  is_customizable: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CodeFormat {
+  id: string;
+  format_name: string;
+  format_type: 'control_number' | 'passcode' | 'batch_number' | 'clinic_code';
+  format_template: string;
+  description?: string;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Streamlined Database Operations
 export const streamlinedOps = {
   // ============================================================================
@@ -195,26 +230,92 @@ export const streamlinedOps = {
     }
   },
 
-  async generateControlNumber(batchNumber: string, sequenceNumber: number) {
-    const { data, error } = await supabase
-      .rpc('generate_control_number', {
-        batch_prefix: batchNumber,
-        sequence_number: sequenceNumber,
-        location_prefix: 'PHL'
-      });
+  async generateControlNumber(batchNumber: string, sequenceNumber: number, maxRetries: number = 5) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { data, error } = await supabase
+        .rpc('generate_control_number', {
+          batch_prefix: batchNumber,
+          sequence_number: sequenceNumber + attempt,
+          location_prefix: 'PHL'
+        });
 
-    if (error) throw error;
-    return data as string;
+      if (error) throw error;
+
+      const controlNumber = data as string;
+
+      // Check if this control number already exists
+      const { data: existingCard, error: lookupError } = await supabase
+        .from('cards')
+        .select('id')
+        .eq('control_number', controlNumber)
+        .single();
+
+      // If no existing card found (404 error is expected), control number is unique
+      if (lookupError && lookupError.code === 'PGRST116') {
+        return controlNumber;
+      }
+
+      // If other error occurred, throw it
+      if (lookupError && lookupError.code !== 'PGRST116') {
+        throw lookupError;
+      }
+
+      // If card exists, try with next sequence number
+      if (existingCard && attempt < maxRetries - 1) {
+        console.warn(`Control number collision detected: ${controlNumber}. Trying next sequence... (attempt ${attempt + 1}/${maxRetries})`);
+        continue;
+      }
+
+      // If we've exhausted retries and still have collision
+      if (existingCard && attempt === maxRetries - 1) {
+        throw new Error(`Failed to generate unique control number after ${maxRetries} attempts. Batch: ${batchNumber}, Sequence: ${sequenceNumber}`);
+      }
+    }
+
+    throw new Error('Unexpected error in control number generation');
   },
 
-  async generatePasscode(locationCode: string) {
-    const { data, error } = await supabase
-      .rpc('generate_passcode', {
-        location_code: locationCode
-      });
+  async generatePasscode(locationCode: string, maxRetries: number = 3) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { data, error } = await supabase
+        .rpc('generate_passcode', {
+          location_code: locationCode
+        });
 
-    if (error) throw error;
-    return data as string;
+      if (error) throw error;
+
+      const passcode = data as string;
+
+      // Check if this passcode already exists
+      const { data: existingCard, error: lookupError } = await supabase
+        .from('cards')
+        .select('id')
+        .eq('passcode', passcode)
+        .single();
+
+      // If no existing card found (404 error is expected), passcode is unique
+      if (lookupError && lookupError.code === 'PGRST116') {
+        return passcode;
+      }
+
+      // If other error occurred, throw it
+      if (lookupError && lookupError.code !== 'PGRST116') {
+        throw lookupError;
+      }
+
+      // If card exists, try again (only if we have retries left)
+      if (existingCard && attempt < maxRetries - 1) {
+        console.warn(`Passcode collision detected: ${passcode}. Retrying... (attempt ${attempt + 1}/${maxRetries})`);
+        continue;
+      }
+
+      // If we've exhausted retries and still have collision
+      if (existingCard && attempt === maxRetries - 1) {
+        throw new Error(`Failed to generate unique passcode after ${maxRetries} attempts. Location: ${locationCode}`);
+      }
+    }
+
+    throw new Error('Unexpected error in passcode generation');
   },
 
   async createDefaultPerksForCard(cardId: string) {
@@ -561,6 +662,405 @@ export const streamlinedOps = {
       assignedCards: assignedCards.count || 0,
       activatedCards: activatedCards.count || 0,
     };
+  },
+
+  // ============================================================================
+  // ENHANCED CRUD OPERATIONS
+  // ============================================================================
+
+  // LOCATION CODES CRUD
+  async updateLocationCode(locationId: string, updates: Partial<LocationCode>) {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', locationId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as LocationCode;
+  },
+
+  async deleteLocationCode(locationId: string) {
+    // Check if location code is being used by any cards
+    const { data: cardsUsingLocation, error: checkError } = await supabase
+      .from('cards')
+      .select('id')
+      .eq('location_code', (await this.getLocationCodeById(locationId)).code)
+      .limit(1);
+
+    if (checkError) throw checkError;
+
+    if (cardsUsingLocation && cardsUsingLocation.length > 0) {
+      throw new Error('Cannot delete location code - it is being used by existing cards');
+    }
+
+    const { error } = await supabase
+      .from('location_codes')
+      .delete()
+      .eq('id', locationId);
+
+    if (error) throw error;
+    return true;
+  },
+
+  async getLocationCodeById(locationId: string) {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .select('*')
+      .eq('id', locationId)
+      .single();
+
+    if (error) throw error;
+    return data as LocationCode;
+  },
+
+  async getAllLocationCodes() {
+    const { data, error } = await supabase
+      .from('location_codes')
+      .select('*')
+      .order('code');
+
+    if (error) throw error;
+    return data as LocationCode[];
+  },
+
+  // CLINIC CRUD ENHANCEMENTS
+  async deleteClinic(clinicId: string) {
+    // Check if clinic has assigned cards
+    const { data: assignedCards, error: checkError } = await supabase
+      .from('cards')
+      .select('id')
+      .eq('clinic_id', clinicId)
+      .limit(1);
+
+    if (checkError) throw checkError;
+
+    if (assignedCards && assignedCards.length > 0) {
+      throw new Error('Cannot delete clinic - it has assigned cards. Please reassign cards first.');
+    }
+
+    const { error } = await supabase
+      .from('clinics')
+      .delete()
+      .eq('id', clinicId);
+
+    if (error) throw error;
+    return true;
+  },
+
+  async getClinicById(clinicId: string) {
+    const { data, error } = await supabase
+      .from('clinics')
+      .select('*')
+      .eq('id', clinicId)
+      .single();
+
+    if (error) throw error;
+    return data as Clinic;
+  },
+
+  async getClinicStats(clinicId: string) {
+    const [totalCards, assignedCards, activatedCards] = await Promise.all([
+      supabase.from('cards').select('id', { count: 'exact' }).eq('clinic_id', clinicId),
+      supabase.from('cards').select('id', { count: 'exact' }).eq('clinic_id', clinicId).eq('status', 'assigned'),
+      supabase.from('cards').select('id', { count: 'exact' }).eq('clinic_id', clinicId).eq('status', 'activated'),
+    ]);
+
+    return {
+      totalCards: totalCards.count || 0,
+      assignedCards: assignedCards.count || 0,
+      activatedCards: activatedCards.count || 0,
+    };
+  },
+
+  // BATCH CRUD ENHANCEMENTS
+  async updateBatch(batchId: string, updates: Partial<CardBatch>) {
+    const { data, error } = await supabase
+      .from('card_batches')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', batchId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CardBatch;
+  },
+
+  async deleteBatch(batchId: string) {
+    // Check if batch has any cards
+    const { data: batchCards, error: checkError } = await supabase
+      .from('cards')
+      .select('id')
+      .eq('batch_id', batchId)
+      .limit(1);
+
+    if (checkError) throw checkError;
+
+    if (batchCards && batchCards.length > 0) {
+      throw new Error('Cannot delete batch - it contains cards. Delete cards first or use cascade delete.');
+    }
+
+    const { error } = await supabase
+      .from('card_batches')
+      .delete()
+      .eq('id', batchId);
+
+    if (error) throw error;
+    return true;
+  },
+
+  async deleteBatchCascade(batchId: string) {
+    // This will cascade delete all cards in the batch due to foreign key constraint
+    const { error } = await supabase
+      .from('card_batches')
+      .delete()
+      .eq('id', batchId);
+
+    if (error) throw error;
+    return true;
+  },
+
+  // CARD CRUD OPERATIONS
+  async getCardById(cardId: string) {
+    const { data, error } = await supabase
+      .from('cards')
+      .select(`
+        *,
+        clinics(clinic_name, clinic_code),
+        card_batches(batch_number),
+        card_perks(*)
+      `)
+      .eq('id', cardId)
+      .single();
+
+    if (error) throw error;
+    return data as Card & {
+      clinics: { clinic_name: string; clinic_code: string } | null;
+      card_batches: { batch_number: string } | null;
+      card_perks: CardPerk[];
+    };
+  },
+
+  async updateCard(cardId: string, updates: Partial<Card>) {
+    const { data, error } = await supabase
+      .from('cards')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Card;
+  },
+
+  async deleteCard(cardId: string) {
+    // This will cascade delete all perks due to foreign key constraint
+    const { error } = await supabase
+      .from('cards')
+      .delete()
+      .eq('id', cardId);
+
+    if (error) throw error;
+    return true;
+  },
+
+  async getAllCards(limit: number = 100, offset: number = 0) {
+    const { data, error } = await supabase
+      .from('cards')
+      .select(`
+        *,
+        clinics(clinic_name, clinic_code),
+        card_batches(batch_number)
+      `)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+    return data as (Card & {
+      clinics: { clinic_name: string; clinic_code: string } | null;
+      card_batches: { batch_number: string } | null;
+    })[];
+  },
+
+  // SYSTEM CONFIGURATION CRUD
+  async getSystemConfig() {
+    const { data, error } = await supabase
+      .from('system_config')
+      .select('*')
+      .eq('is_active', true)
+      .order('category', { ascending: true });
+
+    if (error) throw error;
+    return data as SystemConfig[];
+  },
+
+  async getConfigByKey(configKey: string) {
+    const { data, error } = await supabase
+      .from('system_config')
+      .select('*')
+      .eq('config_key', configKey)
+      .eq('is_active', true)
+      .single();
+
+    if (error) throw error;
+    return data as SystemConfig;
+  },
+
+  async updateConfig(configKey: string, configValue: string) {
+    const { data, error } = await supabase
+      .from('system_config')
+      .update({
+        config_value: configValue,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('config_key', configKey)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as SystemConfig;
+  },
+
+  async createConfig(configData: Omit<SystemConfig, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('system_config')
+      .insert({
+        ...configData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as SystemConfig;
+  },
+
+  // TEXT LABELS CRUD
+  async getTextLabels() {
+    const { data, error } = await supabase
+      .from('text_labels')
+      .select('*')
+      .order('label_category', { ascending: true });
+
+    if (error) throw error;
+    return data as TextLabel[];
+  },
+
+  async getLabelByKey(labelKey: string) {
+    const { data, error } = await supabase
+      .from('text_labels')
+      .select('*')
+      .eq('label_key', labelKey)
+      .single();
+
+    if (error) throw error;
+    return data as TextLabel;
+  },
+
+  async updateLabel(labelKey: string, labelValue: string) {
+    const { data, error } = await supabase
+      .from('text_labels')
+      .update({
+        label_value: labelValue,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('label_key', labelKey)
+      .eq('is_customizable', true)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as TextLabel;
+  },
+
+  async createLabel(labelData: Omit<TextLabel, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('text_labels')
+      .insert({
+        ...labelData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as TextLabel;
+  },
+
+  // CODE FORMATS CRUD
+  async getCodeFormats() {
+    const { data, error } = await supabase
+      .from('code_formats')
+      .select('*')
+      .eq('is_active', true)
+      .order('format_type', { ascending: true });
+
+    if (error) throw error;
+    return data as CodeFormat[];
+  },
+
+  async getFormatsByType(formatType: CodeFormat['format_type']) {
+    const { data, error } = await supabase
+      .from('code_formats')
+      .select('*')
+      .eq('format_type', formatType)
+      .eq('is_active', true)
+      .order('is_default', { ascending: false });
+
+    if (error) throw error;
+    return data as CodeFormat[];
+  },
+
+  async updateCodeFormat(formatId: string, updates: Partial<CodeFormat>) {
+    const { data, error } = await supabase
+      .from('code_formats')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', formatId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CodeFormat;
+  },
+
+  async createCodeFormat(formatData: Omit<CodeFormat, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('code_formats')
+      .insert({
+        ...formatData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CodeFormat;
+  },
+
+  async deleteCodeFormat(formatId: string) {
+    const { error } = await supabase
+      .from('code_formats')
+      .delete()
+      .eq('id', formatId);
+
+    if (error) throw error;
+    return true;
   }
 };
 
@@ -590,9 +1090,79 @@ export const codeUtils = {
     return cleaned;
   },
 
-  generateBatchNumber(): string {
-    const timestamp = new Date().getTime().toString().slice(-6);
-    return `BTH${timestamp}`;
+  async generateBatchNumber(): Promise<string> {
+    try {
+      // Get all existing batch numbers to ensure uniqueness
+      const { data: allBatches, error } = await supabase
+        .from('card_batches')
+        .select('batch_number')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      let nextBatchNumber = 1;
+      const existingBatchNumbers = new Set(allBatches?.map(b => b.batch_number) || []);
+
+      // Find the next available sequential number
+      while (true) {
+        const candidateBatch = `BATCH-${nextBatchNumber.toString().padStart(3, '0')}`;
+
+        if (!existingBatchNumbers.has(candidateBatch)) {
+          // Double-check with database to ensure no race condition
+          const { data: existingBatch, error: checkError } = await supabase
+            .from('card_batches')
+            .select('batch_number')
+            .eq('batch_number', candidateBatch)
+            .single();
+
+          // If no existing batch found (404 error is expected), batch number is unique
+          if (checkError && checkError.code === 'PGRST116') {
+            return candidateBatch;
+          }
+
+          // If other error occurred, throw it
+          if (checkError && checkError.code !== 'PGRST116') {
+            throw checkError;
+          }
+
+          // If batch exists, increment and try again
+          if (existingBatch) {
+            existingBatchNumbers.add(candidateBatch);
+            nextBatchNumber++;
+            continue;
+          }
+
+          // Should not reach here, but return the candidate if we do
+          return candidateBatch;
+        }
+
+        nextBatchNumber++;
+
+        // Prevent infinite loop - cap at 999 sequential batches
+        if (nextBatchNumber > 999) {
+          // Fallback to timestamp-based naming
+          const timestamp = new Date().getTime().toString().slice(-6);
+          const fallbackBatch = `BTH${timestamp}`;
+
+          // Ensure timestamp-based batch is also unique
+          const { data: existingFallback, error: fallbackError } = await supabase
+            .from('card_batches')
+            .select('batch_number')
+            .eq('batch_number', fallbackBatch)
+            .single();
+
+          if (fallbackError && fallbackError.code === 'PGRST116') {
+            console.warn('Reached maximum sequential batch numbers, using timestamp fallback:', fallbackBatch);
+            return fallbackBatch;
+          } else {
+            throw new Error('Unable to generate unique batch number - both sequential and timestamp methods exhausted');
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error generating batch number:', err);
+      throw new Error(`Failed to generate unique batch number: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   }
 };
 

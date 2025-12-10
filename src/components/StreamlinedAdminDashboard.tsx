@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { streamlinedOps, CardBatch, Clinic, LocationCode, codeUtils } from '../lib/streamlined-operations';
+import { AdminSettings } from './AdminSettings';
+import { AdminPerkManagement } from './AdminPerkManagement';
 import {
   Plus,
   Users,
@@ -12,7 +14,14 @@ import {
   AlertCircle,
   MapPin,
   Menu,
-  X
+  X,
+  Settings,
+  Edit3,
+  Trash2,
+  Eye,
+  Calendar,
+  Gift,
+  LogOut
 } from 'lucide-react';
 
 interface StreamlinedAdminDashboardProps {
@@ -20,8 +29,8 @@ interface StreamlinedAdminDashboardProps {
   onBack: () => void;
 }
 
-export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'generate' | 'clinics' | 'assign' | 'locations'>('overview');
+export function StreamlinedAdminDashboard({ token, onBack }: StreamlinedAdminDashboardProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'generate' | 'clinics' | 'locations' | 'settings' | 'cards' | 'appointments' | 'perks'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -63,10 +72,6 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
     province: '',
   });
 
-  const [assignmentForm, setAssignmentForm] = useState({
-    clinic_id: '',
-    card_count: 10,
-  });
 
   const [locationForm, setLocationForm] = useState({
     code: '',
@@ -115,8 +120,9 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
 
       if (batchForm.assignment_option === 'new') {
         // Show add clinic modal and pause generation
+        const generatedBatchNumber = batchForm.batch_number || await codeUtils.generateBatchNumber();
         setPendingBatch({
-          batch_number: batchForm.batch_number || codeUtils.generateBatchNumber(),
+          batch_number: generatedBatchNumber,
           total_cards: batchForm.total_cards,
           location_code: batchForm.location_code,
           notes: batchForm.notes,
@@ -127,7 +133,7 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
       }
 
       // Create the batch
-      const batchNumber = batchForm.batch_number || codeUtils.generateBatchNumber();
+      const batchNumber = batchForm.batch_number || await codeUtils.generateBatchNumber();
       const newBatch = await streamlinedOps.createCardBatch({
         batch_number: batchNumber,
         total_cards: batchForm.total_cards,
@@ -393,37 +399,6 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
     }
   };
 
-  // Assign cards to clinic
-  const handleAssignCards = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const assignedCount = await streamlinedOps.assignCardsToClinic(
-        assignmentForm.clinic_id,
-        assignmentForm.card_count
-      );
-
-      if (assignedCount > 0) {
-        setSuccess(`Successfully assigned ${assignedCount} cards to clinic`);
-        setAssignmentForm({
-          clinic_id: '',
-          card_count: 10,
-        });
-
-        // Reload data
-        await loadDashboardData();
-      } else {
-        setError('No unassigned cards available');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to assign cards');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const StatCard = ({ icon: Icon, label, value, color = 'blue' }: {
     icon: any;
@@ -442,12 +417,24 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
     </div>
   );
 
+  // Logout handler
+  const handleLogout = () => {
+    // Clear any stored session data
+    localStorage.removeItem('admin-session');
+    sessionStorage.removeItem('admin-token');
+    // Navigate back to login
+    onBack();
+  };
+
   const navigationItems = [
     { key: 'overview', label: 'Overview', icon: BarChart3, description: 'Dashboard statistics' },
     { key: 'generate', label: 'Generate Cards', icon: Plus, description: 'Create card batches' },
     { key: 'clinics', label: 'Manage Clinics', icon: Building2, description: 'Clinic management' },
-    { key: 'assign', label: 'Assign Cards', icon: CreditCard, description: 'Card assignment' },
     { key: 'locations', label: 'Manage Locations', icon: MapPin, description: 'Location codes' },
+    { key: 'cards', label: 'Card Management', icon: Eye, description: 'View and manage cards' },
+    { key: 'appointments', label: 'Appointments', icon: Calendar, description: 'Appointment calendar' },
+    { key: 'perks', label: 'Perk Management', icon: Gift, description: 'Manage perks & templates' },
+    { key: 'settings', label: 'System Settings', icon: Settings, description: 'Configuration & customization' },
   ];
 
   return (
@@ -498,8 +485,21 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
           ))}
         </nav>
 
-        {/* Back Button */}
-        <div className="p-4 border-t border-gray-200">
+        {/* Logout & Back Buttons */}
+        <div className="p-4 border-t border-gray-200 space-y-2">
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors ${
+              sidebarCollapsed ? 'justify-center' : ''
+            }`}
+            title={sidebarCollapsed ? 'Logout' : ''}
+          >
+            <LogOut className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'}`} />
+            {!sidebarCollapsed && (
+              <div className="text-sm font-medium">Logout</div>
+            )}
+          </button>
+
           <button
             onClick={onBack}
             className={`w-full flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
@@ -889,63 +889,6 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
           </div>
         )}
 
-        {/* Assign Cards Tab */}
-        {activeTab === 'assign' && (
-          <div className="max-w-2xl">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Assign Cards to Clinic</h3>
-              <form onSubmit={handleAssignCards} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Select Clinic *</label>
-                  <select
-                    required
-                    value={assignmentForm.clinic_id}
-                    onChange={(e) => setAssignmentForm(prev => ({ ...prev, clinic_id: e.target.value }))}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Choose a clinic</option>
-                    {clinics.filter(c => c.status === 'active').map((clinic) => (
-                      <option key={clinic.id} value={clinic.id}>
-                        {clinic.clinic_name} ({clinic.clinic_code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Number of Cards *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    max={stats.unassignedCards}
-                    value={assignmentForm.card_count}
-                    onChange={(e) => setAssignmentForm(prev => ({ ...prev, card_count: parseInt(e.target.value) }))}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Available unassigned cards: {stats.unassignedCards}
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading || stats.unassignedCards === 0}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
-                >
-                  {loading ? 'Assigning...' : 'Assign Cards'}
-                </button>
-              </form>
-
-              {stats.unassignedCards === 0 && (
-                <div className="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
-                  <AlertCircle className="h-5 w-5 inline mr-2" />
-                  No unassigned cards available. Generate a new batch first.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Manage Locations Tab */}
         {activeTab === 'locations' && (
@@ -1063,6 +1006,58 @@ export function StreamlinedAdminDashboard({ onBack }: StreamlinedAdminDashboardP
             </div>
             </div>
           </div>
+        )}
+
+        {/* Card Management Tab */}
+        {activeTab === 'cards' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Card Management</h3>
+                <p className="text-sm text-gray-600 mt-1">View, edit, and manage individual cards across all batches and clinics</p>
+              </div>
+              <div className="p-6">
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">Card management interface will be implemented here</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Features: Search cards, update status, reassign cards, view card history
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Appointments Tab */}
+        {activeTab === 'appointments' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Appointment Calendar</h3>
+                <p className="text-sm text-gray-600 mt-1">Manage clinic appointments and scheduling</p>
+              </div>
+              <div className="p-6">
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">Appointment calendar interface will be restored here</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Features: View appointments, schedule new appointments, manage clinic calendars
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Perk Management Tab */}
+        {activeTab === 'perks' && (
+          <AdminPerkManagement adminUserId="admin" />
+        )}
+
+        {/* System Settings Tab */}
+        {activeTab === 'settings' && (
+          <AdminSettings token={token} />
         )}
           </div>
         </div>
