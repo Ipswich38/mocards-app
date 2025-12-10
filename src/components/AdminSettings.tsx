@@ -8,18 +8,15 @@ import {
 } from '../lib/streamlined-operations';
 import {
   Settings,
-  Save,
   Plus,
   Edit3,
   Trash2,
-  Check,
   X,
   AlertCircle,
   CheckCircle,
   Type,
   Code,
   MapPin,
-  Palette,
 } from 'lucide-react';
 
 interface AdminSettingsProps {
@@ -41,8 +38,6 @@ export function AdminSettings({ }: AdminSettingsProps) {
   // Edit states
   const [editingConfig, setEditingConfig] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
-  const [editingFormat, setEditingFormat] = useState<string | null>(null);
-  const [editingLocation, setEditingLocation] = useState<string | null>(null);
 
   // Form states
   const [configForm, setConfigForm] = useState({
@@ -230,10 +225,10 @@ export function AdminSettings({ }: AdminSettingsProps) {
   };
 
   const settingsTabs = [
-    { key: 'config', label: 'System Config', icon: Settings, description: 'General system settings' },
-    { key: 'labels', label: 'Text Labels', icon: Type, description: 'Customize UI text' },
-    { key: 'formats', label: 'Code Formats', icon: Code, description: 'Card code templates' },
-    { key: 'locations', label: 'Location Codes', icon: MapPin, description: 'Manage locations' },
+    { key: 'config', label: 'System Config', icon: Settings },
+    { key: 'labels', label: 'Text Labels', icon: Type },
+    { key: 'formats', label: 'Code Formats', icon: Code },
+    { key: 'locations', label: 'Location Codes', icon: MapPin },
   ];
 
   return (
@@ -257,7 +252,7 @@ export function AdminSettings({ }: AdminSettingsProps) {
       <div className="bg-white rounded-lg shadow-sm">
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
-            {settingsTabs.map(({ key, label, icon: Icon, description }) => (
+            {settingsTabs.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key as any)}

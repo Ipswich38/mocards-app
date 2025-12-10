@@ -16,8 +16,6 @@ import {
   Menu,
   X,
   Settings,
-  Edit3,
-  Trash2,
   Eye,
   Calendar,
   Gift,

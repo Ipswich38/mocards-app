@@ -1145,7 +1145,7 @@ export const codeUtils = {
           const fallbackBatch = `BTH${timestamp}`;
 
           // Ensure timestamp-based batch is also unique
-          const { data: existingFallback, error: fallbackError } = await supabase
+          const { error: fallbackError } = await supabase
             .from('card_batches')
             .select('batch_number')
             .eq('batch_number', fallbackBatch)
