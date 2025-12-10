@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { streamlinedOps, CardBatch, Clinic, LocationCode, codeUtils } from '../lib/streamlined-operations';
 import { AdminSettings } from './AdminSettings';
 import { AdminPerkManagement } from './AdminPerkManagement';
+import { CardManagement } from './CardManagement';
+import { AppointmentCalendar } from './AppointmentCalendar';
 import {
   Plus,
   Users,
@@ -1008,44 +1010,12 @@ export function StreamlinedAdminDashboard({ token, onBack }: StreamlinedAdminDas
 
         {/* Card Management Tab */}
         {activeTab === 'cards' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Card Management</h3>
-                <p className="text-sm text-gray-600 mt-1">View, edit, and manage individual cards across all batches and clinics</p>
-              </div>
-              <div className="p-6">
-                <div className="text-center py-8">
-                  <CreditCard className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500">Card management interface will be implemented here</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Features: Search cards, update status, reassign cards, view card history
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CardManagement token={token} />
         )}
 
         {/* Appointments Tab */}
         {activeTab === 'appointments' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Appointment Calendar</h3>
-                <p className="text-sm text-gray-600 mt-1">Manage clinic appointments and scheduling</p>
-              </div>
-              <div className="p-6">
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500">Appointment calendar interface will be restored here</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Features: View appointments, schedule new appointments, manage clinic calendars
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AppointmentCalendar token={token} />
         )}
 
         {/* Perk Management Tab */}
