@@ -232,16 +232,9 @@ export const streamlinedOps = {
 
   async generateControlNumber(batchNumber: string, sequenceNumber: number, maxRetries: number = 5) {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const { data, error } = await supabase
-        .rpc('generate_control_number', {
-          batch_prefix: batchNumber,
-          sequence_number: sequenceNumber + attempt,
-          location_prefix: 'PHL'
-        });
-
-      if (error) throw error;
-
-      const controlNumber = data as string;
+      // Generate control number locally instead of using database function
+      const paddedSequence = (sequenceNumber + attempt).toString().padStart(4, '0');
+      const controlNumber = `PHL-${batchNumber}-${paddedSequence}`;
 
       // Check if this control number already exists
       const { data: existingCard, error: lookupError } = await supabase
@@ -277,14 +270,9 @@ export const streamlinedOps = {
 
   async generatePasscode(locationCode: string, maxRetries: number = 3) {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const { data, error } = await supabase
-        .rpc('generate_passcode', {
-          location_code: locationCode
-        });
-
-      if (error) throw error;
-
-      const passcode = data as string;
+      // Generate passcode locally: 3-digit location code + 4-digit random number
+      const randomNumber = Math.floor(1000 + Math.random() * 9000).toString(); // 1000-9999
+      const passcode = `${locationCode}-${randomNumber}`;
 
       // Check if this passcode already exists
       const { data: existingCard, error: lookupError } = await supabase
