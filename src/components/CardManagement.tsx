@@ -47,6 +47,8 @@ export function CardManagement({ }: CardManagementProps) {
 
   // Modal states
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<CardWithDetails | null>(null);
+  const [showCardDetails, setShowCardDetails] = useState(false);
 
   // Stats
   const [stats, setStats] = useState({
@@ -580,6 +582,10 @@ export function CardManagement({ }: CardManagementProps) {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <button
+                          onClick={() => {
+                            setSelectedCard(card);
+                            setShowCardDetails(true);
+                          }}
                           className="text-blue-600 hover:text-blue-900"
                           title="View details"
                         >
@@ -641,6 +647,151 @@ export function CardManagement({ }: CardManagementProps) {
           </div>
         )}
       </div>
+
+      {/* Card Details Modal */}
+      {showCardDetails && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Card Details</h3>
+                <button
+                  onClick={() => {
+                    setShowCardDetails(false);
+                    setSelectedCard(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Card Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Control Number</label>
+                    <div className="text-lg font-mono bg-gray-50 p-3 rounded-lg border">
+                      {selectedCard.control_number}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Passcode</label>
+                    <div className="text-lg font-mono bg-gray-50 p-3 rounded-lg border">
+                      {selectedCard.passcode}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedCard.status)}`}>
+                    {getStatusIcon(selectedCard.status)}
+                    <span className="ml-2 capitalize">{selectedCard.status}</span>
+                  </span>
+                </div>
+
+                {/* Assignment Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Clinic</label>
+                    <div className="bg-gray-50 p-3 rounded-lg border">
+                      {selectedCard.clinics ? (
+                        <div>
+                          <div className="font-medium">{selectedCard.clinics.clinic_name}</div>
+                          <div className="text-sm text-gray-500">Code: {selectedCard.clinics.clinic_code}</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Not assigned</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+                    <div className="bg-gray-50 p-3 rounded-lg border">
+                      {selectedCard.card_batches?.batch_number || 'No batch'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location and Dates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location Code</label>
+                    <div className="bg-gray-50 p-3 rounded-lg border">
+                      <span className="inline-flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+                        {selectedCard.location_code}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Created</label>
+                    <div className="bg-gray-50 p-3 rounded-lg border">
+                      {new Date(selectedCard.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Dates */}
+                {(selectedCard.assigned_at || selectedCard.activated_at || selectedCard.expires_at) && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {selectedCard.assigned_at && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Assigned At</label>
+                        <div className="bg-gray-50 p-3 rounded-lg border text-sm">
+                          {new Date(selectedCard.assigned_at).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {selectedCard.activated_at && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Activated At</label>
+                        <div className="bg-gray-50 p-3 rounded-lg border text-sm">
+                          {new Date(selectedCard.activated_at).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {selectedCard.expires_at && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Expires At</label>
+                        <div className="bg-gray-50 p-3 rounded-lg border text-sm">
+                          {new Date(selectedCard.expires_at).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Perks Information */}
+                {selectedCard.card_perks && selectedCard.card_perks.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Available Perks</label>
+                    <div className="bg-gray-50 p-3 rounded-lg border">
+                      <div className="text-sm text-gray-600">
+                        {selectedCard.card_perks.length} perk(s) available
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowCardDetails(false);
+                    setSelectedCard(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

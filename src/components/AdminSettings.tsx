@@ -17,6 +17,10 @@ import {
   Type,
   Code,
   MapPin,
+  Database,
+  RotateCcw,
+  Shield,
+  Zap,
 } from 'lucide-react';
 
 interface AdminSettingsProps {
@@ -24,10 +28,15 @@ interface AdminSettingsProps {
 }
 
 export function AdminSettings({ }: AdminSettingsProps) {
-  const [activeTab, setActiveTab] = useState<'config' | 'labels' | 'formats' | 'locations'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'labels' | 'formats' | 'locations' | 'system'>('config');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Factory Reset states
+  const [resetType, setResetType] = useState<'full' | 'cards' | 'clinics' | 'perks' | 'settings'>('cards');
+  const [confirmReset, setConfirmReset] = useState('');
+  const [showResetModal, setShowResetModal] = useState(false);
 
   // Data states
   const [systemConfig, setSystemConfig] = useState<SystemConfig[]>([]);
@@ -224,11 +233,54 @@ export function AdminSettings({ }: AdminSettingsProps) {
     }
   };
 
+  // Factory Reset Functions
+  const handleFactoryReset = async () => {
+    if (confirmReset !== 'DELETE ALL DATA') {
+      setError('Please type "DELETE ALL DATA" to confirm');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      switch (resetType) {
+        case 'full':
+          await (streamlinedOps as any).factoryReset();
+          setSuccess('Complete system reset successful! All data has been cleared.');
+          break;
+        case 'cards':
+          await (streamlinedOps as any).resetCards();
+          setSuccess('Card data reset successful! All cards and batches have been deleted.');
+          break;
+        case 'clinics':
+          await (streamlinedOps as any).resetClinics();
+          setSuccess('Clinic data reset successful! All clinics have been deleted.');
+          break;
+        case 'perks':
+          await (streamlinedOps as any).resetPerks();
+          setSuccess('Perk data reset successful! All perks have been deleted.');
+          break;
+        case 'settings':
+          await (streamlinedOps as any).resetSettings();
+          setSuccess('Settings reset successful! All configurations restored to defaults.');
+          break;
+      }
+
+      setShowResetModal(false);
+      setConfirmReset('');
+      await loadSettingsData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to perform reset');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const settingsTabs = [
     { key: 'config', label: 'System Config', icon: Settings },
     { key: 'labels', label: 'Text Labels', icon: Type },
     { key: 'formats', label: 'Code Formats', icon: Code },
     { key: 'locations', label: 'Location Codes', icon: MapPin },
+    { key: 'system', label: 'System Management', icon: Database },
   ];
 
   return (
@@ -712,8 +764,227 @@ export function AdminSettings({ }: AdminSettingsProps) {
               </div>
             </div>
           )}
+
+          {/* System Management Tab */}
+          {activeTab === 'system' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">System Management</h3>
+                  <p className="text-sm text-gray-500">Factory reset and system maintenance tools</p>
+                </div>
+              </div>
+
+              {/* Warning Banner */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-red-400" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Danger Zone</h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>These operations are irreversible and will permanently delete data from your system.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reset Options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Selective Reset Card */}
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <RotateCcw className="h-6 w-6 text-orange-600 mr-3" />
+                    <h4 className="text-lg font-medium text-gray-900">Selective Reset</h4>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Choose specific parts of the system to reset while preserving other data.
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="resetType"
+                        value="cards"
+                        checked={resetType === 'cards'}
+                        onChange={(e) => setResetType(e.target.value as any)}
+                        className="h-4 w-4 text-orange-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        <strong>Cards & Batches</strong> - Delete all generated cards and card batches
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="resetType"
+                        value="clinics"
+                        checked={resetType === 'clinics'}
+                        onChange={(e) => setResetType(e.target.value as any)}
+                        className="h-4 w-4 text-orange-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        <strong>Clinics</strong> - Delete all clinic registrations and assignments
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="resetType"
+                        value="perks"
+                        checked={resetType === 'perks'}
+                        onChange={(e) => setResetType(e.target.value as any)}
+                        className="h-4 w-4 text-orange-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        <strong>Perks & Benefits</strong> - Delete all perk definitions and claims
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="resetType"
+                        value="settings"
+                        checked={resetType === 'settings'}
+                        onChange={(e) => setResetType(e.target.value as any)}
+                        className="h-4 w-4 text-orange-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        <strong>Settings</strong> - Reset all configurations to default values
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={() => setShowResetModal(true)}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Perform Selective Reset
+                  </button>
+                </div>
+
+                {/* Complete Factory Reset Card */}
+                <div className="border border-red-300 rounded-lg p-6 bg-red-50">
+                  <div className="flex items-center mb-4">
+                    <Zap className="h-6 w-6 text-red-600 mr-3" />
+                    <h4 className="text-lg font-medium text-red-900">Complete Factory Reset</h4>
+                  </div>
+                  <p className="text-sm text-red-700 mb-4">
+                    <strong>WARNING:</strong> This will completely wipe the system and remove ALL data including:
+                  </p>
+
+                  <ul className="text-sm text-red-700 mb-6 space-y-1">
+                    <li>• All generated cards and batches</li>
+                    <li>• All clinic registrations</li>
+                    <li>• All perks and benefits</li>
+                    <li>• All transactions and audit logs</li>
+                    <li>• Custom settings and configurations</li>
+                  </ul>
+
+                  <button
+                    onClick={() => {
+                      setResetType('full');
+                      setShowResetModal(true);
+                    }}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Complete Factory Reset
+                  </button>
+                </div>
+              </div>
+
+              {/* System Information */}
+              <div className="border border-gray-200 rounded-lg p-6">
+                <div className="flex items-center mb-4">
+                  <Shield className="h-6 w-6 text-blue-600 mr-3" />
+                  <h4 className="text-lg font-medium text-gray-900">System Information</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Total Cards:</span>
+                    <div className="font-medium">View in Card Management</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Total Clinics:</span>
+                    <div className="font-medium">View in Clinic Management</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Config Items:</span>
+                    <div className="font-medium">{systemConfig?.length || 0}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Location Codes:</span>
+                    <div className="font-medium">{locationCodes?.length || 0}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Factory Reset Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <AlertCircle className="h-8 w-8 text-red-600 mr-3" />
+                <h3 className="text-lg font-medium text-gray-900">
+                  Confirm {resetType === 'full' ? 'Factory Reset' : 'Selective Reset'}
+                </h3>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  {resetType === 'full'
+                    ? 'This will permanently delete ALL system data and cannot be undone.'
+                    : `This will permanently delete all ${resetType} data and cannot be undone.`
+                  }
+                </p>
+
+                <p className="text-sm text-gray-900 font-medium mb-2">
+                  To confirm, please type: <span className="font-mono bg-gray-100 px-2 py-1 rounded">DELETE ALL DATA</span>
+                </p>
+
+                <input
+                  type="text"
+                  value={confirmReset}
+                  onChange={(e) => setConfirmReset(e.target.value)}
+                  placeholder="Type confirmation text..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowResetModal(false);
+                    setConfirmReset('');
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFactoryReset}
+                  disabled={confirmReset !== 'DELETE ALL DATA' || loading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Resetting...' : 'Confirm Reset'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1202,7 +1202,150 @@ export const codeUtils = {
       console.error('Error generating batch number:', err);
       throw new Error(`Failed to generate unique batch number: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
-  }
+  },
+
+  // ============================================================================
+  // FACTORY RESET OPERATIONS
+  // ============================================================================
+
+  async factoryReset() {
+    // Complete system reset - removes ALL data
+    try {
+      await Promise.all([
+        // Delete in order to respect foreign key constraints
+        supabase.from('card_transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('perk_claims').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('card_batches').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('clinic_perks').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('perks').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('clinics').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('admin_profiles').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
+
+      // Reset system configuration to defaults
+      await this.resetSettings();
+    } catch (error) {
+      console.error('Factory reset error:', error);
+      throw new Error('Failed to perform factory reset');
+    }
+  },
+
+  async resetCards() {
+    // Reset only card-related data
+    try {
+      await Promise.all([
+        supabase.from('card_transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('card_batches').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
+    } catch (error) {
+      console.error('Card reset error:', error);
+      throw new Error('Failed to reset card data');
+    }
+  },
+
+  async resetClinics() {
+    // Reset only clinic-related data
+    try {
+      await Promise.all([
+        supabase.from('clinic_perks').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('clinics').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        // Also reset card assignments
+        supabase.from('cards').update({ clinic_id: null, assigned_at: null }).neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
+    } catch (error) {
+      console.error('Clinic reset error:', error);
+      throw new Error('Failed to reset clinic data');
+    }
+  },
+
+  async resetPerks() {
+    // Reset only perk-related data
+    try {
+      await Promise.all([
+        supabase.from('perk_claims').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('clinic_perks').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('perks').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
+    } catch (error) {
+      console.error('Perk reset error:', error);
+      throw new Error('Failed to reset perk data');
+    }
+  },
+
+  async resetSettings() {
+    // Reset system configuration to defaults
+    try {
+      // Clear existing config
+      await supabase.from('system_config').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('text_labels').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('code_formats').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      // Insert default configurations
+      const defaultConfigs = [
+        { config_key: 'app_name', config_value: 'MOCARDS', config_type: 'string', description: 'Application name displayed in headers', category: 'branding' },
+        { config_key: 'app_subtitle', config_value: 'Medical Cards Management System', config_type: 'string', description: 'Application subtitle', category: 'branding' },
+        { config_key: 'default_cards_per_batch', config_value: '500', config_type: 'number', description: 'Default number of cards per batch', category: 'generation' },
+        { config_key: 'max_cards_per_batch', config_value: '10000', config_type: 'number', description: 'Maximum cards allowed per batch', category: 'generation' },
+        { config_key: 'card_expiry_months', config_value: '12', config_type: 'number', description: 'Default card expiry in months', category: 'generation' },
+        { config_key: 'enable_bulk_operations', config_value: 'true', config_type: 'boolean', description: 'Enable bulk operations', category: 'features' },
+        { config_key: 'location_code_length', config_value: '3', config_type: 'number', description: 'Length of location codes', category: 'formatting' },
+        { config_key: 'require_clinic_approval', config_value: 'false', config_type: 'boolean', description: 'Require admin approval for new clinics', category: 'workflow' },
+      ];
+
+      await supabase.from('system_config').insert(
+        defaultConfigs.map(config => ({
+          ...config,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }))
+      );
+
+      // Insert default text labels
+      const defaultLabels = [
+        { label_key: 'nav_overview', label_value: 'Overview', label_category: 'navigation', description: 'Overview tab label' },
+        { label_key: 'nav_generate', label_value: 'Generate Cards', label_category: 'navigation', description: 'Generate cards tab label' },
+        { label_key: 'nav_clinics', label_value: 'Manage Clinics', label_category: 'navigation', description: 'Clinics management tab label' },
+        { label_key: 'btn_create', label_value: 'Create', label_category: 'buttons', description: 'Create button label' },
+        { label_key: 'btn_update', label_value: 'Update', label_category: 'buttons', description: 'Update button label' },
+        { label_key: 'status_active', label_value: 'Active', label_category: 'status', description: 'Active status label' },
+        { label_key: 'status_unassigned', label_value: 'Unassigned', label_category: 'status', description: 'Unassigned card status' },
+        { label_key: 'status_assigned', label_value: 'Assigned', label_category: 'status', description: 'Assigned card status' },
+        { label_key: 'status_activated', label_value: 'Activated', label_category: 'status', description: 'Activated card status' },
+      ];
+
+      await supabase.from('text_labels').insert(
+        defaultLabels.map(label => ({
+          ...label,
+          is_customizable: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }))
+      );
+
+      // Insert default code formats
+      const defaultFormats = [
+        { format_name: 'Default Control Number', format_type: 'control_number', format_template: '{location_prefix}-{batch_prefix}-{sequence:4}', description: 'Default format: PHL-BATCH-0001', is_default: true },
+        { format_name: 'Default Passcode', format_type: 'passcode', format_template: '{location_code}-{random:4}', description: 'Default format: 001-1234', is_default: true },
+        { format_name: 'Default Batch Number', format_type: 'batch_number', format_template: 'BATCH-{sequence:3}', description: 'Default format: BATCH-001', is_default: true },
+      ];
+
+      await supabase.from('code_formats').insert(
+        defaultFormats.map(format => ({
+          ...format,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }))
+      );
+
+    } catch (error) {
+      console.error('Settings reset error:', error);
+      throw new Error('Failed to reset settings');
+    }
+  },
 };
 
 // Export everything for easy access
