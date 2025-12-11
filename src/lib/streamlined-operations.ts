@@ -53,15 +53,22 @@ export interface Card {
   batch_id?: string;
   clinic_id?: string;
   control_number: string;
-  passcode: string;
+  passcode?: string; // Optional for backward compatibility
+  control_number_v2?: string; // New MOC format
+  location_code_v2?: string;
+  clinic_code_v2?: string;
+  card_number?: number;
+  is_activated?: boolean;
+  activated_by_clinic_id?: string;
   location_code: string;
-  status: 'unassigned' | 'assigned' | 'activated' | 'expired' | 'suspended';
+  status: 'unassigned' | 'assigned' | 'activated' | 'expired' | 'suspended' | 'unactivated';
   assigned_at?: string;
   activated_at?: string;
   expires_at?: string;
-  generation_method: 'auto' | 'manual' | 'range';
+  generation_method?: 'auto' | 'manual' | 'range';
   created_at: string;
   updated_at: string;
+  migration_version?: number;
 }
 
 export interface CardPerk {
@@ -152,6 +159,41 @@ export interface PerkRedemptionLog {
   redemption_timestamp: string;
   notes?: string;
   created_at: string;
+}
+
+// New Card System V2 Interfaces
+export interface LocationCodeV2 {
+  id: string;
+  code: string; // 01-16
+  region_name: string;
+  description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClinicCodeByRegion {
+  id: string;
+  clinic_code: string; // 4-digit code
+  region_type: 'visayas' | 'luzon_4a' | 'ncr';
+  region_name: string;
+  location_code: string;
+  description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DefaultPerkTemplate {
+  id: string;
+  perk_name: string;
+  perk_type: 'discount' | 'cashback' | 'freebie' | 'points';
+  perk_value: number;
+  description: string;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SystemConfig {
@@ -1713,7 +1755,7 @@ export const codeUtils = {
     return data as Card[];
   },
 
-  // Enhanced card lookup with perks
+  // Enhanced card lookup with perks (supports both old and new format)
   async lookupCard(controlNumber: string) {
     const { data, error } = await supabase
       .from('cards')
@@ -1735,11 +1777,237 @@ export const codeUtils = {
           )
         )
       `)
-      .eq('control_number', controlNumber)
+      .or(`control_number.eq.${controlNumber},control_number_v2.eq.${controlNumber}`)
       .single();
 
     if (error) throw error;
     return data as Card;
+  },
+
+  // ============================================================================
+  // CARD SYSTEM V2 OPERATIONS
+  // ============================================================================
+
+  // Get location codes V2 (01-16)
+  async getLocationCodesV2(): Promise<LocationCodeV2[]> {
+    const { data, error } = await supabase
+      .from('location_codes_v2')
+      .select('*')
+      .eq('is_active', true)
+      .order('code');
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Get clinic codes by region
+  async getClinicCodesByRegion(regionType?: string): Promise<ClinicCodeByRegion[]> {
+    let query = supabase
+      .from('clinic_codes_by_region')
+      .select('*')
+      .eq('is_active', true);
+
+    if (regionType) {
+      query = query.eq('region_type', regionType);
+    }
+
+    const { data, error } = await query.order('clinic_code');
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Generate new control number V2 format
+  generateControlNumberV2(cardNumber: number, locationCode?: string, clinicCode?: string): string {
+    const formattedNumber = cardNumber.toString().padStart(5, '0');
+
+    if (!locationCode || !clinicCode) {
+      return `MOC-__-____-${formattedNumber}`;
+    }
+
+    return `MOC-${locationCode}-${clinicCode}-${formattedNumber}`;
+  },
+
+  // Generate 10,000 fresh unactivated cards
+  async generateFreshCardsV2(totalCards: number = 10000): Promise<boolean> {
+    try {
+      console.log(`🚀 Generating ${totalCards} fresh unactivated cards...`);
+
+      // Remove existing cards first
+      await supabase.from('card_perks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('card_transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('card_batches').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      const batchSize = 1000;
+      const totalBatches = Math.ceil(totalCards / batchSize);
+
+      for (let batch = 0; batch < totalBatches; batch++) {
+        const startNumber = (batch * batchSize) + 1;
+        const endNumber = Math.min((batch + 1) * batchSize, totalCards);
+
+        const cardsToInsert = [];
+
+        for (let cardNumber = startNumber; cardNumber <= endNumber; cardNumber++) {
+          const controlNumber = this.generateControlNumberV2(cardNumber);
+
+          cardsToInsert.push({
+            control_number_v2: controlNumber,
+            control_number: controlNumber, // For backward compatibility
+            card_number: cardNumber,
+            is_activated: false,
+            status: 'unactivated',
+            migration_version: 2,
+            location_code: 'XX', // Placeholder
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
+
+        const { error } = await supabase.from('cards').insert(cardsToInsert);
+        if (error) throw error;
+
+        console.log(`✅ Batch ${batch + 1}/${totalBatches} completed (${cardsToInsert.length} cards)`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error generating fresh cards:', error);
+      return false;
+    }
+  },
+
+  // Activate card with new control number format
+  async activateCardV2(cardId: string, locationCode: string, clinicCode: string, clinicId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.rpc('activate_card_v2', {
+        p_card_id: cardId,
+        p_location_code: locationCode,
+        p_clinic_code: clinicCode,
+        p_clinic_id: clinicId
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('❌ Error activating card:', error);
+      return false;
+    }
+  },
+
+  // Get cards V2 with filters
+  async getCardsV2(
+    limit: number = 50,
+    offset: number = 0,
+    filters?: {
+      activated?: boolean;
+      location_code?: string;
+      clinic_code?: string;
+      search?: string;
+    }
+  ): Promise<{ cards: Card[], total: number }> {
+    try {
+      let query = supabase
+        .from('cards')
+        .select('*', { count: 'exact' })
+        .eq('migration_version', 2);
+
+      if (filters) {
+        if (filters.activated !== undefined) {
+          query = query.eq('is_activated', filters.activated);
+        }
+        if (filters.location_code) {
+          query = query.eq('location_code_v2', filters.location_code);
+        }
+        if (filters.clinic_code) {
+          query = query.eq('clinic_code_v2', filters.clinic_code);
+        }
+        if (filters.search) {
+          query = query.or(`control_number_v2.ilike.%${filters.search}%,card_number.eq.${filters.search}`);
+        }
+      }
+
+      const { data, error, count } = await query
+        .order('card_number', { ascending: true })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw error;
+
+      return {
+        cards: data || [],
+        total: count || 0
+      };
+    } catch (error) {
+      console.error('❌ Error fetching cards V2:', error);
+      return { cards: [], total: 0 };
+    }
+  },
+
+  // Get default perk templates
+  async getDefaultPerkTemplates(): Promise<DefaultPerkTemplate[]> {
+    try {
+      const { data, error } = await supabase
+        .from('default_perk_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('perk_name');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('❌ Error fetching perk templates:', error);
+      return [];
+    }
+  },
+
+  // Save perk template (create or update)
+  async savePerkTemplate(template: Partial<DefaultPerkTemplate>): Promise<boolean> {
+    try {
+      if (template.id) {
+        // Update existing
+        const { error } = await supabase
+          .from('default_perk_templates')
+          .update({
+            ...template,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', template.id);
+
+        if (error) throw error;
+      } else {
+        // Create new
+        const { error } = await supabase
+          .from('default_perk_templates')
+          .insert({
+            ...template,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error saving perk template:', error);
+      return false;
+    }
+  },
+
+  // Delete perk template
+  async deletePerkTemplate(templateId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('default_perk_templates')
+        .delete()
+        .eq('id', templateId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting perk template:', error);
+      return false;
+    }
   },
 };
 

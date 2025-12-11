@@ -79,7 +79,7 @@ export function CardManagement({ }: CardManagementProps) {
       if (searchQuery) {
         filteredCards = filteredCards.filter(card =>
           card.control_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          card.passcode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (card.passcode && card.passcode.toLowerCase().includes(searchQuery.toLowerCase())) ||
           card.clinics?.clinic_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           card.card_batches?.batch_number.toLowerCase().includes(searchQuery.toLowerCase())
         );
