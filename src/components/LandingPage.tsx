@@ -5,14 +5,13 @@ import bcrypt from 'bcryptjs';
 interface LandingPageProps {
   onClinicView: (credentials: any) => void;
   onSuperAdminView: (token: string) => void;
-  onCardholderView: (prefilledData?: { control: string; passcode: string }) => void;
+  onCardholderView: (prefilledData?: { control: string }) => void;
   onITAccess: () => void;
 }
 
 export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, onITAccess }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
   const [cardControl, setCardControl] = useState('');
-  const [cardPasscode, setCardPasscode] = useState('');
 
   const [clinicCode, setClinicCode] = useState('');
   const [clinicPassword, setClinicPassword] = useState('');
@@ -27,10 +26,9 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
   const handlePatientLookup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Pass the entered values to the enhanced cardholder view
+    // Pass the control number to the enhanced cardholder view
     onCardholderView({
-      control: cardControl,
-      passcode: cardPasscode
+      control: cardControl
     });
   };
 
@@ -205,21 +203,16 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
                 <form onSubmit={handlePatientLookup} className="space-y-3 sm:space-y-4" onClick={e => e.stopPropagation()}>
                   <input
                     type="text"
-                    placeholder="Control Number"
+                    placeholder="Enter your card control number"
                     value={cardControl}
                     onChange={(e) => setCardControl(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-5 py-3 sm:py-4 text-base sm:text-lg focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Passcode"
-                    value={cardPasscode}
-                    onChange={(e) => setCardPasscode(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-5 py-3 sm:py-4 text-base sm:text-lg focus:outline-none focus:border-blue-500 transition-colors"
+                    required
                   />
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-3 sm:py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors"
+                    disabled={!cardControl.trim()}
+                    className="w-full bg-blue-600 text-white py-3 sm:py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Check Card Status →
                   </button>
