@@ -5,7 +5,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye,
   Building2,
   MapPin,
   Phone,
@@ -14,8 +13,7 @@ import {
   Save,
   X,
   Check,
-  AlertCircle,
-  Users
+  AlertCircle
 } from 'lucide-react';
 
 interface Clinic {

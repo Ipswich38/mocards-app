@@ -10,7 +10,6 @@ import {
   Users,
   CheckCircle,
   Clock,
-  ArrowLeft,
   RefreshCw,
   Building2,
   Gift,
