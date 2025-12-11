@@ -33,12 +33,19 @@ export function MOCCardManagement() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'unactivated' | 'activated'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCards, setTotalCards] = useState(0);
+  const [stats, setStats] = useState({
+    totalCards: 0,
+    activatedCards: 0,
+    unactivatedCards: 0,
+    v2Cards: 0
+  });
   const [error, setError] = useState('');
 
   const cardsPerPage = 50;
 
   useEffect(() => {
     loadCards();
+    loadStats();
   }, [currentPage, statusFilter, searchQuery]);
 
   const loadCards = async () => {
@@ -59,9 +66,17 @@ export function MOCCardManagement() {
 
       // Apply search filter
       if (searchQuery.trim()) {
-        query = query.or(
-          `control_number.ilike.%${searchQuery}%,control_number_v2.ilike.%${searchQuery}%,card_number.eq.${searchQuery}`
-        );
+        // Try to parse as number for card_number search
+        const isNumeric = !isNaN(Number(searchQuery));
+        if (isNumeric) {
+          query = query.or(
+            `control_number.ilike.%${searchQuery}%,control_number_v2.ilike.%${searchQuery}%,card_number.eq.${searchQuery}`
+          );
+        } else {
+          query = query.or(
+            `control_number.ilike.%${searchQuery}%,control_number_v2.ilike.%${searchQuery}%`
+          );
+        }
       }
 
       // Apply pagination
@@ -81,6 +96,42 @@ export function MOCCardManagement() {
       console.error('Error loading cards:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      // Get total cards count
+      const { count: totalCount } = await supabase
+        .from('cards')
+        .select('*', { count: 'exact', head: true });
+
+      // Get activated cards count
+      const { count: activatedCount } = await supabase
+        .from('cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_activated', true);
+
+      // Get unactivated cards count
+      const { count: unactivatedCount } = await supabase
+        .from('cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_activated', false);
+
+      // Get V2 cards count (new system)
+      const { count: v2Count } = await supabase
+        .from('cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('migration_version', 2);
+
+      setStats({
+        totalCards: totalCount || 0,
+        activatedCards: activatedCount || 0,
+        unactivatedCards: unactivatedCount || 0,
+        v2Cards: v2Count || 0
+      });
+    } catch (err) {
+      console.error('Error loading stats:', err);
     }
   };
 
@@ -150,9 +201,9 @@ export function MOCCardManagement() {
       <div className="card p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">MOC Card Management</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">MOCARDS Management</h2>
             <p className="text-gray-600">
-              Manage {totalCards.toLocaleString()} MOC cards with new control number format
+              Manage {stats.totalCards.toLocaleString()} MOC cards with organized columns and tables
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -165,13 +216,64 @@ export function MOCCardManagement() {
               Export CSV
             </button>
             <button
-              onClick={loadCards}
+              onClick={() => {loadCards(); loadStats();}}
               disabled={loading}
               className="btn btn-primary flex items-center px-4 py-2 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-blue-100">
+              <CreditCard className="h-8 w-8 text-blue-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Cards</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalCards.toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-green-100">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Activated</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.activatedCards.toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-yellow-100">
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Unactivated</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.unactivatedCards.toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-purple-100">
+              <CreditCard className="h-8 w-8 text-purple-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">V2 System</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.v2Cards.toLocaleString()}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -203,12 +305,35 @@ export function MOCCardManagement() {
           </select>
         </div>
 
-        {/* Stats Bar */}
+        {/* Quick Actions */}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="text-sm text-gray-600">
-            Showing {cards.length} of {totalCards.toLocaleString()} cards
-            {statusFilter !== 'all' && ` (${statusFilter})`}
-            {searchQuery && ` matching "${searchQuery}"`}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="text-sm text-gray-600">
+              Showing {cards.length} of {totalCards.toLocaleString()} cards
+              {statusFilter !== 'all' && ` (${statusFilter})`}
+              {searchQuery && ` matching "${searchQuery}"`}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setStatusFilter('unactivated')}
+                className="btn btn-outline btn-sm"
+              >
+                View Unactivated ({stats.unactivatedCards.toLocaleString()})
+              </button>
+              <button
+                onClick={() => setStatusFilter('activated')}
+                className="btn btn-outline btn-sm"
+              >
+                View Activated ({stats.activatedCards.toLocaleString()})
+              </button>
+              <button
+                onClick={() => setStatusFilter('all')}
+                className="btn btn-outline btn-sm"
+              >
+                View All
+              </button>
+            </div>
           </div>
         </div>
       </div>

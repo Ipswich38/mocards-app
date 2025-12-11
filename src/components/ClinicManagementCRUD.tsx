@@ -1,0 +1,646 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Building2,
+  MapPin,
+  Phone,
+  Mail,
+  RefreshCw,
+  Save,
+  X,
+  Check,
+  AlertCircle,
+  Users
+} from 'lucide-react';
+
+interface Clinic {
+  id: string;
+  clinic_code: string;
+  clinic_name: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
+  status: string;
+  region?: string;
+  location_code?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ClinicFormData {
+  clinic_name: string;
+  clinic_code: string;
+  contact_email: string;
+  contact_phone: string;
+  address: string;
+  region: string;
+  location_code: string;
+  status: 'active' | 'inactive' | 'pending';
+}
+
+export function ClinicManagementCRUD() {
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
+  const [stats, setStats] = useState({
+    totalClinics: 0,
+    activeClinics: 0,
+    pendingClinics: 0,
+    inactiveClinics: 0
+  });
+
+  const [formData, setFormData] = useState<ClinicFormData>({
+    clinic_name: '',
+    clinic_code: '',
+    contact_email: '',
+    contact_phone: '',
+    address: '',
+    region: '',
+    location_code: '',
+    status: 'active'
+  });
+
+  const regions = [
+    { code: '01', name: 'National Capital Region (NCR)' },
+    { code: '02', name: 'Cordillera Administrative Region (CAR)' },
+    { code: '03', name: 'Region I (Ilocos Region)' },
+    { code: '04', name: 'Region II (Cagayan Valley)' },
+    { code: '05', name: 'Region III (Central Luzon)' },
+    { code: '06', name: 'Region IV-A (CALABARZON)' },
+    { code: '07', name: 'Region IV-B (MIMAROPA)' },
+    { code: '08', name: 'Region V (Bicol Region)' },
+    { code: '09', name: 'Region VI (Western Visayas)' },
+    { code: '10', name: 'Region VII (Central Visayas)' },
+    { code: '11', name: 'Region VIII (Eastern Visayas)' },
+    { code: '12', name: 'Region IX (Zamboanga Peninsula)' },
+    { code: '13', name: 'Region X (Northern Mindanao)' },
+    { code: '14', name: 'Region XI (Davao Region)' },
+    { code: '15', name: 'Region XII (SOCCSKSARGEN)' },
+    { code: '16', name: 'Region XIII (Caraga)' }
+  ];
+
+  useEffect(() => {
+    loadClinics();
+    loadStats();
+  }, [searchQuery]);
+
+  const loadClinics = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      let query = supabase
+        .from('mocards_clinics')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (searchQuery.trim()) {
+        query = query.or(
+          `clinic_name.ilike.%${searchQuery}%,clinic_code.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%`
+        );
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setClinics(data || []);
+    } catch (err: any) {
+      setError('Failed to load clinics: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const [totalResult, activeResult, pendingResult, inactiveResult] = await Promise.all([
+        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }),
+        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }).eq('status', 'inactive')
+      ]);
+
+      setStats({
+        totalClinics: totalResult.count || 0,
+        activeClinics: activeResult.count || 0,
+        pendingClinics: pendingResult.count || 0,
+        inactiveClinics: inactiveResult.count || 0
+      });
+    } catch (err) {
+      console.error('Error loading stats:', err);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      if (editingClinic) {
+        // Update existing clinic
+        const { error } = await supabase
+          .from('mocards_clinics')
+          .update({
+            ...formData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingClinic.id);
+
+        if (error) throw error;
+        setSuccess('Clinic updated successfully!');
+      } else {
+        // Create new clinic
+        const { error } = await supabase
+          .from('mocards_clinics')
+          .insert({
+            ...formData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+        setSuccess('Clinic created successfully!');
+      }
+
+      resetForm();
+      loadClinics();
+      loadStats();
+    } catch (err: any) {
+      setError('Failed to save clinic: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (clinic: Clinic) => {
+    setEditingClinic(clinic);
+    setFormData({
+      clinic_name: clinic.clinic_name,
+      clinic_code: clinic.clinic_code,
+      contact_email: clinic.contact_email || '',
+      contact_phone: clinic.contact_phone || '',
+      address: clinic.address || '',
+      region: clinic.region || '',
+      location_code: clinic.location_code || '',
+      status: clinic.status as any
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (clinic: Clinic) => {
+    if (!confirm(`Are you sure you want to delete "${clinic.clinic_name}"?`)) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('mocards_clinics')
+        .delete()
+        .eq('id', clinic.id);
+
+      if (error) throw error;
+      setSuccess('Clinic deleted successfully!');
+      loadClinics();
+      loadStats();
+    } catch (err: any) {
+      setError('Failed to delete clinic: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      clinic_name: '',
+      clinic_code: '',
+      contact_email: '',
+      contact_phone: '',
+      address: '',
+      region: '',
+      location_code: '',
+      status: 'active'
+    });
+    setEditingClinic(null);
+    setShowForm(false);
+  };
+
+  const generateClinicCode = () => {
+    const timestamp = Date.now().toString().slice(-4);
+    const random = Math.random().toString(36).substring(2, 4).toUpperCase();
+    return `C${timestamp}${random}`;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      active: { bg: 'bg-green-100', text: 'text-green-800', icon: Check },
+      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: AlertCircle },
+      inactive: { bg: 'bg-red-100', text: 'text-red-800', icon: X }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const Icon = config.icon;
+
+    return (
+      <span className={`${config.bg} ${config.text} text-xs px-2 py-1 rounded-full font-medium flex items-center`}>
+        <Icon className="h-3 w-3 mr-1" />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="card p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Clinic Management</h2>
+            <p className="text-gray-600">
+              Manage clinic registrations, credentials, and regional assignments
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => {
+                resetForm();
+                setFormData(prev => ({ ...prev, clinic_code: generateClinicCode() }));
+                setShowForm(true);
+              }}
+              className="btn btn-primary flex items-center px-4 py-2"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Clinic
+            </button>
+            <button
+              onClick={() => { loadClinics(); loadStats(); }}
+              disabled={loading}
+              className="btn btn-outline flex items-center px-4 py-2 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-blue-100">
+              <Building2 className="h-8 w-8 text-blue-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Clinics</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalClinics}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-green-100">
+              <Check className="h-8 w-8 text-green-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Active</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.activeClinics}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-yellow-100">
+              <AlertCircle className="h-8 w-8 text-yellow-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.pendingClinics}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-red-100">
+              <X className="h-8 w-8 text-red-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Inactive</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.inactiveClinics}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="card p-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <input
+            type="text"
+            placeholder="Search clinics..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field pl-10"
+          />
+        </div>
+      </div>
+
+      {/* Messages */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+          <Check className="h-5 w-5 mr-2" />
+          {success}
+        </div>
+      )}
+
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingClinic ? 'Edit Clinic' : 'Add New Clinic'}
+                </h3>
+                <button
+                  onClick={resetForm}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Clinic Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.clinic_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, clinic_name: e.target.value }))}
+                      className="input-field"
+                      placeholder="Enter clinic name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Clinic Code *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.clinic_code}
+                      onChange={(e) => setFormData(prev => ({ ...prev, clinic_code: e.target.value }))}
+                      className="input-field"
+                      placeholder="Enter clinic code"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.contact_email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, contact_email: e.target.value }))}
+                      className="input-field"
+                      placeholder="clinic@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.contact_phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, contact_phone: e.target.value }))}
+                      className="input-field"
+                      placeholder="(02) 123-4567"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                    className="input-field"
+                    rows={3}
+                    placeholder="Enter clinic address"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Region
+                    </label>
+                    <select
+                      value={formData.location_code}
+                      onChange={(e) => {
+                        const selectedRegion = regions.find(r => r.code === e.target.value);
+                        setFormData(prev => ({
+                          ...prev,
+                          location_code: e.target.value,
+                          region: selectedRegion?.name || ''
+                        }));
+                      }}
+                      className="input-field"
+                    >
+                      <option value="">Select Region</option>
+                      {regions.map(region => (
+                        <option key={region.code} value={region.code}>
+                          {region.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                      className="input-field"
+                    >
+                      <option value="active">Active</option>
+                      <option value="pending">Pending</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="btn btn-outline"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn btn-primary disabled:opacity-50"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {loading ? 'Saving...' : (editingClinic ? 'Update' : 'Create')} Clinic
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clinics Table */}
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Clinic
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Region
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex items-center justify-center">
+                      <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mr-2" />
+                      <span className="text-gray-600">Loading clinics...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : clinics.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No clinics found.</p>
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="btn btn-primary mt-4"
+                    >
+                      Add First Clinic
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                clinics.map((clinic) => (
+                  <tr key={clinic.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{clinic.clinic_name}</div>
+                        <div className="text-sm text-gray-500 font-mono">{clinic.clinic_code}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {clinic.contact_email && (
+                          <div className="flex items-center">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {clinic.contact_email}
+                          </div>
+                        )}
+                        {clinic.contact_phone && (
+                          <div className="flex items-center mt-1">
+                            <Phone className="h-3 w-3 mr-1" />
+                            {clinic.contact_phone}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {clinic.region && (
+                          <div className="flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {clinic.region}
+                          </div>
+                        )}
+                        {clinic.location_code && (
+                          <div className="text-xs text-gray-500">Code: {clinic.location_code}</div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(clinic.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(clinic.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <button
+                        onClick={() => handleEdit(clinic)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(clinic)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
