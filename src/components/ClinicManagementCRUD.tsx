@@ -14,7 +14,9 @@ import {
   Save,
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface Clinic {
@@ -69,6 +71,8 @@ export function ClinicManagementCRUD() {
     status: 'active',
     temporary_password: ''
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const regions = [
     { code: '01', name: 'National Capital Region (NCR)' },
@@ -531,14 +535,27 @@ export function ClinicManagementCRUD() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Temporary Password *
                     </label>
-                    <input
-                      type="password"
-                      required={!editingClinic}
-                      value={formData.temporary_password || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, temporary_password: e.target.value }))}
-                      className="input-field"
-                      placeholder="Enter temporary password for clinic access"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required={!editingClinic}
+                        value={formData.temporary_password || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, temporary_password: e.target.value }))}
+                        className="input-field pr-10"
+                        placeholder="Enter temporary password for clinic access"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        )}
+                      </button>
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">
                       Clinic will be prompted to change this password on first login
                     </p>

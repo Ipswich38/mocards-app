@@ -13,6 +13,13 @@ ADD COLUMN IF NOT EXISTS last_password_change TIMESTAMP WITH TIME ZONE DEFAULT N
 ALTER TABLE public.mocards_clinics
 ADD COLUMN IF NOT EXISTS first_login BOOLEAN DEFAULT true;
 
+-- Add missing region and location columns
+ALTER TABLE public.mocards_clinics
+ADD COLUMN IF NOT EXISTS region VARCHAR(255);
+
+ALTER TABLE public.mocards_clinics
+ADD COLUMN IF NOT EXISTS location_code VARCHAR(10);
+
 -- Create an index on password_must_be_changed for performance
 CREATE INDEX IF NOT EXISTS idx_mocards_clinics_password_change
 ON public.mocards_clinics(password_must_be_changed)
