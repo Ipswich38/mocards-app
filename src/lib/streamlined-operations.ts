@@ -95,6 +95,65 @@ export interface AdminAccount {
   created_at: string;
 }
 
+export interface Appointment {
+  id: string;
+  clinic_id: string;
+  patient_name: string;
+  patient_phone: string;
+  patient_email?: string;
+  appointment_date: string;
+  appointment_time: string;
+  service_type: string;
+  notes?: string;
+  status: 'pending' | 'confirmed' | 'declined' | 'completed' | 'cancelled';
+  requested_by: 'admin' | 'patient' | 'clinic';
+  clinic_notified: boolean;
+  clinic_response?: string;
+  responded_by?: string;
+  responded_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClinicMessage {
+  id: string;
+  clinic_id: string;
+  subject: string;
+  message: string;
+  message_type: 'inquiry' | 'request' | 'issue' | 'general';
+  status: 'unread' | 'read' | 'responded';
+  sent_by: string; // clinic staff name
+  admin_response?: string;
+  admin_responded_by?: string;
+  admin_responded_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CardActivationLog {
+  id: string;
+  card_id: string;
+  clinic_id: string;
+  activated_by_name: string;
+  activated_by_signature: string;
+  activation_timestamp: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface PerkRedemptionLog {
+  id: string;
+  card_id: string;
+  perk_id: string;
+  clinic_id: string;
+  redeemed_by_name: string;
+  redeemed_by_signature: string;
+  redemption_value: number;
+  redemption_timestamp: string;
+  notes?: string;
+  created_at: string;
+}
+
 export interface SystemConfig {
   id: string;
   config_key: string;
@@ -1345,6 +1404,342 @@ export const codeUtils = {
       console.error('Settings reset error:', error);
       throw new Error('Failed to reset settings');
     }
+  },
+
+  // ============================================================================
+  // APPOINTMENT MANAGEMENT OPERATIONS
+  // ============================================================================
+
+  async createAppointment(appointmentData: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert({
+        ...appointmentData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Appointment;
+  },
+
+  async getClinicAppointments(clinicId: string) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .order('appointment_date', { ascending: true });
+
+    if (error) throw error;
+    return data as Appointment[];
+  },
+
+  async updateAppointmentStatus(appointmentId: string, status: Appointment['status'], respondedBy?: string, response?: string) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update({
+        status,
+        clinic_response: response,
+        responded_by: respondedBy,
+        responded_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', appointmentId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Appointment;
+  },
+
+  async getAllAppointments() {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        clinics (
+          clinic_name,
+          clinic_code
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as Appointment[];
+  },
+
+  // ============================================================================
+  // CLINIC MESSAGING OPERATIONS
+  // ============================================================================
+
+  async createClinicMessage(messageData: Omit<ClinicMessage, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('clinic_messages')
+      .insert({
+        ...messageData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as ClinicMessage;
+  },
+
+  async getClinicMessages(clinicId: string) {
+    const { data, error } = await supabase
+      .from('clinic_messages')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ClinicMessage[];
+  },
+
+  async getAllClinicMessages() {
+    const { data, error } = await supabase
+      .from('clinic_messages')
+      .select(`
+        *,
+        clinics (
+          clinic_name,
+          clinic_code
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ClinicMessage[];
+  },
+
+  async updateMessageStatus(messageId: string, status: ClinicMessage['status'], adminResponse?: string, respondedBy?: string) {
+    const { data, error } = await supabase
+      .from('clinic_messages')
+      .update({
+        status,
+        admin_response: adminResponse,
+        admin_responded_by: respondedBy,
+        admin_responded_at: adminResponse ? new Date().toISOString() : undefined,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', messageId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as ClinicMessage;
+  },
+
+  // ============================================================================
+  // ENHANCED CARD ACTIVATION WITH E-SIGNATURE
+  // ============================================================================
+
+  async activateCardWithSignature(cardId: string, clinicId: string, activatedBy: string, signature: string, notes?: string) {
+    // First check if card is assigned to this clinic
+    const { data: cardCheck, error: checkError } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('id', cardId)
+      .eq('clinic_id', clinicId)
+      .eq('status', 'assigned')
+      .single();
+
+    if (checkError || !cardCheck) {
+      throw new Error('Card not found or not assigned to this clinic');
+    }
+
+    // Activate the card
+    const { data: activatedCard, error: activateError } = await supabase
+      .from('cards')
+      .update({
+        status: 'activated',
+        activated_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from activation
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', cardId)
+      .select()
+      .single();
+
+    if (activateError) throw activateError;
+
+    // Log the activation with e-signature
+    await supabase
+      .from('card_activation_logs')
+      .insert({
+        card_id: cardId,
+        clinic_id: clinicId,
+        activated_by_name: activatedBy,
+        activated_by_signature: signature,
+        activation_timestamp: new Date().toISOString(),
+        notes: notes,
+        created_at: new Date().toISOString(),
+      });
+
+    // Log the transaction
+    await streamlinedOps.logCardTransaction(cardId, 'activated', activatedBy, {
+      activated_by_name: activatedBy,
+      activation_clinic: clinicId,
+      expires_at: activatedCard.expires_at,
+      previous_status: 'assigned',
+      signature_captured: true
+    });
+
+    return activatedCard as Card;
+  },
+
+  async redeemPerkWithSignature(cardId: string, perkId: string, clinicId: string, redeemedBy: string, signature: string, notes?: string) {
+    // Get perk details
+    const { data: perk, error: perkError } = await supabase
+      .from('perks')
+      .select('*')
+      .eq('id', perkId)
+      .single();
+
+    if (perkError || !perk) {
+      throw new Error('Perk not found');
+    }
+
+    // Check if card is activated and assigned to this clinic
+    const { data: card, error: cardError } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('id', cardId)
+      .eq('clinic_id', clinicId)
+      .eq('status', 'activated')
+      .single();
+
+    if (cardError || !card) {
+      throw new Error('Card not found, not activated, or not assigned to this clinic');
+    }
+
+    // Create perk claim
+    const { data: claim, error: claimError } = await supabase
+      .from('perk_claims')
+      .insert({
+        card_id: cardId,
+        perk_id: perkId,
+        clinic_id: clinicId,
+        claimed_at: new Date().toISOString(),
+        claimed_value: perk.perk_value,
+      })
+      .select()
+      .single();
+
+    if (claimError) throw claimError;
+
+    // Log the redemption with e-signature
+    await supabase
+      .from('perk_redemption_logs')
+      .insert({
+        card_id: cardId,
+        perk_id: perkId,
+        clinic_id: clinicId,
+        redeemed_by_name: redeemedBy,
+        redeemed_by_signature: signature,
+        redemption_value: perk.perk_value,
+        redemption_timestamp: new Date().toISOString(),
+        notes: notes,
+        created_at: new Date().toISOString(),
+      });
+
+    // Log the transaction
+    await streamlinedOps.logCardTransaction(cardId, 'perk_redeemed', redeemedBy, {
+      perk_id: perkId,
+      perk_type: perk.perk_type,
+      perk_value: perk.perk_value,
+      redeemed_by_name: redeemedBy,
+      clinic_id: clinicId,
+      signature_captured: true
+    });
+
+    return claim;
+  },
+
+  async getCardActivationLogs(cardId: string) {
+    const { data, error } = await supabase
+      .from('card_activation_logs')
+      .select('*')
+      .eq('card_id', cardId)
+      .order('activation_timestamp', { ascending: false });
+
+    if (error) throw error;
+    return data as CardActivationLog[];
+  },
+
+  async getPerkRedemptionLogs(cardId: string) {
+    const { data, error } = await supabase
+      .from('perk_redemption_logs')
+      .select(`
+        *,
+        perks (
+          perk_type,
+          description
+        )
+      `)
+      .eq('card_id', cardId)
+      .order('redemption_timestamp', { ascending: false });
+
+    if (error) throw error;
+    return data as PerkRedemptionLog[];
+  },
+
+  // Helper function to get clinic cards
+  async getClinicCards(clinicId: string) {
+    const { data, error } = await supabase
+      .from('cards')
+      .select(`
+        *,
+        card_batches (
+          batch_number
+        ),
+        perks:clinic_perks!inner (
+          perks (
+            id,
+            perk_type,
+            perk_value,
+            description
+          )
+        )
+      `)
+      .eq('clinic_id', clinicId)
+      .order('assigned_at', { ascending: false });
+
+    if (error) throw error;
+    return data as Card[];
+  },
+
+  // Enhanced card lookup with perks
+  async lookupCard(controlNumber: string) {
+    const { data, error } = await supabase
+      .from('cards')
+      .select(`
+        *,
+        clinics (
+          clinic_name,
+          clinic_code
+        ),
+        card_batches (
+          batch_number
+        ),
+        perks:clinic_perks (
+          perks (
+            id,
+            perk_type,
+            perk_value,
+            description
+          )
+        )
+      `)
+      .eq('control_number', controlNumber)
+      .single();
+
+    if (error) throw error;
+    return data as Card;
   },
 };
 

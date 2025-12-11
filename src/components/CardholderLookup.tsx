@@ -22,19 +22,18 @@ interface CardDetails {
 interface CardholderLookupProps {
   onBack?: () => void;
   onCardFound?: (cardData: CardDetails) => void;
-  prefilledData?: { control: string; passcode: string } | null;
+  prefilledData?: { control: string } | null;
 }
 
 export function CardholderLookup({ onBack, onCardFound, prefilledData }: CardholderLookupProps) {
   const [controlNumber, setControlNumber] = useState(prefilledData?.control || '');
-  const [passcode, setPasscode] = useState(prefilledData?.passcode || '');
   const [cardDetails, setCardDetails] = useState<CardDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
   const lookupCard = async () => {
-    if (!controlNumber || !passcode) {
-      setError('Please enter both control number and passcode');
+    if (!controlNumber) {
+      setError('Please enter your control number');
       return;
     }
 
@@ -43,12 +42,11 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
     setCardDetails(null);
 
     try {
-      // Normalize the input codes
+      // Normalize the input code
       const normalizedControl = codeUtils.normalizeControlNumber(controlNumber.trim());
-      const normalizedPasscode = codeUtils.normalizePasscode(passcode.trim());
 
-      // Look up the card using streamlined operations
-      const card = await streamlinedOps.lookupCard(normalizedControl, normalizedPasscode);
+      // Look up the card using streamlined operations (control number only)
+      const card = await (streamlinedOps as any).lookupCard(normalizedControl);
 
       const cardDetails: CardDetails = {
         id: card.id,
@@ -69,7 +67,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
       }
     } catch (err: any) {
       if (err.message.includes('PGRST116') || err.message.includes('not found')) {
-        setError('Card not found. Please check your control number and passcode.');
+        setError('Card not found. Please check your control number.');
       } else {
         setError('Error looking up card. Please try again.');
       }
@@ -144,7 +142,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">Card Lookup</h1>
             <p className="mt-2 text-lg text-gray-600">
-              Enter your card details to view your benefits
+              Enter your card control number to view your benefits
             </p>
           </div>
         </div>
@@ -160,7 +158,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
         {/* Lookup Form */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="max-w-md mx-auto">
               <div>
                 <label htmlFor="control" className="block text-sm font-medium text-gray-700 mb-2">
                   Control Number
@@ -170,37 +168,19 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                   id="control"
                   value={controlNumber}
                   onChange={(e) => setControlNumber(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
                   placeholder="e.g., PHL-BTH123-0001"
                   disabled={isLoading}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Enter with or without dashes - system will auto-format
-                </p>
-              </div>
-
-              <div>
-                <label htmlFor="passcode" className="block text-sm font-medium text-gray-700 mb-2">
-                  Passcode
-                </label>
-                <input
-                  type="text"
-                  id="passcode"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., 001-1234"
-                  disabled={isLoading}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  3-digit location code + 4-digit number
+                  Enter your card control number with or without dashes
                 </p>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading || !controlNumber || !passcode}
+              disabled={isLoading || !controlNumber}
               className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
