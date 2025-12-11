@@ -10,7 +10,8 @@ import {
   Clock,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 interface Card {
@@ -40,6 +41,8 @@ export function MOCCardManagement() {
     v2Cards: 0
   });
   const [error, setError] = useState('');
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const cardsPerPage = 50;
 
@@ -193,6 +196,16 @@ export function MOCCardManagement() {
         </span>
       );
     }
+  };
+
+  const handleViewCard = (card: Card) => {
+    setSelectedCard(card);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedCard(null);
   };
 
   return (
@@ -426,7 +439,10 @@ export function MOCCardManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 flex items-center">
+                      <button
+                        onClick={() => handleViewCard(card)}
+                        className="text-blue-600 hover:text-blue-900 flex items-center"
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </button>
@@ -468,6 +484,123 @@ export function MOCCardManagement() {
           </div>
         )}
       </div>
+
+      {/* Card Details Modal */}
+      {showModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                <CreditCard className="h-6 w-6 mr-3 text-blue-600" />
+                MOC Card Details
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Card Information */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900 border-b pb-2">Card Information</h4>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Card Number</label>
+                    <p className="font-mono text-lg font-bold text-gray-900">
+                      #{selectedCard.card_number?.toString().padStart(5, '0')}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Control Number V2</label>
+                    <p className="font-mono text-blue-600 font-medium">
+                      {selectedCard.control_number_v2 || 'Not assigned'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Legacy Control Number</label>
+                    <p className="font-mono text-gray-600">
+                      {selectedCard.control_number || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <div className="mt-1">
+                      {getStatusBadge(selectedCard)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activation Details */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900 border-b pb-2">Activation Details</h4>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Location Code</label>
+                    <p className="text-gray-900">
+                      {selectedCard.location_code_v2 ? `Code ${selectedCard.location_code_v2}` : 'Not assigned'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Clinic Code</label>
+                    <p className="text-gray-900">
+                      {selectedCard.clinic_code_v2 || 'Not assigned'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Activated Date</label>
+                    <p className="text-gray-900">
+                      {selectedCard.activated_at
+                        ? new Date(selectedCard.activated_at).toLocaleString()
+                        : 'Not activated'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Created Date</label>
+                    <p className="text-gray-900">
+                      {selectedCard.created_at
+                        ? new Date(selectedCard.created_at).toLocaleString()
+                        : 'Unknown'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* System Information */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-4">System Information</h4>
+                <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div><span className="text-gray-500">ID:</span> {selectedCard.id}</div>
+                    <div><span className="text-gray-500">Status:</span> {selectedCard.status || 'active'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <button
+                onClick={closeModal}
+                className="btn btn-primary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
