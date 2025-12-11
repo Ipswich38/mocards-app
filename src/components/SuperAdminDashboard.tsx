@@ -1,4 +1,4 @@
-import { StreamlinedAdminDashboard } from './StreamlinedAdminDashboard';
+import { MOCAdminDashboardV2 } from './MOCAdminDashboardV2';
 
 interface SuperAdminDashboardProps {
   token: string | null;
@@ -6,5 +6,5 @@ interface SuperAdminDashboardProps {
 }
 
 export function SuperAdminDashboard(props: SuperAdminDashboardProps) {
-  return <StreamlinedAdminDashboard {...props} />;
+  return <MOCAdminDashboardV2 {...props} />;
 }
