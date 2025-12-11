@@ -501,7 +501,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm border-r border-gray-200">
+      <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex flex-col">
         <div className="p-6">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
@@ -511,34 +511,35 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
           </div>
         </div>
 
-        <nav className="mt-6">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id as any)}
-              className={`w-full text-left px-6 py-3 flex items-center transition-colors ${
-                activeTab === item.id
-                  ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <item.icon className="h-5 w-5 mr-3" />
-              <div>
-                <div className="font-medium">{item.label}</div>
-                <div className="text-xs opacity-75">{item.description}</div>
-              </div>
-            </button>
-          ))}
-        </nav>
+        <nav className="mt-6 flex-1 flex flex-col">
+          <div className="flex-1">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as any)}
+                className={`w-full text-left px-6 py-3 flex items-center transition-colors ${
+                  activeTab === item.id
+                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <item.icon className="h-5 w-5 mr-3" />
+                <div>
+                  <div className="font-medium">{item.label}</div>
+                  <div className="text-xs opacity-75">{item.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-200">
-          <div className="space-y-2">
+          {/* Bottom Admin Section */}
+          <div className="mt-6 border-t border-gray-200 pt-4">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`w-full text-left px-4 py-3 flex items-center transition-colors rounded-lg ${
+              className={`w-full text-left px-6 py-3 flex items-center transition-colors ${
                 activeTab === 'profile'
-                  ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200'
+                  ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
               <UserCheck className="h-5 w-5 mr-3" />
@@ -549,7 +550,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
             </button>
             <button
               onClick={onBack}
-              className="w-full text-left px-4 py-3 flex items-center transition-colors rounded-lg text-red-600 hover:bg-red-50 hover:text-red-800 border border-red-200"
+              className="w-full text-left px-6 py-3 flex items-center transition-colors text-red-600 hover:bg-red-50 hover:text-red-800"
             >
               <LogOut className="h-5 w-5 mr-3" />
               <div>
@@ -558,7 +559,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
               </div>
             </button>
           </div>
-        </div>
+        </nav>
       </div>
 
       {/* Main Content */}
