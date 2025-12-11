@@ -5,6 +5,7 @@ import { CardActivationV2 } from './CardActivationV2';
 import { DefaultPerksManagement } from './DefaultPerksManagement';
 import { MOCCardManagement } from './MOCCardManagement';
 import { ClinicManagementCRUD } from './ClinicManagementCRUD';
+import { AppointmentCalendar } from './AppointmentCalendar';
 import {
   CreditCard,
   Users,
@@ -15,7 +16,6 @@ import {
   Gift,
   BarChart3,
   Calendar,
-  Settings,
   UserCheck,
   LogOut
 } from 'lucide-react';
@@ -26,7 +26,7 @@ interface MOCAdminDashboardV2Props {
 }
 
 export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'perks' | 'activate' | 'appointments' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'perks' | 'activate' | 'appointments' | 'profile'>('dashboard');
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [stats, setStats] = useState({
@@ -147,12 +147,6 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       icon: Calendar,
       description: 'Manage appointments'
     },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: Settings,
-      description: 'System settings'
-    }
   ];
 
   const renderContent = () => {
@@ -303,14 +297,6 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                   <div className="text-sm opacity-75">Manage appointments</div>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className="btn btn-outline p-4 text-left"
-                >
-                  <Settings className="h-6 w-6 mb-2" />
-                  <div className="font-medium">Settings</div>
-                  <div className="text-sm opacity-75">System configuration</div>
-                </button>
 
                 <button
                   onClick={loadStats}
@@ -354,27 +340,123 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
               </div>
             </div>
 
-            {/* System Information */}
+            {/* Core MOC System Overview */}
             <div className="card p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">MOC System Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-2">Control Number Format</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Unactivated: <span className="font-mono">MOC-__-____-00001</span></li>
-                    <li>• Activated: <span className="font-mono">MOC-01-1234-00001</span></li>
-                    <li>• Location codes: 01-16 (Philippine regions)</li>
-                    <li>• Clinic codes: 4-digit regional codes</li>
-                  </ul>
+              <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
+                <BarChart3 className="h-6 w-6 mr-3 text-blue-600" />
+                MOC Card System V2.0 - Core Functions
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Card Generation & Management */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <CreditCard className="h-8 w-8 text-blue-600" />
+                    <div className="ml-3">
+                      <h4 className="font-bold text-blue-900">Card Generation</h4>
+                      <p className="text-blue-700 text-sm">10,000 MOC Cards</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-blue-800">Format:</span>
+                      <span className="font-mono text-blue-900">MOC-XX-XXXX-NNNNN</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-800">Sequential:</span>
+                      <span className="text-blue-900">1 to 10,000</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-800">Status:</span>
+                      <span className="text-green-600 font-medium">✓ Generated</span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-2">System Features</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• No passcode required</li>
-                    <li>• Sequential numbering 1-10,000</li>
-                    <li>• Default perks auto-assignment</li>
-                    <li>• Migration version tracking</li>
-                  </ul>
+
+                {/* Activation System */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div className="ml-3">
+                      <h4 className="font-bold text-green-900">Activation System</h4>
+                      <p className="text-green-700 text-sm">Clinic Assignment</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-green-800">Regions:</span>
+                      <span className="text-green-900">01-16 (Philippines)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-800">Clinic Codes:</span>
+                      <span className="text-green-900">4-digit regional</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-800">Method:</span>
+                      <span className="text-green-900">No passcode</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Perks & Benefits */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <Gift className="h-8 w-8 text-purple-600" />
+                    <div className="ml-3">
+                      <h4 className="font-bold text-purple-900">Default Perks</h4>
+                      <p className="text-purple-700 text-sm">Auto-Assigned</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-purple-800">Consultation:</span>
+                      <span className="text-purple-900">₱500</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800">Cleaning:</span>
+                      <span className="text-purple-900">₱800</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800">Total Value:</span>
+                      <span className="text-purple-900 font-bold">₱5,000+</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* System Workflow */}
+              <div className="mt-6 bg-gray-50 rounded-lg p-6">
+                <h4 className="font-medium text-gray-900 mb-4">Complete Workflow</h4>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-bold text-sm">1</span>
+                      </div>
+                      <span className="ml-2 text-sm font-medium">Generate 10K Cards</span>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-green-600 font-bold text-sm">2</span>
+                      </div>
+                      <span className="ml-2 text-sm font-medium">Clinic Registration</span>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-purple-600 font-bold text-sm">3</span>
+                      </div>
+                      <span className="ml-2 text-sm font-medium">Card Activation</span>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                        <span className="text-orange-600 font-bold text-sm">4</span>
+                      </div>
+                      <span className="ml-2 text-sm font-medium">Perks Redemption</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -397,25 +479,16 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         return <CardActivationV2 clinicId="admin" clinicName="Admin Portal" />;
 
       case 'appointments':
-        return (
-          <div className="card p-6">
-            <h3 className="text-xl font-medium text-gray-900 mb-4">Appointments Management</h3>
-            <div className="text-center py-12">
-              <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Complete appointment management system coming soon...</p>
-              <p className="text-gray-500 text-sm mt-2">Book, approve, reschedule, and manage all appointments</p>
-            </div>
-          </div>
-        );
+        return <AppointmentCalendar token={token} />;
 
-      case 'settings':
+      case 'profile':
         return (
           <div className="card p-6">
-            <h3 className="text-xl font-medium text-gray-900 mb-4">System Settings</h3>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Admin Profile</h3>
             <div className="text-center py-12">
-              <Settings className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">System configuration and admin settings coming soon...</p>
-              <p className="text-gray-500 text-sm mt-2">Admin profile management, logout, and system preferences</p>
+              <UserCheck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Admin profile management and system settings coming soon...</p>
+              <p className="text-gray-500 text-sm mt-2">Profile settings, preferences, and account management</p>
             </div>
           </div>
         );
@@ -458,21 +531,33 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
           ))}
         </nav>
 
-        <div className="absolute bottom-6 left-6 right-6 space-y-2">
-          <button
-            onClick={() => setActiveTab('settings')}
-            className="w-full btn btn-outline flex items-center justify-center"
-          >
-            <UserCheck className="h-4 w-4 mr-2" />
-            Admin Profile
-          </button>
-          <button
-            onClick={onBack}
-            className="w-full btn btn-outline flex items-center justify-center text-red-600 hover:bg-red-50 hover:border-red-300"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </button>
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-200">
+          <div className="space-y-2">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`w-full text-left px-4 py-3 flex items-center transition-colors rounded-lg ${
+                activeTab === 'profile'
+                  ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200'
+              }`}
+            >
+              <UserCheck className="h-5 w-5 mr-3" />
+              <div>
+                <div className="font-medium">Admin Profile</div>
+                <div className="text-xs opacity-75">Account settings</div>
+              </div>
+            </button>
+            <button
+              onClick={onBack}
+              className="w-full text-left px-4 py-3 flex items-center transition-colors rounded-lg text-red-600 hover:bg-red-50 hover:text-red-800 border border-red-200"
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              <div>
+                <div className="font-medium">Logout</div>
+                <div className="text-xs opacity-75">Exit admin panel</div>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 

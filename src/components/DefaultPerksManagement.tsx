@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { streamlinedOps, DefaultPerkTemplate } from '../lib/streamlined-operations';
+import { supabase } from '../lib/supabase';
+import { DefaultPerkTemplate } from '../lib/streamlined-operations';
 import { Gift, Plus, Edit2, Trash2, Save, X, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface DefaultPerksManagementProps {
@@ -18,12 +19,29 @@ export function DefaultPerksManagement({ }: DefaultPerksManagementProps) {
   }, []);
 
   const loadPerks = async () => {
+    setLoading(true);
     try {
-      const perkTemplates = await (streamlinedOps as any).getDefaultPerkTemplates();
-      setPerks(perkTemplates);
+      // Try direct supabase query first
+      const { data, error } = await supabase
+        .from('default_perk_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase error loading perks:', error);
+        throw error;
+      }
+
+      setPerks(data || []);
+      setError('');
     } catch (error) {
       console.error('Error loading perks:', error);
-      setError('Failed to load perk templates');
+      setError('Failed to load perk templates. Please ensure the database table exists.');
+
+      // Set empty perks if can't load
+      setPerks([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,15 +55,33 @@ export function DefaultPerksManagement({ }: DefaultPerksManagementProps) {
     setError('');
 
     try {
-      const success = await (streamlinedOps as any).savePerkTemplate(editingPerk);
+      if (editingPerk.id) {
+        // Update existing
+        const { error } = await supabase
+          .from('default_perk_templates')
+          .update({
+            ...editingPerk,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingPerk.id);
 
-      if (success) {
-        setSuccess(editingPerk.id ? 'Perk template updated successfully!' : 'Perk template created successfully!');
-        setEditingPerk(null);
-        await loadPerks();
+        if (error) throw error;
       } else {
-        throw new Error('Failed to save perk template');
+        // Create new
+        const { error } = await supabase
+          .from('default_perk_templates')
+          .insert({
+            ...editingPerk,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
       }
+
+      setSuccess(editingPerk.id ? 'Perk template updated successfully!' : 'Perk template created successfully!');
+      setEditingPerk(null);
+      await loadPerks();
     } catch (err: any) {
       setError('Error saving perk: ' + err.message);
     } finally {
@@ -59,14 +95,15 @@ export function DefaultPerksManagement({ }: DefaultPerksManagementProps) {
     }
 
     try {
-      const success = await (streamlinedOps as any).deletePerkTemplate(perkId);
+      const { error } = await supabase
+        .from('default_perk_templates')
+        .delete()
+        .eq('id', perkId);
 
-      if (success) {
-        setSuccess('Perk template deleted successfully!');
-        await loadPerks();
-      } else {
-        throw new Error('Failed to delete perk template');
-      }
+      if (error) throw error;
+
+      setSuccess('Perk template deleted successfully!');
+      await loadPerks();
     } catch (err: any) {
       setError('Error deleting perk: ' + err.message);
     }
@@ -85,7 +122,15 @@ export function DefaultPerksManagement({ }: DefaultPerksManagementProps) {
 
     try {
       for (const perk of defaultPerks) {
-        await (streamlinedOps as any).savePerkTemplate(perk);
+        const { error } = await supabase
+          .from('default_perk_templates')
+          .insert({
+            ...perk,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
       }
       setSuccess('Default perks created successfully!');
       await loadPerks();

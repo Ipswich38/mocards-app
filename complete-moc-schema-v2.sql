@@ -10,8 +10,24 @@ CREATE TABLE IF NOT EXISTS location_codes_v2 (
   description TEXT,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    );
 
 -- 2. Create clinic codes by region table
 CREATE TABLE IF NOT EXISTS clinic_codes_by_region (
