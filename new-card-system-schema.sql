@@ -100,6 +100,7 @@ INSERT INTO clinic_codes_by_region (clinic_code, region_type, region_name, locat
 ('QUE1', 'luzon_4a', 'Quezon Province Centers', '06', 'Dental clinics in Quezon Province'),
 
 -- National Capital Region (NCR)
+-- All 17 NCR Cities and Municipalities
 ('NCR1', 'ncr', 'Manila Dental Centers', '01', 'Dental clinics in Manila'),
 ('NCR2', 'ncr', 'Quezon City Centers', '01', 'Dental clinics in Quezon City'),
 ('NCR3', 'ncr', 'Makati Centers', '01', 'Dental clinics in Makati'),
@@ -108,7 +109,15 @@ INSERT INTO clinic_codes_by_region (clinic_code, region_type, region_name, locat
 ('NCR6', 'ncr', 'Marikina Centers', '01', 'Dental clinics in Marikina'),
 ('NCR7', 'ncr', 'Caloocan Centers', '01', 'Dental clinics in Caloocan'),
 ('NCR8', 'ncr', 'Las Piñas Centers', '01', 'Dental clinics in Las Piñas'),
-('NCR9', 'ncr', 'Muntinlupa Centers', '01', 'Dental clinics in Muntinlupa')
+('NCR9', 'ncr', 'Muntinlupa Centers', '01', 'Dental clinics in Muntinlupa'),
+('NC10', 'ncr', 'Mandaluyong Centers', '01', 'Dental clinics in Mandaluyong'),
+('NC11', 'ncr', 'San Juan Centers', '01', 'Dental clinics in San Juan'),
+('NC12', 'ncr', 'Parañaque Centers', '01', 'Dental clinics in Parañaque'),
+('NC13', 'ncr', 'Valenzuela Centers', '01', 'Dental clinics in Valenzuela'),
+('NC14', 'ncr', 'Malabon Centers', '01', 'Dental clinics in Malabon'),
+('NC15', 'ncr', 'Navotas Centers', '01', 'Dental clinics in Navotas'),
+('NC16', 'ncr', 'Pateros Centers', '01', 'Dental clinics in Pateros'),
+('NC17', 'ncr', 'Pasay Centers', '01', 'Dental clinics in Pasay')
 ON CONFLICT (clinic_code) DO NOTHING;
 
 -- Insert default perk templates

@@ -176,81 +176,99 @@ export function CardManagementV2({ }: CardManagementV2Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Card Management V2.0</h2>
-          <p className="text-gray-600">Manage MOC cards with new control number format</p>
+      <div className="glass-card animate-float">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-100 mb-2">Card Management V2.0</h2>
+            <p className="text-slate-300 text-lg">Manage MOC cards with new control number format</p>
+          </div>
+          <button
+            onClick={handleGenerateCards}
+            disabled={loading}
+            className="glass-button flex items-center px-6 py-3"
+            style={{
+              background: 'linear-gradient(135deg, #dc2626, #991b1b)',
+              borderColor: '#ef4444'
+            }}
+          >
+            <RefreshCw className={`h-5 w-5 mr-3 ${loading ? 'animate-spin' : ''}`} />
+            Generate 10K Cards
+          </button>
         </div>
-        <button
-          onClick={handleGenerateCards}
-          disabled={loading}
-          className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className="h-5 w-5 mr-2" />
-          Generate 10K Cards
-        </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <div className="bg-white rounded-lg p-4 border shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+        <div className="glass-card glass-hover animate-pulse-glow">
           <div className="flex items-center">
-            <CreditCard className="h-8 w-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Total Cards</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total.toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-blue-500/20">
+              <CreditCard className="h-8 w-8 text-blue-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-400">Total Cards</p>
+              <p className="text-2xl font-bold text-slate-100">{stats.total.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border shadow-sm">
+        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '0.5s' }}>
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-yellow-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Unactivated</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.unactivated.toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-yellow-500/20">
+              <Clock className="h-8 w-8 text-yellow-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-400">Unactivated</p>
+              <p className="text-2xl font-bold text-slate-100">{stats.unactivated.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border shadow-sm">
+        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '1s' }}>
           <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Activated</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.activated.toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-green-500/20">
+              <CheckCircle className="h-8 w-8 text-green-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-400">Activated</p>
+              <p className="text-2xl font-bold text-slate-100">{stats.activated.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border shadow-sm">
+        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '1.5s' }}>
           <div className="flex items-center">
-            <Building className="h-8 w-8 text-purple-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Visayas</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.byRegion.visayas.toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-purple-500/20">
+              <Building className="h-8 w-8 text-purple-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-400">Visayas</p>
+              <p className="text-2xl font-bold text-slate-100">{stats.byRegion.visayas.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border shadow-sm">
+        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '2s' }}>
           <div className="flex items-center">
-            <MapPin className="h-8 w-8 text-orange-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Luzon 4A</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.byRegion.luzon_4a.toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-orange-500/20">
+              <MapPin className="h-8 w-8 text-orange-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-400">Luzon 4A</p>
+              <p className="text-2xl font-bold text-slate-100">{stats.byRegion.luzon_4a.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border shadow-sm">
+        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-center">
-            <Users className="h-8 w-8 text-teal-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">NCR</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.byRegion.ncr.toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-indigo-500/20">
+              <Users className="h-8 w-8 text-indigo-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-slate-400">NCR</p>
+              <p className="text-2xl font-bold text-slate-100">{stats.byRegion.ncr.toLocaleString()}</p>
             </div>
           </div>
         </div>

@@ -126,22 +126,30 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 relative overflow-hidden">
+      {/* Floating Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-32 left-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-32 right-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }}></div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 relative z-10">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-12">
           {onBack && (
             <button
               onClick={onBack}
-              className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+              className="glass-button-secondary flex items-center mb-6"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back
             </button>
           )}
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Card Lookup</h1>
-            <p className="mt-2 text-lg text-gray-600">
+            <h1 className="text-4xl sm:text-5xl font-bold text-slate-100 mb-4 animate-gradient bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
+              Card Lookup
+            </h1>
+            <p className="text-xl text-slate-300">
               Enter your card control number to view your benefits
             </p>
           </div>
@@ -149,18 +157,18 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            {error}
+          <div className="mb-8 glass glass-error rounded-xl px-6 py-4 flex items-center animate-float">
+            <AlertCircle className="h-6 w-6 mr-3" />
+            <span className="text-lg">{error}</span>
           </div>
         )}
 
         {/* Lookup Form */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="glass-card animate-float mb-12">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="max-w-md mx-auto">
               <div>
-                <label htmlFor="control" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="control" className="block text-lg font-medium text-slate-300 mb-3">
                   Control Number
                 </label>
                 <input
@@ -168,11 +176,11 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                   id="control"
                   value={controlNumber}
                   onChange={(e) => setControlNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-                  placeholder="e.g., PHL-BTH123-0001"
+                  className="glass-input w-full text-xl"
+                  placeholder="e.g., MOC-01-NCR1-00001"
                   disabled={isLoading}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-2 text-sm text-slate-400">
                   Enter your card control number with or without dashes
                 </p>
               </div>
@@ -181,16 +189,16 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
             <button
               type="submit"
               disabled={isLoading || !controlNumber}
-              className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="glass-button w-full flex items-center justify-center px-6 py-4 text-lg font-medium"
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
                   Looking up...
                 </>
               ) : (
                 <>
-                  <Search className="h-5 w-5 mr-2" />
+                  <Search className="h-6 w-6 mr-3" />
                   Look Up Card
                 </>
               )}
@@ -200,25 +208,24 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
 
         {/* Card Details */}
         {cardDetails && (
-          <div className="space-y-6">
+          <div className="space-y-8 animate-float" style={{ animationDelay: '1s' }}>
             {/* Card Information */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <div className="glass-card">
+              <div className="glass p-6 rounded-xl border border-blue-400/50 bg-blue-500/10 mb-6">
                 <div className="flex items-center">
-                  <CreditCard className="h-6 w-6 text-white mr-3" />
-                  <h2 className="text-xl font-semibold text-white">Card Information</h2>
+                  <CreditCard className="h-7 w-7 text-blue-400 mr-4" />
+                  <h2 className="text-2xl font-semibold text-slate-100">Card Information</h2>
                 </div>
               </div>
 
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Control Number</p>
-                    <p className="mt-1 text-lg font-mono text-gray-900">{cardDetails.control_number}</p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="glass p-4 rounded-lg border border-slate-500/30">
+                  <p className="text-sm font-medium text-slate-400 mb-2">Control Number</p>
+                  <p className="text-lg font-mono text-blue-300">{cardDetails.control_number}</p>
+                </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Status</p>
+                <div className="glass p-4 rounded-lg border border-slate-500/30">
+                  <p className="text-sm font-medium text-slate-400 mb-2">Status</p>
                     <span className={`inline-flex mt-1 px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(cardDetails.status)}`}>
                       {getStatusIcon(cardDetails.status)} {getStatusLabel(cardDetails.status)}
                     </span>
