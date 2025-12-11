@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Card, Appointment } from '../lib/supabase';
 import { streamlinedOps } from '../lib/streamlined-operations';
+import { supabase } from '../lib/supabase';
+import bcrypt from 'bcryptjs';
 // Removed useAutoLogout hook dependency
 import { ClinicPerkCustomization } from './ClinicPerkCustomization';
 
@@ -15,7 +17,7 @@ interface ClinicDashboardProps {
 }
 
 export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'redemptions' | 'appointments' | 'perks'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cards' | 'redemptions' | 'appointments' | 'perks' | 'settings'>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchControl, setSearchControl] = useState('');
@@ -29,6 +31,16 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     totalValue: 0,
     pendingAppointments: 0
   });
+
+  // Password change states
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const handleLogout = () => {
     // Clear any stored clinic session data
@@ -301,6 +313,81 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     }
   };
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    // Validation
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      setPasswordError('New password must be different from current password');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Get current clinic data to verify current password
+      const { data: clinicData, error: fetchError } = await supabase
+        .from('mocards_clinics')
+        .select('password_hash')
+        .eq('id', clinicCredentials.clinicId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(passwordData.currentPassword, clinicData.password_hash);
+      if (!isValidPassword) {
+        setPasswordError('Current password is incorrect');
+        return;
+      }
+
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(passwordData.newPassword, 10);
+
+      // Update password in database
+      const { error: updateError } = await supabase
+        .from('mocards_clinics')
+        .update({
+          password_hash: newPasswordHash,
+          password_must_be_changed: false,
+          last_password_change: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', clinicCredentials.clinicId);
+
+      if (updateError) throw updateError;
+
+      // Success
+      setPasswordSuccess('Password updated successfully!');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setShowPasswordChange(false);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setPasswordSuccess(''), 3000);
+
+    } catch (err: any) {
+      setPasswordError('Failed to update password: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 py-4 sm:py-6 px-4 sm:px-6">
@@ -389,6 +476,16 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                 }`}
               >
                 <span className="hidden sm:inline">Perk</span> Settings
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'settings'
+                    ? 'bg-teal-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Account
               </button>
             </div>
         </div>
@@ -572,6 +669,149 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
               clinicId={clinicCredentials.clinicId}
               clinicName={clinicCredentials.clinicName}
             />
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            {/* Account Information */}
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Account Information</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <label className="block text-gray-500 mb-1">Clinic Name</label>
+                  <div className="font-medium text-gray-900">{clinicCredentials.clinicName}</div>
+                </div>
+                <div>
+                  <label className="block text-gray-500 mb-1">Clinic Code</label>
+                  <div className="font-mono text-gray-900">{clinicCredentials.clinicCode}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Password Success Message */}
+            {passwordSuccess && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-center">
+                <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                {passwordSuccess}
+              </div>
+            )}
+
+            {/* Security Settings */}
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Security Settings</h3>
+                {!showPasswordChange && (
+                  <button
+                    onClick={() => setShowPasswordChange(true)}
+                    className="btn btn-outline text-sm px-4 py-2"
+                  >
+                    Change Password
+                  </button>
+                )}
+              </div>
+
+              {showPasswordChange && (
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        className="input-field"
+                        placeholder="Enter your current password"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        className="input-field"
+                        placeholder="Enter your new password"
+                        minLength={8}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Password must be at least 8 characters long
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        className="input-field"
+                        placeholder="Confirm your new password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Error Message */}
+                  {passwordError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+                      <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-sm">{passwordError}</span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={loading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                      className="btn btn-primary flex items-center justify-center disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Password'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordChange(false);
+                        setPasswordError('');
+                        setPasswordData({
+                          currentPassword: '',
+                          newPassword: '',
+                          confirmPassword: ''
+                        });
+                      }}
+                      className="btn btn-outline"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {!showPasswordChange && (
+                <p className="text-sm text-gray-600">
+                  Keep your account secure by using a strong, unique password.
+                </p>
+              )}
+            </div>
           </div>
         )}
 

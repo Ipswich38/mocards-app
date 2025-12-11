@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import bcrypt from 'bcryptjs';
 import {
   Search,
   Plus,
@@ -39,6 +40,7 @@ interface ClinicFormData {
   region: string;
   location_code: string;
   status: 'active' | 'inactive' | 'pending';
+  temporary_password: string;
 }
 
 export function ClinicManagementCRUD() {
@@ -64,7 +66,8 @@ export function ClinicManagementCRUD() {
     address: '',
     region: '',
     location_code: '',
-    status: 'active'
+    status: 'active',
+    temporary_password: ''
   });
 
   const regions = [
@@ -146,11 +149,14 @@ export function ClinicManagementCRUD() {
 
     try {
       if (editingClinic) {
-        // Update existing clinic
+        // Update existing clinic (password update handled separately)
+        const updateData = { ...formData };
+        delete updateData.temporary_password; // Don't update password in edit mode
+
         const { error } = await supabase
           .from('mocards_clinics')
           .update({
-            ...formData,
+            ...updateData,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingClinic.id);
@@ -158,17 +164,33 @@ export function ClinicManagementCRUD() {
         if (error) throw error;
         setSuccess('Clinic updated successfully!');
       } else {
-        // Create new clinic
+        // Create new clinic with hashed password
+        if (!formData.temporary_password.trim()) {
+          setError('Temporary password is required');
+          return;
+        }
+
+        const passwordHash = await bcrypt.hash(formData.temporary_password, 10);
+
         const { error } = await supabase
           .from('mocards_clinics')
           .insert({
-            ...formData,
+            clinic_name: formData.clinic_name,
+            clinic_code: formData.clinic_code,
+            contact_email: formData.contact_email,
+            contact_phone: formData.contact_phone,
+            address: formData.address,
+            region: formData.region,
+            location_code: formData.location_code,
+            status: formData.status,
+            password_hash: passwordHash,
+            password_must_be_changed: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
 
         if (error) throw error;
-        setSuccess('Clinic created successfully!');
+        setSuccess('Clinic created successfully with temporary password!');
       }
 
       resetForm();
@@ -191,7 +213,8 @@ export function ClinicManagementCRUD() {
       address: clinic.address || '',
       region: clinic.region || '',
       location_code: clinic.location_code || '',
-      status: clinic.status as any
+      status: clinic.status as any,
+      temporary_password: ''
     });
     setShowForm(true);
   };
@@ -226,7 +249,8 @@ export function ClinicManagementCRUD() {
       address: '',
       region: '',
       location_code: '',
-      status: 'active'
+      status: 'active',
+      temporary_password: ''
     });
     setEditingClinic(null);
     setShowForm(false);
@@ -501,6 +525,25 @@ export function ClinicManagementCRUD() {
                     </select>
                   </div>
                 </div>
+
+                {!editingClinic && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Temporary Password *
+                    </label>
+                    <input
+                      type="password"
+                      required={!editingClinic}
+                      value={formData.temporary_password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, temporary_password: e.target.value }))}
+                      className="input-field"
+                      placeholder="Enter temporary password for clinic access"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Clinic will be prompted to change this password on first login
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-end space-x-3 pt-4">
                   <button

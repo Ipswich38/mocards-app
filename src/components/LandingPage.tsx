@@ -7,9 +7,10 @@ interface LandingPageProps {
   onSuperAdminView: (token: string) => void;
   onCardholderView: (prefilledData?: { control: string }) => void;
   onITAccess: () => void;
+  onPasswordChange?: (clinic: any) => void;
 }
 
-export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, onITAccess }: LandingPageProps) {
+export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, onITAccess, onPasswordChange }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
   const [cardControl, setCardControl] = useState('');
 
@@ -45,12 +46,24 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
         const isValidPassword = await bcrypt.compare(clinicPassword, clinic.password_hash);
 
         if (isValidPassword) {
-          onClinicView({
-            clinicId: clinic.id,
-            clinicCode: clinic.clinic_code,
-            clinicName: clinic.clinic_name,
-            token: `clinic-${clinic.id}` // Simple token for demo
-          });
+          // Check if clinic needs to change password
+          if (clinic.password_must_be_changed && onPasswordChange) {
+            onPasswordChange({
+              clinicId: clinic.id,
+              clinicCode: clinic.clinic_code,
+              clinicName: clinic.clinic_name,
+              token: `clinic-${clinic.id}`,
+              requirePasswordChange: true,
+              isFirstLogin: clinic.first_login
+            });
+          } else {
+            onClinicView({
+              clinicId: clinic.id,
+              clinicCode: clinic.clinic_code,
+              clinicName: clinic.clinic_name,
+              token: `clinic-${clinic.id}` // Simple token for demo
+            });
+          }
         } else {
           setError('Invalid password');
         }
