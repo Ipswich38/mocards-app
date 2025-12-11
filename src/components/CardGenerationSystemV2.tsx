@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { streamlinedOps } from '../lib/streamlined-operations';
 import { CreditCard, RefreshCw, Download, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface CardGenerationSystemV2Props {
@@ -18,16 +17,65 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
     setSuccess('');
 
     try {
-      const result = await (streamlinedOps as any).generateFreshCardsV2(10000);
+      // First delete all existing cards
+      setSuccess('🗄️ Deleting existing cards...');
 
-      if (result) {
-        setSuccess(`✅ Successfully generated 10,000 fresh unactivated cards with new MOC format!`);
-        setShowConfirmation(false);
-      } else {
-        throw new Error('Failed to generate cards');
+      // Import supabase client to delete all cards
+      const { supabase } = await import('../lib/supabase');
+
+      // Delete all existing cards
+      const { error: deleteError } = await supabase
+        .from('cards')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (using a dummy condition)
+
+      if (deleteError) {
+        throw new Error(`Failed to delete existing cards: ${deleteError.message}`);
       }
+
+      setSuccess('🔄 Generating 10,000 fresh cards...');
+
+      // Generate 10,000 new cards with MOC format
+      const cardsToGenerate = [];
+
+      for (let i = 1; i <= 10000; i++) {
+        cardsToGenerate.push({
+          control_number: `LEGACY-${i.toString().padStart(5, '0')}`, // Legacy format for backward compatibility
+          control_number_v2: `MOC-__-____-${i.toString().padStart(5, '0')}`, // New MOC format
+          card_number: i,
+          is_activated: false,
+          status: 'unactivated',
+          migration_version: 2,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      // Insert in batches of 1000 to avoid timeout
+      let totalInserted = 0;
+      for (let i = 0; i < cardsToGenerate.length; i += 1000) {
+        const batch = cardsToGenerate.slice(i, i + 1000);
+
+        const { error: insertError } = await supabase
+          .from('cards')
+          .insert(batch);
+
+        if (insertError) {
+          throw new Error(`Failed to insert card batch ${i/1000 + 1}: ${insertError.message}`);
+        }
+
+        totalInserted += batch.length;
+        setSuccess(`📦 Inserted ${totalInserted}/10,000 cards...`);
+
+        // Small delay to prevent overwhelming the database
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      setSuccess(`✅ Successfully generated 10,000 fresh unactivated cards with new MOC format!`);
+      setShowConfirmation(false);
+
     } catch (err: any) {
-      setError(`❌ Error generating cards: ${err.message}`);
+      setError(`❌ Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
