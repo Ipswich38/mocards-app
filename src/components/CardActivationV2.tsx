@@ -138,21 +138,19 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
   };
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="glass-card animate-float">
-        <div className="bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-xl p-8 border border-blue-400/30">
-          <h2 className="text-3xl font-bold mb-3 text-slate-100">Card Activation System V2.0</h2>
-          <p className="text-blue-200 text-lg">
-            Activate unassigned cards and assign location/clinic codes - <span className="text-cyan-300 font-medium">{clinicName}</span>
-          </p>
-        </div>
+      <div className="card card-hover p-6">
+        <h2 className="text-3xl font-bold mb-2 text-gray-900">Card Activation System V2.0</h2>
+        <p className="text-gray-600 text-lg">
+          Activate unassigned cards and assign location/clinic codes - <span className="text-blue-600 font-medium">{clinicName}</span>
+        </p>
       </div>
 
       {/* Search Section */}
-      <div className="glass-card glass-hover">
-        <h3 className="text-xl font-medium text-slate-100 mb-6 flex items-center">
-          <Search className="h-6 w-6 mr-3 text-blue-400" />
+      <div className="card card-hover p-6">
+        <h3 className="text-xl font-medium text-gray-900 mb-6 flex items-center">
+          <Search className="h-6 w-6 mr-3 text-blue-600" />
           Find Card to Activate
         </h3>
 
@@ -163,14 +161,14 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
               placeholder="Search by control number or card number (e.g., MOC-__-____-00001 or 1)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="glass-input w-full text-lg"
+              className="input-field text-lg"
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
           <button
             onClick={handleSearch}
             disabled={searching || !searchQuery.trim()}
-            className="glass-button px-6 py-3 flex items-center"
+            className="btn btn-primary px-6 py-3 flex items-center disabled:opacity-50"
           >
             {searching ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -184,26 +182,26 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
         {/* Search Results */}
         {searchResults.length > 0 && (
           <div className="mt-6">
-            <h4 className="text-sm font-medium text-slate-300 mb-4">Search Results:</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-4">Search Results:</h4>
             <div className="space-y-3">
               {searchResults.map((card) => (
                 <div
                   key={card.id}
-                  className={`glass glass-hover p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                  className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                     selectedCard?.id === card.id
-                      ? 'border-blue-400 bg-blue-500/10'
-                      : 'border-slate-500/30 hover:border-blue-400/50'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                   onClick={() => setSelectedCard(card)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <CreditCard className="h-5 w-5 text-blue-400 mr-3" />
-                      <span className="font-mono text-lg text-slate-200">{card.control_number_v2}</span>
-                      <span className="mx-3 text-slate-500">•</span>
-                      <span className="text-slate-300">Card #{card.card_number}</span>
+                      <CreditCard className="h-5 w-5 text-blue-600 mr-3" />
+                      <span className="font-mono text-lg text-gray-800">{card.control_number_v2}</span>
+                      <span className="mx-3 text-gray-400">•</span>
+                      <span className="text-gray-600">Card #{card.card_number}</span>
                     </div>
-                    <span className="glass-badge glass-warning">
+                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
                       Unactivated
                     </span>
                   </div>
@@ -216,29 +214,29 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
 
       {/* Activation Form */}
       {selectedCard && (
-        <div className="glass-card glass-hover animate-float" style={{ animationDelay: '1s' }}>
-          <h3 className="text-xl font-medium text-slate-100 mb-6 flex items-center">
-            <CheckCircle className="h-6 w-6 mr-3 text-green-400" />
+        <div className="card card-hover p-6">
+          <h3 className="text-xl font-medium text-gray-900 mb-6 flex items-center">
+            <CheckCircle className="h-6 w-6 mr-3 text-green-600" />
             Activate Selected Card
           </h3>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Card Info */}
             <div className="space-y-6">
-              <div className="glass p-6 rounded-xl border border-slate-500/30">
-                <h4 className="text-sm font-medium text-slate-300 mb-4">Selected Card</h4>
+              <div className="border border-gray-200 p-6 rounded-lg bg-gray-50">
+                <h4 className="text-sm font-medium text-gray-700 mb-4">Selected Card</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Current Control Number:</span>
-                    <span className="font-mono text-blue-300">{selectedCard.control_number_v2}</span>
+                    <span className="text-gray-600">Current Control Number:</span>
+                    <span className="font-mono text-blue-600">{selectedCard.control_number_v2}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Card Number:</span>
-                    <span className="font-mono text-cyan-300">#{selectedCard.card_number}</span>
+                    <span className="text-gray-600">Card Number:</span>
+                    <span className="font-mono text-blue-600">#{selectedCard.card_number}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Status:</span>
-                    <span className="glass-badge glass-warning">
+                    <span className="text-gray-600">Status:</span>
+                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
                       {selectedCard.status}
                     </span>
                   </div>
@@ -246,9 +244,9 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
               </div>
 
               {/* Preview */}
-              <div className="glass p-6 rounded-xl border border-blue-400/50 bg-blue-500/10">
-                <h4 className="text-sm font-medium text-blue-300 mb-3">New Control Number Preview</h4>
-                <div className="font-mono text-2xl text-blue-200 font-bold animate-pulse-glow">
+              <div className="border border-blue-200 p-6 rounded-lg bg-blue-50">
+                <h4 className="text-sm font-medium text-blue-700 mb-3">New Control Number Preview</h4>
+                <div className="font-mono text-2xl text-blue-600 font-bold">
                   {previewControlNumber()}
                 </div>
               </div>
@@ -258,18 +256,18 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
             <div className="space-y-6">
               {/* Location Code Selection */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  <MapPin className="h-5 w-5 inline mr-2 text-blue-400" />
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <MapPin className="h-5 w-5 inline mr-2 text-blue-600" />
                   Location Code (01-16) *
                 </label>
                 <select
                   value={selectedLocationCode}
                   onChange={(e) => setSelectedLocationCode(e.target.value)}
-                  className="glass-input w-full text-lg"
+                  className="input-field text-lg"
                 >
                   <option value="">Select Location Code</option>
                   {locationCodes.map((location) => (
-                    <option key={location.id} value={location.code} className="bg-slate-700 text-slate-200">
+                    <option key={location.id} value={location.code}>
                       {location.code} - {location.region_name}
                     </option>
                   ))}
@@ -278,37 +276,37 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
 
               {/* Region Selection */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  <Building className="h-5 w-5 inline mr-2 text-cyan-400" />
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <Building className="h-5 w-5 inline mr-2 text-blue-600" />
                   Region Type *
                 </label>
                 <select
                   value={selectedRegion}
                   onChange={(e) => handleRegionChange(e.target.value)}
-                  className="glass-input w-full text-lg"
+                  className="input-field text-lg"
                 >
                   <option value="">Select Region</option>
-                  <option value="visayas" className="bg-slate-700 text-slate-200">Visayas (Cebu)</option>
-                  <option value="luzon_4a" className="bg-slate-700 text-slate-200">Luzon Region 4A (CALABARZON)</option>
-                  <option value="ncr" className="bg-slate-700 text-slate-200">National Capital Region (NCR)</option>
+                  <option value="visayas">Visayas (Cebu)</option>
+                  <option value="luzon_4a">Luzon Region 4A (CALABARZON)</option>
+                  <option value="ncr">National Capital Region (NCR)</option>
                 </select>
               </div>
 
               {/* Clinic Code Selection */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  <Building className="h-5 w-5 inline mr-2 text-indigo-400" />
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <Building className="h-5 w-5 inline mr-2 text-blue-600" />
                   Clinic Code *
                 </label>
                 <select
                   value={selectedClinicCode}
                   onChange={(e) => setSelectedClinicCode(e.target.value)}
-                  className="glass-input w-full text-lg"
+                  className="input-field text-lg"
                   disabled={!selectedRegion}
                 >
                   <option value="">Select Clinic Code</option>
                   {getFilteredClinicCodes().map((clinic) => (
-                    <option key={clinic.id} value={clinic.clinic_code} className="bg-slate-700 text-slate-200">
+                    <option key={clinic.id} value={clinic.clinic_code}>
                       {clinic.clinic_code} - {clinic.region_name}
                     </option>
                   ))}
@@ -319,11 +317,7 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
               <button
                 onClick={handleActivateCard}
                 disabled={loading || !selectedLocationCode || !selectedClinicCode}
-                className="glass-button w-full px-6 py-4 text-lg font-bold uppercase tracking-wider flex items-center justify-center"
-                style={{
-                  background: loading ? 'rgba(16, 185, 129, 0.3)' : 'linear-gradient(135deg, #10b981, #059669)',
-                  borderColor: '#34d399'
-                }}
+                className="btn w-full px-6 py-4 text-lg font-bold uppercase tracking-wider flex items-center justify-center bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -344,47 +338,47 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
 
       {/* Messages */}
       {error && (
-        <div className="glass glass-error rounded-xl px-6 py-4 flex items-center animate-float">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg flex items-center">
           <AlertCircle className="h-6 w-6 mr-3" />
           <span className="text-lg">{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="glass glass-success rounded-xl px-6 py-4 flex items-center animate-float">
+        <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg flex items-center">
           <CheckCircle className="h-6 w-6 mr-3" />
           <span className="text-lg">{success}</span>
         </div>
       )}
 
       {/* Information */}
-      <div className="glass-card">
-        <div className="glass p-6 rounded-xl border border-blue-400/30 bg-blue-500/10">
-          <h4 className="text-lg font-medium text-blue-300 mb-4 flex items-center">
+      <div className="card p-6">
+        <div className="border border-blue-200 p-6 rounded-lg bg-blue-50">
+          <h4 className="text-lg font-medium text-blue-700 mb-4 flex items-center">
             <svg className="h-6 w-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             How Card Activation Works:
           </h4>
-          <ul className="text-slate-300 space-y-2 text-base">
+          <ul className="text-gray-700 space-y-2 text-base">
             <li className="flex items-start">
-              <span className="text-blue-400 mr-3">•</span>
+              <span className="text-blue-600 mr-3">•</span>
               Search for unactivated cards using control number or card number
             </li>
             <li className="flex items-start">
-              <span className="text-cyan-400 mr-3">•</span>
+              <span className="text-blue-600 mr-3">•</span>
               Select location code (01-16) corresponding to the region
             </li>
             <li className="flex items-start">
-              <span className="text-indigo-400 mr-3">•</span>
+              <span className="text-blue-600 mr-3">•</span>
               Choose region type and specific clinic code
             </li>
             <li className="flex items-start">
-              <span className="text-purple-400 mr-3">•</span>
-              Card will get new control number: <span className="font-mono text-blue-300">MOC-[location]-[clinic]-[number]</span>
+              <span className="text-blue-600 mr-3">•</span>
+              Card will get new control number: <span className="font-mono text-blue-600">MOC-[location]-[clinic]-[number]</span>
             </li>
             <li className="flex items-start">
-              <span className="text-green-400 mr-3">•</span>
+              <span className="text-blue-600 mr-3">•</span>
               Default perks will be automatically assigned to activated card
             </li>
           </ul>

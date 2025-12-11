@@ -176,22 +176,18 @@ export function CardManagementV2({ }: CardManagementV2Props) {
   };
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="glass-card animate-float">
+      <div className="card card-hover p-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-slate-100 mb-2">Card Management V2.0</h2>
-            <p className="text-slate-300 text-lg">Manage MOC cards with new control number format</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Card Management V2.0</h2>
+            <p className="text-gray-600 text-lg">Manage MOC cards with new control number format</p>
           </div>
           <button
             onClick={handleGenerateCards}
             disabled={loading}
-            className="glass-button flex items-center px-6 py-3"
-            style={{
-              background: 'linear-gradient(135deg, #dc2626, #991b1b)',
-              borderColor: '#ef4444'
-            }}
+            className="btn bg-red-600 hover:bg-red-700 text-white px-6 py-3 flex items-center disabled:opacity-50"
           >
             <RefreshCw className={`h-5 w-5 mr-3 ${loading ? 'animate-spin' : ''}`} />
             Generate 10K Cards
@@ -201,81 +197,81 @@ export function CardManagementV2({ }: CardManagementV2Props) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
-        <div className="glass-card glass-hover animate-pulse-glow">
+        <div className="card card-hover p-4">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-blue-500/20">
-              <CreditCard className="h-8 w-8 text-blue-400" />
+            <div className="p-3 rounded-lg bg-blue-100">
+              <CreditCard className="h-8 w-8 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-400">Total Cards</p>
-              <p className="text-2xl font-bold text-slate-100">{stats.total.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">Total Cards</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '0.5s' }}>
+        <div className="card card-hover p-4">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-yellow-500/20">
-              <Clock className="h-8 w-8 text-yellow-400" />
+            <div className="p-3 rounded-lg bg-yellow-100">
+              <Clock className="h-8 w-8 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-400">Unactivated</p>
-              <p className="text-2xl font-bold text-slate-100">{stats.unactivated.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">Unactivated</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.unactivated.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '1s' }}>
+        <div className="card card-hover p-4">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-green-500/20">
-              <CheckCircle className="h-8 w-8 text-green-400" />
+            <div className="p-3 rounded-lg bg-green-100">
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-400">Activated</p>
-              <p className="text-2xl font-bold text-slate-100">{stats.activated.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">Activated</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.activated.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '1.5s' }}>
+        <div className="card card-hover p-4">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-purple-500/20">
-              <Building className="h-8 w-8 text-purple-400" />
+            <div className="p-3 rounded-lg bg-purple-100">
+              <Building className="h-8 w-8 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-400">Visayas</p>
-              <p className="text-2xl font-bold text-slate-100">{stats.byRegion.visayas.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">Visayas</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.byRegion.visayas.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '2s' }}>
+        <div className="card card-hover p-4">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-orange-500/20">
-              <MapPin className="h-8 w-8 text-orange-400" />
+            <div className="p-3 rounded-lg bg-orange-100">
+              <MapPin className="h-8 w-8 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-400">Luzon 4A</p>
-              <p className="text-2xl font-bold text-slate-100">{stats.byRegion.luzon_4a.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">Luzon 4A</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.byRegion.luzon_4a.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-card glass-hover animate-pulse-glow" style={{ animationDelay: '2.5s' }}>
+        <div className="card card-hover p-4">
           <div className="flex items-center">
-            <div className="p-3 rounded-xl bg-indigo-500/20">
-              <Users className="h-8 w-8 text-indigo-400" />
+            <div className="p-3 rounded-lg bg-indigo-100">
+              <Users className="h-8 w-8 text-indigo-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-400">NCR</p>
-              <p className="text-2xl font-bold text-slate-100">{stats.byRegion.ncr.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">NCR</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.byRegion.ncr.toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters and Controls */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="card p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
@@ -285,7 +281,7 @@ export function CardManagementV2({ }: CardManagementV2Props) {
               placeholder="Search by control number or card number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="input-field pl-10"
             />
           </div>
 
@@ -294,7 +290,7 @@ export function CardManagementV2({ }: CardManagementV2Props) {
             <select
               value={activationFilter}
               onChange={(e) => setActivationFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="input-field"
             >
               <option value="all">All Cards</option>
               <option value="unactivated">Unactivated</option>
@@ -304,7 +300,7 @@ export function CardManagementV2({ }: CardManagementV2Props) {
             <select
               value={regionFilter}
               onChange={(e) => setRegionFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="input-field"
             >
               <option value="all">All Regions</option>
               <option value="visayas">Visayas</option>
@@ -314,7 +310,7 @@ export function CardManagementV2({ }: CardManagementV2Props) {
 
             <button
               onClick={exportCards}
-              className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="btn btn-outline flex items-center px-3 py-2 text-sm"
             >
               <Download className="h-4 w-4 mr-2" />
               Export CSV
@@ -323,7 +319,7 @@ export function CardManagementV2({ }: CardManagementV2Props) {
             <button
               onClick={loadData}
               disabled={loading}
-              className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="btn btn-primary flex items-center px-3 py-2 text-sm disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -333,7 +329,7 @@ export function CardManagementV2({ }: CardManagementV2Props) {
       </div>
 
       {/* Cards Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

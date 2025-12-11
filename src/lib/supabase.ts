@@ -29,14 +29,21 @@ export interface CardBatch {
 
 export interface Card {
   id: string;
-  batch_id: string;
+  batch_id?: string;
   control_number: string;
-  passcode: string;
-  location_code: string;
-  status: 'unassigned' | 'assigned' | 'activated' | 'expired' | 'suspended';
+  control_number_v2?: string; // New MOC format: MOC-__-____-00001
+  passcode?: string; // Now optional (removed for new system)
+  location_code?: string;
+  location_code_v2?: string; // New format: 01-16
+  clinic_code_v2?: string; // New format: 4-digit clinic code
+  card_number?: number; // Sequential number 1-10000
+  is_activated?: boolean;
+  status: 'unassigned' | 'assigned' | 'activated' | 'expired' | 'suspended' | 'unactivated';
   assigned_clinic_id?: string;
+  activated_by_clinic_id?: string;
   activated_at?: string;
   expires_at?: string;
+  migration_version?: number;
   created_at: string;
   updated_at: string;
   clinic?: Clinic;
@@ -237,6 +244,46 @@ export interface UserSessionState {
   draft_state: Record<string, any>;
   last_saved: string;
   expires_at: string;
+}
+
+// New MOC System V2 Interfaces
+export interface LocationCodeV2 {
+  id: string;
+  code: string; // 01-16
+  region_name: string;
+  description?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClinicCodeByRegion {
+  id: string;
+  clinic_code: string; // 4-digit code
+  region_type: 'visayas' | 'luzon_4a' | 'ncr';
+  region_name: string;
+  location_code: string; // References location code (01-16)
+  description?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DefaultPerkTemplate {
+  id: string;
+  perk_name: string;
+  perk_type: 'discount' | 'cashback' | 'service' | 'consultation' | 'cleaning' | 'xray' | 'extraction' | 'filling';
+  perk_value: number;
+  description?: string;
+  is_active: boolean;
+  is_default: boolean;
+  customizable: boolean;
+  max_redemptions?: number;
+  valid_for_days?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // Utility functions for database operations
