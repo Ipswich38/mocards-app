@@ -11,9 +11,14 @@ export interface Clinic {
   clinic_code: string;
   clinic_name: string;
   password_hash: string;
+  password_must_be_changed?: boolean;
+  first_login?: boolean;
+  last_password_change?: string;
   contact_email?: string;
   contact_phone?: string;
   address?: string;
+  region?: string;
+  location_code?: string;
   status: string;
   created_at: string;
   updated_at: string;

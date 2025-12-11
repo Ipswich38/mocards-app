@@ -40,7 +40,7 @@ interface ClinicFormData {
   region: string;
   location_code: string;
   status: 'active' | 'inactive' | 'pending';
-  temporary_password: string;
+  temporary_password?: string;
 }
 
 export function ClinicManagementCRUD() {
@@ -165,7 +165,7 @@ export function ClinicManagementCRUD() {
         setSuccess('Clinic updated successfully!');
       } else {
         // Create new clinic with hashed password
-        if (!formData.temporary_password.trim()) {
+        if (!formData.temporary_password?.trim()) {
           setError('Temporary password is required');
           return;
         }
@@ -534,7 +534,7 @@ export function ClinicManagementCRUD() {
                     <input
                       type="password"
                       required={!editingClinic}
-                      value={formData.temporary_password}
+                      value={formData.temporary_password || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, temporary_password: e.target.value }))}
                       className="input-field"
                       placeholder="Enter temporary password for clinic access"
