@@ -274,12 +274,12 @@ export interface ClinicCodeByRegion {
 export interface DefaultPerkTemplate {
   id: string;
   perk_name: string;
-  perk_type: 'discount' | 'cashback' | 'service' | 'consultation' | 'cleaning' | 'xray' | 'extraction' | 'filling';
+  perk_type: 'discount' | 'cashback' | 'service' | 'consultation' | 'cleaning' | 'xray' | 'extraction' | 'filling' | 'freebie' | 'points';
   perk_value: number;
   description?: string;
   is_active: boolean;
   is_default: boolean;
-  customizable: boolean;
+  customizable?: boolean;
   max_redemptions?: number;
   valid_for_days?: number;
   created_at: string;
