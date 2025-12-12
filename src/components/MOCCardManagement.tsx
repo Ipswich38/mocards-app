@@ -11,7 +11,9 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  ArrowRightLeft,
+  Package
 } from 'lucide-react';
 
 interface Card {
@@ -25,6 +27,15 @@ interface Card {
   clinic_code_v2?: string;
   activated_at?: string;
   created_at?: string;
+  assigned_clinic_id?: string;
+  assigned_at?: string;
+}
+
+interface Clinic {
+  id: string;
+  clinic_name: string;
+  clinic_code: string;
+  status: string;
 }
 
 export function MOCCardManagement() {
@@ -43,12 +54,24 @@ export function MOCCardManagement() {
   const [error, setError] = useState('');
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [assignmentLoading, setAssignmentLoading] = useState<string | null>(null);
+  const [showAssignmentDropdown, setShowAssignmentDropdown] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showBatchAssignment, setShowBatchAssignment] = useState(false);
+  const [batchForm, setBatchForm] = useState({
+    startCardNumber: '',
+    endCardNumber: '',
+    selectedClinicId: ''
+  });
+  const [batchLoading, setBatchLoading] = useState(false);
 
   const cardsPerPage = 50;
 
   useEffect(() => {
     loadCards();
     loadStats();
+    loadClinics();
   }, [currentPage, statusFilter, searchQuery]);
 
   const loadCards = async () => {
@@ -58,7 +81,14 @@ export function MOCCardManagement() {
     try {
       let query = supabase
         .from('cards')
-        .select('*', { count: 'exact' });
+        .select(`
+          *,
+          assigned_clinic:assigned_clinic_id(
+            id,
+            clinic_name,
+            clinic_code
+          )
+        `, { count: 'exact' });
 
       // Apply status filter
       if (statusFilter === 'unactivated') {
@@ -135,6 +165,163 @@ export function MOCCardManagement() {
       });
     } catch (err) {
       console.error('Error loading stats:', err);
+    }
+  };
+
+  const loadClinics = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('mocards_clinics')
+        .select('id, clinic_name, clinic_code, status')
+        .eq('status', 'active')
+        .order('clinic_name');
+
+      if (error) throw error;
+      setClinics(data || []);
+    } catch (err) {
+      console.error('Error loading clinics:', err);
+    }
+  };
+
+  const assignCardToClinic = async (cardId: string, clinicId: string) => {
+    setAssignmentLoading(cardId);
+    try {
+      const clinic = clinics.find(c => c.id === clinicId);
+      if (!clinic) throw new Error('Clinic not found');
+
+      // Update the card assignment
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          assigned_clinic_id: clinicId,
+          status: 'assigned',
+          assigned_at: new Date().toISOString(),
+          assigned_by: 'admin',
+          assignment_method: 'admin',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId);
+
+      if (error) throw error;
+
+      // Log the assignment
+      await supabase
+        .from('card_assignment_history')
+        .insert({
+          card_id: cardId,
+          clinic_id: clinicId,
+          assignment_type: 'assigned',
+          assigned_by_type: 'admin',
+          assigned_by_id: 'admin',
+          assigned_by_name: 'Admin Portal',
+          assignment_reason: 'Manual assignment via MOCARDS management',
+          assignment_details: {
+            clinic_name: clinic.clinic_name,
+            clinic_code: clinic.clinic_code,
+            assigned_via: 'mocards_management'
+          }
+        });
+
+      // Show success message
+      setSuccessMessage(`Card successfully assigned to ${clinic.clinic_name} at ${new Date().toLocaleString()}`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+      // Refresh cards
+      loadCards();
+      setShowAssignmentDropdown(null);
+
+    } catch (err: any) {
+      setError('Failed to assign card: ' + err.message);
+    } finally {
+      setAssignmentLoading(null);
+    }
+  };
+
+  const handleBatchAssignment = async () => {
+    if (!batchForm.startCardNumber || !batchForm.endCardNumber || !batchForm.selectedClinicId) {
+      setError('Please fill in all batch assignment fields');
+      return;
+    }
+
+    const startNum = parseInt(batchForm.startCardNumber);
+    const endNum = parseInt(batchForm.endCardNumber);
+
+    if (isNaN(startNum) || isNaN(endNum) || startNum > endNum) {
+      setError('Please enter valid card number range');
+      return;
+    }
+
+    setBatchLoading(true);
+    try {
+      const clinic = clinics.find(c => c.id === batchForm.selectedClinicId);
+      if (!clinic) throw new Error('Clinic not found');
+
+      // Get cards in the specified range
+      const { data: cardsInRange, error: fetchError } = await supabase
+        .from('cards')
+        .select('id, card_number, control_number_v2')
+        .gte('card_number', startNum)
+        .lte('card_number', endNum)
+        .order('card_number');
+
+      if (fetchError) throw fetchError;
+
+      if (!cardsInRange || cardsInRange.length === 0) {
+        setError('No cards found in the specified range');
+        return;
+      }
+
+      // Update all cards in the range
+      const cardIds = cardsInRange.map(card => card.id);
+      const { error: updateError } = await supabase
+        .from('cards')
+        .update({
+          assigned_clinic_id: batchForm.selectedClinicId,
+          status: 'assigned',
+          assigned_at: new Date().toISOString(),
+          assigned_by: 'admin',
+          assignment_method: 'admin',
+          updated_at: new Date().toISOString()
+        })
+        .in('id', cardIds);
+
+      if (updateError) throw updateError;
+
+      // Log batch assignment
+      const assignmentRecords = cardsInRange.map(card => ({
+        card_id: card.id,
+        clinic_id: batchForm.selectedClinicId,
+        assignment_type: 'assigned',
+        assigned_by_type: 'admin',
+        assigned_by_id: 'admin',
+        assigned_by_name: 'Admin Portal',
+        assignment_reason: `Batch assignment: Cards ${startNum}-${endNum}`,
+        assignment_details: {
+          clinic_name: clinic.clinic_name,
+          clinic_code: clinic.clinic_code,
+          assigned_via: 'batch_assignment',
+          batch_range: `${startNum}-${endNum}`,
+          card_number: card.card_number
+        }
+      }));
+
+      await supabase
+        .from('card_assignment_history')
+        .insert(assignmentRecords);
+
+      // Show success message
+      setSuccessMessage(`Successfully assigned ${cardsInRange.length} cards (${startNum}-${endNum}) to ${clinic.clinic_name} at ${new Date().toLocaleString()}`);
+      setTimeout(() => setSuccessMessage(''), 8000);
+
+      // Reset form and refresh
+      setBatchForm({ startCardNumber: '', endCardNumber: '', selectedClinicId: '' });
+      setShowBatchAssignment(false);
+      loadCards();
+
+    } catch (err: any) {
+      setError('Batch assignment failed: ' + err.message);
+    } finally {
+      setBatchLoading(false);
     }
   };
 
@@ -220,6 +407,13 @@ export function MOCCardManagement() {
             </p>
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setShowBatchAssignment(true)}
+              className="btn btn-outline flex items-center px-4 py-2"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Batch Assign
+            </button>
             <button
               onClick={exportCards}
               disabled={loading}
@@ -351,6 +545,14 @@ export function MOCCardManagement() {
         </div>
       </div>
 
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+          <CheckCircle className="h-5 w-5 mr-2" />
+          {successMessage}
+        </div>
+      )}
+
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
@@ -428,8 +630,13 @@ export function MOCCardManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {card.clinic_code_v2 || '-'}
+                        {(card as any).assigned_clinic?.clinic_name || 'Unassigned'}
                       </div>
+                      {(card as any).assigned_clinic && (
+                        <div className="text-xs text-gray-500">
+                          Code: {(card as any).assigned_clinic.clinic_code}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
@@ -439,13 +646,71 @@ export function MOCCardManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleViewCard(card)}
-                        className="text-blue-600 hover:text-blue-900 flex items-center"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </button>
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => handleViewCard(card)}
+                          className="text-blue-600 hover:text-blue-900 flex items-center"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </button>
+
+                        {/* Assignment Dropdown */}
+                        {!(card as any).assigned_clinic && (
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowAssignmentDropdown(
+                                showAssignmentDropdown === card.id ? null : card.id
+                              )}
+                              disabled={assignmentLoading === card.id}
+                              className="text-green-600 hover:text-green-900 flex items-center disabled:opacity-50"
+                            >
+                              {assignmentLoading === card.id ? (
+                                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                              ) : (
+                                <ArrowRightLeft className="h-4 w-4 mr-1" />
+                              )}
+                              Assign
+                            </button>
+
+                            {showAssignmentDropdown === card.id && (
+                              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+                                <div className="p-3">
+                                  <p className="text-sm font-medium text-gray-700 mb-2">Assign to Clinic:</p>
+                                  <div className="max-h-48 overflow-y-auto space-y-1">
+                                    {clinics.map((clinic) => (
+                                      <button
+                                        key={clinic.id}
+                                        onClick={() => assignCardToClinic(card.id, clinic.id)}
+                                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center justify-between"
+                                      >
+                                        <div>
+                                          <div className="font-medium text-gray-900">{clinic.clinic_name}</div>
+                                          <div className="text-gray-500">Code: {clinic.clinic_code}</div>
+                                        </div>
+                                        <ArrowRightLeft className="h-4 w-4 text-gray-400" />
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <button
+                                    onClick={() => setShowAssignmentDropdown(null)}
+                                    className="w-full mt-2 text-center px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {(card as any).assigned_clinic && (
+                          <div className="flex items-center text-xs text-green-600">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Assigned
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -596,6 +861,112 @@ export function MOCCardManagement() {
                 className="btn btn-primary"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Assignment Modal */}
+      {showBatchAssignment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                <Package className="h-6 w-6 mr-3 text-blue-600" />
+                Batch Card Assignment
+              </h3>
+              <button
+                onClick={() => setShowBatchAssignment(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Card Number
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g., 1"
+                  value={batchForm.startCardNumber}
+                  onChange={(e) => setBatchForm(prev => ({ ...prev, startCardNumber: e.target.value }))}
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Card Number
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g., 100"
+                  value={batchForm.endCardNumber}
+                  onChange={(e) => setBatchForm(prev => ({ ...prev, endCardNumber: e.target.value }))}
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assign to Clinic
+                </label>
+                <select
+                  value={batchForm.selectedClinicId}
+                  onChange={(e) => setBatchForm(prev => ({ ...prev, selectedClinicId: e.target.value }))}
+                  className="input-field"
+                >
+                  <option value="">Select a clinic...</option>
+                  {clinics.map((clinic) => (
+                    <option key={clinic.id} value={clinic.id}>
+                      {clinic.clinic_name} (Code: {clinic.clinic_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {batchForm.startCardNumber && batchForm.endCardNumber && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    This will assign cards #{batchForm.startCardNumber} to #{batchForm.endCardNumber}
+                    ({Math.abs(parseInt(batchForm.endCardNumber) - parseInt(batchForm.startCardNumber)) + 1} cards)
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowBatchAssignment(false)}
+                className="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBatchAssignment}
+                disabled={batchLoading || !batchForm.startCardNumber || !batchForm.endCardNumber || !batchForm.selectedClinicId}
+                className="btn btn-primary disabled:opacity-50"
+              >
+                {batchLoading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Assigning...
+                  </>
+                ) : (
+                  <>
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Assign Cards
+                  </>
+                )}
               </button>
             </div>
           </div>

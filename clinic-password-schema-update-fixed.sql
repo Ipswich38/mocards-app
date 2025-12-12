@@ -2,8 +2,7 @@
 -- Adds password change tracking to mocards_clinics table
 -- INCLUDES DATA PRESERVATION SAFEGUARDS FOR ALL 10,000+ CARDS
 
-BEGIN;
-
+BEGIN
 -- =============================================================================
 -- REQUIRED TABLES CREATION
 -- =============================================================================
