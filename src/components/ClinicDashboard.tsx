@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import bcrypt from 'bcryptjs';
 // Removed useAutoLogout hook dependency
 import { ClinicPerkCustomization } from './ClinicPerkCustomization';
+import { SearchComponent } from './SearchComponent';
 
 interface ClinicDashboardProps {
   clinicCredentials: {
@@ -31,6 +32,10 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     totalValue: 0,
     pendingAppointments: 0
   });
+
+  // Enhanced search functionality
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Password change states
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -64,6 +69,98 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     loadStats();
     loadAppointments();
   }, []);
+
+  // Enhanced search functionality for clinic dashboard
+  const getSearchSuggestions = async (query: string) => {
+    if (query.length < 2) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    try {
+      // Get suggestions for cards assigned to this clinic
+      const { data: clinicCardSuggestions } = await supabase
+        .from('cards')
+        .select('control_number, control_number_v2, card_number')
+        .eq('assigned_clinic_id', clinicCredentials.clinicId)
+        .or(`control_number.ilike.${query}%,control_number_v2.ilike.${query}%`)
+        .limit(5);
+
+      const suggestions = (clinicCardSuggestions || []).map(card => ({
+        id: `control-${card.control_number || card.control_number_v2}`,
+        text: card.control_number_v2 || card.control_number || '',
+        type: 'control_number' as const,
+        count: 1
+      })).filter((suggestion, index, self) =>
+        index === self.findIndex(s => s.text === suggestion.text) && suggestion.text
+      );
+
+      setSearchSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error getting search suggestions:', error);
+    }
+  };
+
+  const logSearchActivity = async (searchTerm: string, resultsFound: number) => {
+    try {
+      await supabase.rpc('log_search_activity', {
+        p_user_id: clinicCredentials.clinicId,
+        p_user_type: 'clinic',
+        p_search_query: searchTerm,
+        p_search_type: 'control_number',
+        p_results_found: resultsFound,
+        p_search_metadata: {
+          interface: 'clinic_dashboard',
+          clinic_name: clinicCredentials.clinicName,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.debug('Search logging not available:', error);
+    }
+  };
+
+  const handleEnhancedSearch = async (query: string) => {
+    setSearchControl(query);
+    setSearchLoading(true);
+
+    try {
+      const card = await dbOperations.getCardByControlNumber(query);
+      setFoundCard(card);
+
+      // Log search activity
+      logSearchActivity(query, card ? 1 : 0);
+    } catch (err) {
+      setFoundCard(null);
+      setError('Card not found');
+      logSearchActivity(query, 0);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSearchResultSelect = (result: any) => {
+    if (result.type === 'card') {
+      setFoundCard(result.card);
+    }
+  };
+
+  const handleSuggestionSelect = (suggestion: any) => {
+    handleEnhancedSearch(suggestion.text);
+  };
+
+  // Debounced search suggestions
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchControl.length >= 2) {
+        getSearchSuggestions(searchControl);
+      } else {
+        setSearchSuggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchControl]);
 
   const loadClinicCards = async () => {
     try {
@@ -134,27 +231,6 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     return values[perkType] || 0;
   };
 
-  const handleCardLookup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setFoundCard(null);
-
-    try {
-      const card = await dbOperations.getCardByControlNumber(searchControl);
-
-      if (card) {
-        setFoundCard(card);
-      } else {
-        setError('Card not found');
-      }
-    } catch (err) {
-      console.error('Error looking up card:', err);
-      setError('Failed to find card');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAssignCard = async (cardId: string) => {
     setLoading(true);
@@ -572,22 +648,20 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
           <div className="space-y-6">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
               <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Card Lookup, Assignment & Activation</h3>
-              <form onSubmit={handleCardLookup} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <input
-                  type="text"
-                  placeholder="Enter control number (e.g. MO-C001-001)"
-                  value={searchControl}
-                  onChange={(e) => setSearchControl(e.target.value)}
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-teal-500 transition-colors"
+              <div className="w-full">
+                <SearchComponent
+                  placeholder="Enter control number (e.g., MOC-01-NCR1-00001)"
+                  suggestions={searchSuggestions}
+                  onSearch={handleEnhancedSearch}
+                  onResultSelect={handleSearchResultSelect}
+                  onSuggestionSelect={handleSuggestionSelect}
+                  isLoading={searchLoading || loading}
+                  results={[]}
+                  variant="default"
+                  className="w-full"
+                  showRecentSearches={true}
                 />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-teal-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-sm sm:text-base font-medium hover:bg-teal-700 transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Searching...' : 'Search'}
-                </button>
-              </form>
+              </div>
             </div>
 
             {foundCard && (

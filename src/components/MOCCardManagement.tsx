@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { SearchComponent } from './SearchComponent';
 import {
-  Search,
   Download,
   RefreshCw,
   Eye,
@@ -66,6 +66,9 @@ export function MOCCardManagement() {
   });
   const [batchLoading, setBatchLoading] = useState(false);
 
+  // Enhanced search functionality
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+
   const cardsPerPage = 50;
 
   useEffect(() => {
@@ -73,6 +76,108 @@ export function MOCCardManagement() {
     loadStats();
     loadClinics();
   }, [currentPage, statusFilter, searchQuery]);
+
+  // Load search suggestions when typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.length >= 2) {
+        getSearchSuggestions(searchQuery);
+      } else {
+        setSearchSuggestions([]);
+      }
+    }, 300); // Debounce search suggestions
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Enhanced search functionality
+  const getSearchSuggestions = async (query: string) => {
+    if (query.length < 2) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    try {
+      // Get suggestions for control numbers
+      const { data: controlSuggestions } = await supabase
+        .from('cards')
+        .select('control_number, control_number_v2')
+        .or(`control_number.ilike.${query}%,control_number_v2.ilike.${query}%`)
+        .limit(5);
+
+      // Get clinic name suggestions
+      const { data: clinicSuggestions } = await supabase
+        .from('mocards_clinics')
+        .select('clinic_name')
+        .ilike('clinic_name', `${query}%`)
+        .limit(3);
+
+      const suggestions = [
+        ...(controlSuggestions || []).map(card => ({
+          id: `control-${card.control_number || card.control_number_v2}`,
+          text: card.control_number_v2 || card.control_number || '',
+          type: 'control_number' as const
+        })),
+        ...(clinicSuggestions || []).map(clinic => ({
+          id: `clinic-${clinic.clinic_name}`,
+          text: clinic.clinic_name,
+          type: 'clinic_name' as const
+        }))
+      ].filter((suggestion, index, self) =>
+        index === self.findIndex(s => s.text === suggestion.text)
+      );
+
+      setSearchSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error getting search suggestions:', error);
+    }
+  };
+
+  const logSearchActivity = async (searchTerm: string, resultsFound: number) => {
+    try {
+      // Log search activity using the enhanced search schema function
+      await supabase.rpc('log_search_activity', {
+        p_user_id: 'admin',
+        p_user_type: 'admin',
+        p_search_query: searchTerm,
+        p_search_type: 'mixed',
+        p_results_found: resultsFound,
+        p_search_metadata: {
+          interface: 'mocards_management',
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      // Silently fail if the search logging isn't available yet
+      console.debug('Search logging not available:', error);
+    }
+  };
+
+  const handleEnhancedSearch = async (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+
+    // Log the search activity
+    if (query.trim()) {
+      setTimeout(() => {
+        logSearchActivity(query, totalCards);
+      }, 1000); // Delay to get accurate results count
+    }
+  };
+
+  const handleSearchResultSelect = (result: any) => {
+    if (result.type === 'card') {
+      const card = cards.find(c => c.id === result.id);
+      if (card) {
+        handleViewCard(card);
+      }
+    }
+  };
+
+  const handleSuggestionSelect = (suggestion: any) => {
+    setSearchQuery(suggestion.text);
+    setCurrentPage(1);
+  };
 
   const loadCards = async () => {
     setLoading(true);
@@ -97,17 +202,20 @@ export function MOCCardManagement() {
         query = query.eq('is_activated', true);
       }
 
-      // Apply search filter
+      // Apply enhanced search filter
       if (searchQuery.trim()) {
-        // Try to parse as number for card_number search
-        const isNumeric = !isNaN(Number(searchQuery));
+        const searchTerm = searchQuery.trim();
+        const isNumeric = !isNaN(Number(searchTerm));
+
         if (isNumeric) {
+          // Search by card number or control numbers containing the number
           query = query.or(
-            `control_number.ilike.%${searchQuery}%,control_number_v2.ilike.%${searchQuery}%,card_number.eq.${searchQuery}`
+            `control_number.ilike.%${searchTerm}%,control_number_v2.ilike.%${searchTerm}%,card_number.eq.${searchTerm}`
           );
         } else {
+          // Text search - include clinic name search via join
           query = query.or(
-            `control_number.ilike.%${searchQuery}%,control_number_v2.ilike.%${searchQuery}%`
+            `control_number.ilike.%${searchTerm}%,control_number_v2.ilike.%${searchTerm}%,assigned_clinic.clinic_name.ilike.%${searchTerm}%`
           );
         }
       }
@@ -488,15 +596,19 @@ export function MOCCardManagement() {
       {/* Filters */}
       <div className="card p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search by control number or card number..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field pl-10"
+          {/* Enhanced Search */}
+          <div className="flex-1 max-w-2xl">
+            <SearchComponent
+              placeholder="Search by control number, card number, or clinic name..."
+              suggestions={searchSuggestions}
+              onSearch={handleEnhancedSearch}
+              onResultSelect={handleSearchResultSelect}
+              onSuggestionSelect={handleSuggestionSelect}
+              isLoading={loading}
+              results={[]}
+              variant="default"
+              className="w-full"
+              showRecentSearches={true}
             />
           </div>
 
@@ -504,7 +616,7 @@ export function MOCCardManagement() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="input-field"
+            className="input-field min-w-[140px]"
           >
             <option value="all">All Cards</option>
             <option value="unactivated">Unactivated</option>

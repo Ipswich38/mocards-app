@@ -2,72 +2,341 @@
 @tailwind components;
 @tailwind utilities;
 
-/* White Minimalist Theme */
+/* Material 3 Design System */
 :root {
-  /* Clean white and gray palette */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
+  /* Material 3 Color Tokens */
+  --md-sys-color-primary: #0056D3;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #D3E3FF;
+  --md-sys-color-on-primary-container: #001C3B;
 
-  /* Text colors */
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --md-sys-color-secondary: #565E71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #DAE2F9;
+  --md-sys-color-on-secondary-container: #131C2B;
 
-  /* Borders */
-  --border-light: #e2e8f0;
-  --border-medium: #cbd5e1;
+  --md-sys-color-tertiary: #705575;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FAD8FD;
+  --md-sys-color-on-tertiary-container: #28132E;
 
-  /* Accent colors */
-  --blue-primary: #3b82f6;
-  --blue-hover: #2563eb;
-  --blue-light: #dbeafe;
+  /* Surface Colors */
+  --md-sys-color-surface: #FCFCFF;
+  --md-sys-color-surface-dim: #DDD8E1;
+  --md-sys-color-surface-bright: #FCFCFF;
+  --md-sys-color-surface-container-lowest: #FFFFFF;
+  --md-sys-color-surface-container-low: #F6F2FF;
+  --md-sys-color-surface-container: #F0ECFF;
+  --md-sys-color-surface-container-high: #EAE7F0;
+  --md-sys-color-surface-container-highest: #E4E1EC;
+  --md-sys-color-on-surface: #1B1B1F;
+  --md-sys-color-on-surface-variant: #44474E;
 
-  /* Status colors */
-  --success: #10b981;
-  --success-bg: #ecfdf5;
-  --warning: #f59e0b;
-  --warning-bg: #fffbeb;
-  --error: #ef4444;
-  --error-bg: #fef2f2;
+  /* Outline Colors */
+  --md-sys-color-outline: #74777F;
+  --md-sys-color-outline-variant: #C4C6D0;
+
+  /* Error Colors */
+  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FFDAD6;
+  --md-sys-color-on-error-container: #410002;
+
+  /* Success Colors (Custom) */
+  --md-sys-color-success: #146C2E;
+  --md-sys-color-on-success: #FFFFFF;
+  --md-sys-color-success-container: #A7F432;
+  --md-sys-color-on-success-container: #002204;
+
+  /* Warning Colors (Custom) */
+  --md-sys-color-warning: #825500;
+  --md-sys-color-on-warning: #FFFFFF;
+  --md-sys-color-warning-container: #FFDDB3;
+  --md-sys-color-on-warning-container: #291800;
+
+  /* Elevation Shadows */
+  --md-sys-elevation-level0: 0px 0px 0px 0px rgba(0, 0, 0, 0);
+  --md-sys-elevation-level1: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-level2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-level3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-level4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-level5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
+
+  /* Typography Scale */
+  --md-sys-typescale-display-large-font: 400 57px/64px 'Roboto', sans-serif;
+  --md-sys-typescale-display-medium-font: 400 45px/52px 'Roboto', sans-serif;
+  --md-sys-typescale-display-small-font: 400 36px/44px 'Roboto', sans-serif;
+  --md-sys-typescale-headline-large-font: 400 32px/40px 'Roboto', sans-serif;
+  --md-sys-typescale-headline-medium-font: 400 28px/36px 'Roboto', sans-serif;
+  --md-sys-typescale-headline-small-font: 400 24px/32px 'Roboto', sans-serif;
+  --md-sys-typescale-title-large-font: 400 22px/28px 'Roboto', sans-serif;
+  --md-sys-typescale-title-medium-font: 500 16px/24px 'Roboto', sans-serif;
+  --md-sys-typescale-title-small-font: 500 14px/20px 'Roboto', sans-serif;
+  --md-sys-typescale-label-large-font: 500 14px/20px 'Roboto', sans-serif;
+  --md-sys-typescale-label-medium-font: 500 12px/16px 'Roboto', sans-serif;
+  --md-sys-typescale-label-small-font: 500 11px/16px 'Roboto', sans-serif;
+  --md-sys-typescale-body-large-font: 400 16px/24px 'Roboto', sans-serif;
+  --md-sys-typescale-body-medium-font: 400 14px/20px 'Roboto', sans-serif;
+  --md-sys-typescale-body-small-font: 400 12px/16px 'Roboto', sans-serif;
+
+  /* Shape Tokens */
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 50%;
+
+  /* Legacy Support */
+  --bg-primary: var(--md-sys-color-surface);
+  --bg-secondary: var(--md-sys-color-surface-container-low);
+  --bg-tertiary: var(--md-sys-color-surface-container);
+  --text-primary: var(--md-sys-color-on-surface);
+  --text-secondary: var(--md-sys-color-on-surface-variant);
+  --text-muted: var(--md-sys-color-outline);
+  --border-light: var(--md-sys-color-outline-variant);
+  --border-medium: var(--md-sys-color-outline);
 }
 
 /* Base Styles */
 body {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Card Components */
+/* Material 3 Components */
 @layer components {
+  /* Surface Components */
   .card {
-    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+    background-color: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium);
+    box-shadow: var(--md-sys-elevation-level1);
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .card-elevated {
+    background-color: var(--md-sys-color-surface-container);
+    border: none;
+    border-radius: var(--md-sys-shape-corner-medium);
+    box-shadow: var(--md-sys-elevation-level2);
+    color: var(--md-sys-color-on-surface);
   }
 
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-md hover:border-gray-300;
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 
+  .card-hover:hover {
+    box-shadow: var(--md-sys-elevation-level3);
+    border-color: var(--md-sys-color-outline);
+  }
+
+  /* Button Components */
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    font: var(--md-sys-typescale-label-large-font);
+    padding: 10px 24px;
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--md-sys-color-primary);
   }
 
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+  }
+
+  .btn-primary:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, black);
+    box-shadow: var(--md-sys-elevation-level1);
+  }
+
+  .btn-primary:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, black);
   }
 
   .btn-secondary {
-    @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+    background-color: var(--md-sys-color-secondary);
+    color: var(--md-sys-color-on-secondary);
+  }
+
+  .btn-secondary:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-secondary) 92%, black);
+    box-shadow: var(--md-sys-elevation-level1);
   }
 
   .btn-outline {
-    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+    background-color: transparent;
+    border: 1px solid var(--md-sys-color-outline);
+    color: var(--md-sys-color-primary);
   }
 
+  .btn-outline:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+    border-color: var(--md-sys-color-primary);
+  }
+
+  .btn-text {
+    background-color: transparent;
+    color: var(--md-sys-color-primary);
+    padding: 10px 12px;
+  }
+
+  .btn-text:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+  }
+
+  /* Filled Buttons (Material 3 Style) */
+  .btn-filled {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-sys-elevation-level0);
+  }
+
+  .btn-filled:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, black);
+    box-shadow: var(--md-sys-elevation-level1);
+  }
+
+  .btn-filled-tonal {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+
+  .btn-filled-tonal:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container) 92%, black);
+    box-shadow: var(--md-sys-elevation-level1);
+  }
+
+  /* Input Components */
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    background-color: var(--md-sys-color-surface-container-highest);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-small);
+    color: var(--md-sys-color-on-surface);
+    font: var(--md-sys-typescale-body-large-font);
+    padding: 16px;
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    border-width: 2px;
+    padding: 15px; /* Adjust padding to compensate for thicker border */
+  }
+
+  .input-field::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  /* Chip Components */
+  .chip {
+    background-color: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-small);
+    color: var(--md-sys-color-on-surface-variant);
+    font: var(--md-sys-typescale-label-large-font);
+    padding: 6px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chip-filled {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    border: none;
+  }
+
+  /* Badge Components */
+  .badge {
+    font: var(--md-sys-typescale-label-small-font);
+    padding: 4px 8px;
+    border-radius: var(--md-sys-shape-corner-small);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .badge-success {
+    background-color: var(--md-sys-color-success-container);
+    color: var(--md-sys-color-on-success-container);
+  }
+
+  .badge-warning {
+    background-color: var(--md-sys-color-warning-container);
+    color: var(--md-sys-color-on-warning-container);
+  }
+
+  .badge-error {
+    background-color: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+  }
+
+  .badge-info {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+  }
+
+  /* Typography Classes */
+  .display-large { font: var(--md-sys-typescale-display-large-font); }
+  .display-medium { font: var(--md-sys-typescale-display-medium-font); }
+  .display-small { font: var(--md-sys-typescale-display-small-font); }
+  .headline-large { font: var(--md-sys-typescale-headline-large-font); }
+  .headline-medium { font: var(--md-sys-typescale-headline-medium-font); }
+  .headline-small { font: var(--md-sys-typescale-headline-small-font); }
+  .title-large { font: var(--md-sys-typescale-title-large-font); }
+  .title-medium { font: var(--md-sys-typescale-title-medium-font); }
+  .title-small { font: var(--md-sys-typescale-title-small-font); }
+  .label-large { font: var(--md-sys-typescale-label-large-font); }
+  .label-medium { font: var(--md-sys-typescale-label-medium-font); }
+  .label-small { font: var(--md-sys-typescale-label-small-font); }
+  .body-large { font: var(--md-sys-typescale-body-large-font); }
+  .body-medium { font: var(--md-sys-typescale-body-medium-font); }
+  .body-small { font: var(--md-sys-typescale-body-small-font); }
+
+  /* State Layer Utilities */
+  .state-layer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .state-layer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: transparent;
+    transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1);
+    pointer-events: none;
+  }
+
+  .state-layer:hover::before {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+  }
+
+  .state-layer:focus::before {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+  }
+
+  .state-layer:active::before {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 16%, transparent);
   }
 }
