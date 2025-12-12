@@ -31,6 +31,8 @@ interface Clinic {
   status: string;
   region?: string;
   location_code?: string;
+  current_password?: string; // Current active password
+  password_hash?: string; // Stored password hash
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +46,7 @@ interface ClinicFormData {
   region: string;
   location_code: string;
   status: 'active' | 'inactive' | 'pending';
+  password?: string; // Editable password field
   temporary_password?: string;
 }
 
@@ -71,6 +74,7 @@ export function ClinicManagementCRUD() {
     region: '',
     location_code: '',
     status: 'active',
+    password: '',
     temporary_password: ''
   });
 
@@ -157,9 +161,24 @@ export function ClinicManagementCRUD() {
 
     try {
       if (editingClinic) {
-        // Update existing clinic (password update handled separately)
+        // Update existing clinic with optional password update
         const updateData = { ...formData };
         delete updateData.temporary_password; // Don't update password in edit mode
+
+        // If password is provided, hash it and update
+        if (formData.password && formData.password.trim()) {
+          const passwordHash = await bcrypt.hash(formData.password, 10);
+          updateData.password_hash = passwordHash;
+
+          // Update the local clinic passwords for immediate display
+          setClinicPasswords(prev => ({
+            ...prev,
+            [editingClinic.id]: formData.password
+          }));
+        }
+
+        // Remove the plain password before sending to database
+        delete updateData.password;
 
         const { error } = await supabase
           .from('mocards_clinics')
@@ -170,7 +189,7 @@ export function ClinicManagementCRUD() {
           .eq('id', editingClinic.id);
 
         if (error) throw error;
-        setSuccess('Clinic updated successfully!');
+        setSuccess('Clinic updated successfully!' + (formData.password ? ' Password has been updated.' : ''));
       } else {
         // Create new clinic with hashed password
         if (!formData.temporary_password?.trim()) {
@@ -257,6 +276,7 @@ export function ClinicManagementCRUD() {
       region: clinic.region || '',
       location_code: clinic.location_code || '',
       status: clinic.status as any,
+      password: clinicPasswords[clinic.id] || clinic.current_password || '', // Load current password
       temporary_password: ''
     });
     setShowForm(true);
@@ -293,6 +313,7 @@ export function ClinicManagementCRUD() {
       region: '',
       location_code: '',
       status: 'active',
+      password: '',
       temporary_password: ''
     });
     setEditingClinic(null);
@@ -601,6 +622,37 @@ export function ClinicManagementCRUD() {
                   </div>
                 )}
 
+                {editingClinic && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Current Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        className="input-field pr-10"
+                        placeholder="Enter new password (leave blank to keep current)"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Update the clinic's login password. Leave blank to keep current password.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-end space-x-3 pt-4">
                   <button
                     type="button"
@@ -643,6 +695,9 @@ export function ClinicManagementCRUD() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Password
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -653,7 +708,7 @@ export function ClinicManagementCRUD() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center">
                       <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mr-2" />
                       <span className="text-gray-600">Loading clinics...</span>
@@ -662,7 +717,7 @@ export function ClinicManagementCRUD() {
                 </tr>
               ) : clinics.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">No clinics found.</p>
                     <button
@@ -724,18 +779,33 @@ export function ClinicManagementCRUD() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(clinic.status)}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        {showPasswordFor === clinic.id && (clinicPasswords[clinic.id] || clinic.current_password) ? (
+                          <div className="px-3 py-1 rounded-md text-xs font-mono" style={{
+                            backgroundColor: 'var(--md-sys-color-warning-container)',
+                            color: 'var(--md-sys-color-on-warning-container)',
+                            border: '1px solid var(--md-sys-color-warning)'
+                          }}>
+                            {clinicPasswords[clinic.id] || clinic.current_password}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-400">••••••••</div>
+                        )}
+                        <button
+                          onClick={() => setShowPasswordFor(showPasswordFor === clinic.id ? null : clinic.id)}
+                          style={{ color: 'var(--md-sys-color-accent-yellow)' }}
+                          className="hover:opacity-80"
+                          title="Toggle password visibility"
+                        >
+                          {showPasswordFor === clinic.id ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(clinic.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => setShowPasswordFor(showPasswordFor === clinic.id ? null : clinic.id)}
-                        style={{ color: 'var(--md-sys-color-accent-yellow)' }}
-                        className="hover:opacity-80 mr-2"
-                        title="View temporary password"
-                      >
-                        {showPasswordFor === clinic.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
                       <button
                         onClick={() => handleEdit(clinic)}
                         style={{ color: 'var(--md-sys-color-accent-orange)' }}

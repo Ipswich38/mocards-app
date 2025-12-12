@@ -279,32 +279,61 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
               <p className="body-large mb-8" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Manage cards, activate new patients, and process redemptions.</p>
 
               {activeTab === 'clinic' && (
-                <form onSubmit={handleClinicLogin} className="space-y-5" onClick={e => e.stopPropagation()}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="Clinic Code"
-                      value={clinicCode}
-                      onChange={(e) => setClinicCode(e.target.value)}
-                      className="input-field-enhanced"
-                    />
-                    <input
-                      type="password"
-                      placeholder="Password"
-                      value={clinicPassword}
-                      onChange={(e) => setClinicPassword(e.target.value)}
-                      className="input-field-enhanced"
-                    />
+                <form onSubmit={handleClinicLogin} className="space-y-6" onClick={e => e.stopPropagation()}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                        Clinic Code
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Enter your clinic code"
+                        value={clinicCode}
+                        onChange={(e) => setClinicCode(e.target.value)}
+                        className="input-field-enhanced w-full"
+                        style={{
+                          minHeight: '52px',
+                          fontSize: '16px',
+                          padding: '16px',
+                          borderRadius: 'var(--md-sys-shape-corner-large)'
+                        }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Enter your password"
+                        value={clinicPassword}
+                        onChange={(e) => setClinicPassword(e.target.value)}
+                        className="input-field-enhanced w-full"
+                        style={{
+                          minHeight: '52px',
+                          fontSize: '16px',
+                          padding: '16px',
+                          borderRadius: 'var(--md-sys-shape-corner-large)'
+                        }}
+                        required
+                      />
+                    </div>
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
                     className="cta-secondary w-full disabled:opacity-50"
+                    style={{
+                      minHeight: '52px',
+                      fontSize: '16px',
+                      fontWeight: '600'
+                    }}
                   >
                     {loading ? 'Verifying...' : 'Enter Portal →'}
                   </button>
                   {error && (
-                    <div className="p-3 text-sm text-center" style={{
+                    <div className="p-4 text-sm text-center" style={{
                       backgroundColor: 'var(--md-sys-color-error-container)',
                       border: '1px solid var(--md-sys-color-error)',
                       color: 'var(--md-sys-color-on-error-container)',
