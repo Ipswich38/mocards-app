@@ -655,10 +655,10 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-              <div className="card-elevated p-6">
-                <div className="label-small uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Active Cards</div>
-                <div className="headline-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.activeCards}</div>
-                <div className="body-small" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Total active patient cards</div>
+              <div className="card-contrast-primary p-6">
+                <div className="label-small uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Active Cards</div>
+                <div className="headline-medium mb-2" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>{stats.activeCards}</div>
+                <div className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.8 }}>Total active patient cards</div>
               </div>
               <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
                 <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Redemptions Today</div>

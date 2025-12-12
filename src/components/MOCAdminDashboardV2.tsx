@@ -205,17 +205,17 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              <div className="card-hover p-8">
+              <div className="card-contrast-primary card-hover p-8">
                 <div className="flex items-center">
                   <div className="p-4 rounded-lg" style={{
-                    backgroundColor: 'var(--md-sys-color-primary-container)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     borderRadius: 'var(--md-sys-shape-corner-large)'
                   }}>
                     <CreditCard className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
                   </div>
                   <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Total Cards</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.totalCards.toLocaleString()}</p>
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Total Cards</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>{stats.totalCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -235,17 +235,17 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 </div>
               </div>
 
-              <div className="card-hover p-8">
+              <div className="card-contrast-secondary card-hover p-8">
                 <div className="flex items-center">
                   <div className="p-4 rounded-lg" style={{
-                    backgroundColor: 'var(--md-sys-color-success-container)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     borderRadius: 'var(--md-sys-shape-corner-large)'
                   }}>
-                    <CheckCircle className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-success-container)' }} />
+                    <CheckCircle className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-secondary-container)' }} />
                   </div>
                   <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Activated</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.activatedCards.toLocaleString()}</p>
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Activated</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>{stats.activatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>

@@ -4,37 +4,43 @@
 
 /* Material 3 Design System */
 :root {
-  /* Material 3 Dark Theme Color Tokens - High Contrast */
-  --md-sys-color-primary: #8AB4F8;
-  --md-sys-color-on-primary: #001D35;
-  --md-sys-color-primary-container: #004A77;
-  --md-sys-color-on-primary-container: #D3E3FF;
+  /* Enhanced Dark Blue to Black Gradient Theme */
+  --md-sys-color-primary: #6A9EF7;
+  --md-sys-color-on-primary: #000B1E;
+  --md-sys-color-primary-container: #1E3A8A;
+  --md-sys-color-on-primary-container: #DBEAFE;
 
-  --md-sys-color-secondary: #BDC7DC;
-  --md-sys-color-on-secondary: #283141;
-  --md-sys-color-secondary-container: #3E4759;
-  --md-sys-color-on-secondary-container: #D9E2F9;
+  --md-sys-color-secondary: #A5B4FC;
+  --md-sys-color-on-secondary: #1E1B39;
+  --md-sys-color-secondary-container: #312E81;
+  --md-sys-color-on-secondary-container: #E0E7FF;
 
-  --md-sys-color-tertiary: #D5BAE4;
-  --md-sys-color-on-tertiary: #3B2947;
-  --md-sys-color-tertiary-container: #523F5E;
-  --md-sys-color-on-tertiary-container: #F2D5FF;
+  --md-sys-color-tertiary: #C4B5FD;
+  --md-sys-color-on-tertiary: #2D1B3D;
+  --md-sys-color-tertiary-container: #5B21B6;
+  --md-sys-color-on-tertiary-container: #F3E8FF;
 
-  /* Dark Surface Colors */
-  --md-sys-color-surface: #0F0F13;
-  --md-sys-color-surface-dim: #0F0F13;
-  --md-sys-color-surface-bright: #35353A;
-  --md-sys-color-surface-container-lowest: #0A0A0D;
-  --md-sys-color-surface-container-low: #171719;
-  --md-sys-color-surface-container: #1B1B1F;
-  --md-sys-color-surface-container-high: #262629;
-  --md-sys-color-surface-container-highest: #313134;
-  --md-sys-color-on-surface: #E4E1E6;
-  --md-sys-color-on-surface-variant: #C7C5D0;
+  /* Dark Blue to Black Gradient Surfaces */
+  --md-sys-color-surface: #000000;
+  --md-sys-color-surface-dim: #000000;
+  --md-sys-color-surface-bright: #1E293B;
+  --md-sys-color-surface-container-lowest: #030712;
+  --md-sys-color-surface-container-low: #0F172A;
+  --md-sys-color-surface-container: #1E293B;
+  --md-sys-color-surface-container-high: #334155;
+  --md-sys-color-surface-container-highest: #475569;
+  --md-sys-color-on-surface: #F8FAFC;
+  --md-sys-color-on-surface-variant: #CBD5E1;
 
-  /* Dark Outline Colors */
-  --md-sys-color-outline: #918F99;
-  --md-sys-color-outline-variant: #44474E;
+  /* Enhanced Outline Colors */
+  --md-sys-color-outline: #64748B;
+  --md-sys-color-outline-variant: #334155;
+
+  /* Gradient Backgrounds for Enhanced Aesthetics */
+  --md-gradient-primary: linear-gradient(135deg, #1e3a8a 0%, #000000 100%);
+  --md-gradient-surface: linear-gradient(145deg, #0f172a 0%, #000000 50%, #000000 100%);
+  --md-gradient-container: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --md-gradient-elevated: linear-gradient(135deg, #334155 0%, #1e293b 100%);
 
   /* Dark Error Colors */
   --md-sys-color-error: #FFB4AB;
@@ -99,9 +105,9 @@
   --border-medium: var(--md-sys-color-outline);
 }
 
-/* Base Styles - Dark Mode */
+/* Base Styles - Enhanced Dark Blue to Black Theme */
 body {
-  background-color: var(--md-sys-color-surface);
+  background: var(--md-gradient-surface);
   color: var(--md-sys-color-on-surface);
   font: var(--md-sys-typescale-body-medium-font);
   -webkit-font-smoothing: antialiased;
@@ -141,9 +147,9 @@ body {
 
 /* Material 3 Components */
 @layer components {
-  /* Surface Components - Enhanced Dark Mode */
+  /* Surface Components - Enhanced with Gradient Aesthetics */
   .card {
-    background-color: var(--md-sys-color-surface-container-low);
+    background: var(--md-gradient-container);
     border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: var(--md-sys-shape-corner-large);
     box-shadow: var(--md-sys-elevation-level1);
@@ -152,11 +158,31 @@ body {
   }
 
   .card-elevated {
-    background-color: var(--md-sys-color-surface-container);
-    border: 1px solid transparent;
+    background: var(--md-gradient-elevated);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: var(--md-sys-shape-corner-large);
-    box-shadow: var(--md-sys-elevation-level2);
+    box-shadow: var(--md-sys-elevation-level3);
     color: var(--md-sys-color-on-surface);
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    backdrop-filter: blur(10px);
+  }
+
+  /* Enhanced Solid Color Contrast Boxes */
+  .card-contrast-primary {
+    background: linear-gradient(135deg, var(--md-sys-color-primary-container) 0%, #1e3a8a 100%);
+    border: 1px solid var(--md-sys-color-primary);
+    border-radius: var(--md-sys-shape-corner-large);
+    box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(106, 158, 247, 0.1);
+    color: var(--md-sys-color-on-primary-container);
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .card-contrast-secondary {
+    background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #312e81 100%);
+    border: 1px solid var(--md-sys-color-secondary);
+    border-radius: var(--md-sys-shape-corner-large);
+    box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(165, 180, 252, 0.1);
+    color: var(--md-sys-color-on-secondary-container);
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 
@@ -165,9 +191,20 @@ body {
   }
 
   .card-hover:hover {
-    box-shadow: var(--md-sys-elevation-level3);
-    border-color: var(--md-sys-color-outline);
-    transform: translateY(-2px);
+    box-shadow: var(--md-sys-elevation-level4), 0 0 25px rgba(106, 158, 247, 0.15);
+    border-color: var(--md-sys-color-primary);
+    transform: translateY(-4px);
+    background: var(--md-gradient-elevated);
+  }
+
+  .card-contrast-primary:hover {
+    box-shadow: var(--md-sys-elevation-level4), 0 0 30px rgba(106, 158, 247, 0.3);
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  .card-contrast-secondary:hover {
+    box-shadow: var(--md-sys-elevation-level4), 0 0 30px rgba(165, 180, 252, 0.3);
+    transform: translateY(-4px) scale(1.02);
   }
 
   /* New Card Variants */
@@ -230,32 +267,35 @@ body {
   }
 
   .btn-primary {
-    background-color: var(--md-sys-color-primary);
+    background: var(--md-gradient-primary);
     color: var(--md-sys-color-on-primary);
-    box-shadow: var(--md-sys-elevation-level1);
+    box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(106, 158, 247, 0.2);
+    border: 1px solid var(--md-sys-color-primary);
   }
 
   .btn-primary:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 85%, white);
-    box-shadow: var(--md-sys-elevation-level3);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    box-shadow: var(--md-sys-elevation-level4), 0 0 30px rgba(106, 158, 247, 0.4);
+    transform: translateY(-2px);
   }
 
   .btn-primary:active {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 75%, white);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
     transform: translateY(0);
+    box-shadow: var(--md-sys-elevation-level2);
   }
 
   .btn-secondary {
-    background-color: var(--md-sys-color-secondary-container);
+    background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #312e81 100%);
     color: var(--md-sys-color-on-secondary-container);
-    box-shadow: var(--md-sys-elevation-level1);
+    box-shadow: var(--md-sys-elevation-level2), 0 0 15px rgba(165, 180, 252, 0.15);
+    border: 1px solid var(--md-sys-color-secondary);
   }
 
   .btn-secondary:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container) 85%, white);
-    box-shadow: var(--md-sys-elevation-level3);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    box-shadow: var(--md-sys-elevation-level4), 0 0 25px rgba(165, 180, 252, 0.3);
+    transform: translateY(-2px);
   }
 
   .btn-outline {
@@ -295,13 +335,15 @@ body {
   }
 
   .btn-filled-tonal {
-    background-color: var(--md-sys-color-secondary-container);
-    color: var(--md-sys-color-on-secondary-container);
+    background: linear-gradient(135deg, var(--md-sys-color-surface-container-high) 0%, var(--md-sys-color-surface-container) 100%);
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline);
   }
 
   .btn-filled-tonal:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container) 92%, black);
-    box-shadow: var(--md-sys-elevation-level1);
+    background: linear-gradient(135deg, var(--md-sys-color-surface-container-highest) 0%, var(--md-sys-color-surface-container-high) 100%);
+    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(100, 116, 139, 0.2);
+    transform: translateY(-1px);
   }
 
   /* Input Components - Enhanced Dark Mode */
