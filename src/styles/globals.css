@@ -140,7 +140,7 @@ body {
   .btn {
     font: var(--md-sys-typescale-label-large-font);
     padding: 10px 24px;
-    border-radius: var(--md-sys-shape-corner-full);
+    border-radius: var(--md-sys-shape-corner-large); /* Changed from corner-full to corner-large */
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
     border: none;
     cursor: pointer;
@@ -148,6 +148,20 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+  }
+
+  /* Small buttons use medium corners */
+  .btn-sm {
+    padding: 8px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    font: var(--md-sys-typescale-label-medium-font);
+  }
+
+  /* Large CTA buttons use large corners */
+  .btn-lg {
+    padding: 16px 32px;
+    border-radius: var(--md-sys-shape-corner-large);
+    font: var(--md-sys-typescale-title-medium-font);
   }
 
   .btn:focus {
