@@ -165,27 +165,35 @@ export function ClinicManagementCRUD() {
         const updateData = { ...formData };
         delete updateData.temporary_password; // Don't update password in edit mode
 
+        // Prepare update object
+        let updateObject: any = {
+          clinic_name: updateData.clinic_name,
+          clinic_code: updateData.clinic_code,
+          email: updateData.contact_email,
+          phone: updateData.contact_phone,
+          address: updateData.address,
+          region: updateData.region,
+          location_code: updateData.location_code,
+          status: updateData.status,
+          updated_at: new Date().toISOString()
+        };
+
         // If password is provided, hash it and update
         if (formData.password && formData.password.trim()) {
           const passwordHash = await bcrypt.hash(formData.password, 10);
-          updateData.password_hash = passwordHash;
+          updateObject.password_hash = passwordHash;
+          updateObject.current_password = formData.password;
 
           // Update the local clinic passwords for immediate display
           setClinicPasswords(prev => ({
             ...prev,
-            [editingClinic.id]: formData.password
+            [editingClinic.id]: formData.password!
           }));
         }
 
-        // Remove the plain password before sending to database
-        delete updateData.password;
-
         const { error } = await supabase
           .from('mocards_clinics')
-          .update({
-            ...updateData,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateObject)
           .eq('id', editingClinic.id);
 
         if (error) throw error;
