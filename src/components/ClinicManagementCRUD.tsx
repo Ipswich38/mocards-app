@@ -23,8 +23,10 @@ interface Clinic {
   id: string;
   clinic_code: string;
   clinic_name: string;
-  contact_email?: string;
-  contact_phone?: string;
+  email?: string; // Fixed field name to match database
+  phone?: string; // Fixed field name to match database
+  contact_email?: string; // Keep for backward compatibility
+  contact_phone?: string; // Keep for backward compatibility
   address?: string;
   status: string;
   region?: string;
@@ -110,7 +112,7 @@ export function ClinicManagementCRUD() {
 
       if (searchQuery.trim()) {
         query = query.or(
-          `clinic_name.ilike.%${searchQuery}%,clinic_code.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%`
+          `clinic_name.ilike.%${searchQuery}%,clinic_code.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`
         );
       }
 
@@ -176,32 +178,59 @@ export function ClinicManagementCRUD() {
 
         const passwordHash = await bcrypt.hash(formData.temporary_password, 10);
 
-        const { error } = await supabase
+        console.log('Creating clinic with data:', {
+          clinic_name: formData.clinic_name,
+          clinic_code: formData.clinic_code,
+          email: formData.contact_email, // Fixed field mapping
+          phone: formData.contact_phone, // Fixed field mapping
+          address: formData.address,
+          region: formData.region,
+          location_code: formData.location_code,
+          status: formData.status,
+          password_hash: passwordHash ? '[HASHED]' : '[MISSING]',
+          password_must_be_changed: true
+        });
+
+        const { data, error } = await supabase
           .from('mocards_clinics')
           .insert({
             clinic_name: formData.clinic_name,
             clinic_code: formData.clinic_code,
-            contact_email: formData.contact_email,
-            contact_phone: formData.contact_phone,
+            email: formData.contact_email, // Fixed field mapping
+            phone: formData.contact_phone, // Fixed field mapping
             address: formData.address,
             region: formData.region,
             location_code: formData.location_code,
             status: formData.status,
             password_hash: passwordHash,
             password_must_be_changed: true,
+            first_login: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          });
+          })
+          .select(); // Return the inserted data
 
-        if (error) throw error;
-        setSuccess('Clinic created successfully with temporary password!');
+        console.log('Clinic creation result:', { data, error });
+
+        if (error) {
+          console.error('Database error details:', error);
+          throw new Error(`Database error: ${error.message} (Code: ${error.code})`);
+        }
+
+        if (data && data.length > 0) {
+          console.log('Clinic successfully created:', data[0]);
+          setSuccess(`Clinic '${data[0].clinic_name}' created successfully with code '${data[0].clinic_code}'!`);
+        } else {
+          throw new Error('Clinic creation appeared successful but no data returned');
+        }
       }
 
       resetForm();
       loadClinics();
       loadStats();
     } catch (err: any) {
-      setError('Failed to save clinic: ' + err.message);
+      console.error('Clinic creation failed:', err);
+      setError('Failed to save clinic: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -212,8 +241,8 @@ export function ClinicManagementCRUD() {
     setFormData({
       clinic_name: clinic.clinic_name,
       clinic_code: clinic.clinic_code,
-      contact_email: clinic.contact_email || '',
-      contact_phone: clinic.contact_phone || '',
+      contact_email: (clinic as any).email || '', // Fixed field mapping
+      contact_phone: (clinic as any).phone || '', // Fixed field mapping
       address: clinic.address || '',
       region: clinic.region || '',
       location_code: clinic.location_code || '',
@@ -645,16 +674,16 @@ export function ClinicManagementCRUD() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {clinic.contact_email && (
+                        {((clinic as any).email || clinic.contact_email) && (
                           <div className="flex items-center">
                             <Mail className="h-3 w-3 mr-1" />
-                            {clinic.contact_email}
+                            {(clinic as any).email || clinic.contact_email}
                           </div>
                         )}
-                        {clinic.contact_phone && (
+                        {((clinic as any).phone || clinic.contact_phone) && (
                           <div className="flex items-center mt-1">
                             <Phone className="h-3 w-3 mr-1" />
-                            {clinic.contact_phone}
+                            {(clinic as any).phone || clinic.contact_phone}
                           </div>
                         )}
                       </div>
