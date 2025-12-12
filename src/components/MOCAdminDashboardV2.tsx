@@ -259,28 +259,31 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <Building2 className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }} />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-gray-600">Clinics</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalClinics.toLocaleString()}</p>
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-tertiary-container)', opacity: 0.9 }}>Clinics</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }}>{stats.totalClinics.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card card-hover p-6">
+              <div className="card-airbnb card-hover p-6">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-indigo-100">
-                    <Gift className="h-8 w-8 text-indigo-600" />
+                  <div className="p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--md-sys-color-tertiary-container)',
+                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                  }}>
+                    <Gift className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }} />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Perks</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalPerks.toLocaleString()}</p>
+                  <div className="ml-5">
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perks</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.totalPerks.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="card p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+            <div className="card-airbnb-elevated p-8">
+              <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Quick Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <button
                   onClick={() => setActiveTab('generate')}
@@ -358,150 +361,162 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
             </div>
 
             {/* Additional Quick Stats */}
-            <div className="card p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">System Status</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg">
+            <div className="card-airbnb-elevated p-8">
+              <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>System Status</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="status-success p-6">
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                    <span className="text-green-800 font-medium">10,000 Cards Generated</span>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    <span className="title-medium">10,000 Cards Generated</span>
                   </div>
-                  <p className="text-green-600 text-sm mt-1">MOC system ready for activation</p>
+                  <p className="body-medium mt-2 opacity-90">MOC system ready for activation</p>
                 </div>
 
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="status-info p-6">
                   <div className="flex items-center">
-                    <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
-                    <span className="text-blue-800 font-medium">Blockchain Inspired</span>
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    <span className="title-medium">Blockchain Inspired</span>
                   </div>
-                  <p className="text-blue-600 text-sm mt-1">Control code verification system</p>
+                  <p className="body-medium mt-2 opacity-90">Control code verification system</p>
                 </div>
 
-                <div className="p-4 bg-purple-50 rounded-lg">
+                <div className="card-contrast-secondary p-6">
                   <div className="flex items-center">
-                    <Users className="h-5 w-5 text-purple-600 mr-2" />
-                    <span className="text-purple-800 font-medium">Multi-Portal Access</span>
+                    <Users className="h-5 w-5 mr-2" />
+                    <span className="title-medium">Multi-Portal Access</span>
                   </div>
-                  <p className="text-purple-600 text-sm mt-1">Admin, clinic, and patient views</p>
+                  <p className="body-medium mt-2 opacity-90">Admin, clinic, and patient views</p>
                 </div>
               </div>
             </div>
 
             {/* Core MOC System Overview */}
-            <div className="card p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
-                <BarChart3 className="h-6 w-6 mr-3 text-blue-600" />
+            <div className="card-airbnb-elevated p-8">
+              <h3 className="title-large mb-8 flex items-center" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                <BarChart3 className="h-6 w-6 mr-3" style={{ color: 'var(--md-sys-color-primary)' }} />
                 MOC Card System V2.0 - Core Functions
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Card Generation & Management */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                <div className="card-contrast-primary p-6">
                   <div className="flex items-center mb-4">
-                    <CreditCard className="h-8 w-8 text-blue-600" />
+                    <CreditCard className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
                     <div className="ml-3">
-                      <h4 className="font-bold text-blue-900">Card Generation</h4>
-                      <p className="text-blue-700 text-sm">10,000 MOC Cards</p>
+                      <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>Card Generation</h4>
+                      <p className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.8 }}>10,000 MOC Cards</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-blue-800">Format:</span>
-                      <span className="font-mono text-blue-900">MOC-XX-XXXX-NNNNN</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Format:</span>
+                      <span className="body-small font-mono" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>MOC-XX-XXXX-NNNNN</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-blue-800">Sequential:</span>
-                      <span className="text-blue-900">1 to 10,000</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Sequential:</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>1 to 10,000</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-blue-800">Status:</span>
-                      <span className="text-green-600 font-medium">✓ Generated</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Status:</span>
+                      <span className="body-small font-medium" style={{ color: 'var(--md-sys-color-success)' }}>✓ Generated</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Activation System */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
+                <div className="status-success p-6">
                   <div className="flex items-center mb-4">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <CheckCircle className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-success-container)' }} />
                     <div className="ml-3">
-                      <h4 className="font-bold text-green-900">Activation System</h4>
-                      <p className="text-green-700 text-sm">Clinic Assignment</p>
+                      <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-success-container)' }}>Activation System</h4>
+                      <p className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.8 }}>Clinic Assignment</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-green-800">Regions:</span>
-                      <span className="text-green-900">01-16 (Philippines)</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Regions:</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>01-16 (Philippines)</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-green-800">Clinic Codes:</span>
-                      <span className="text-green-900">4-digit regional</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Clinic Codes:</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>4-digit regional</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-green-800">Method:</span>
-                      <span className="text-green-900">No passcode</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Method:</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>No passcode</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Perks & Benefits */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                <div className="card-contrast-secondary p-6">
                   <div className="flex items-center mb-4">
-                    <Gift className="h-8 w-8 text-purple-600" />
+                    <Gift className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-secondary-container)' }} />
                     <div className="ml-3">
-                      <h4 className="font-bold text-purple-900">Default Perks</h4>
-                      <p className="text-purple-700 text-sm">Auto-Assigned</p>
+                      <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>Default Perks</h4>
+                      <p className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.8 }}>Auto-Assigned</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-purple-800">Consultation:</span>
-                      <span className="text-purple-900">₱500</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Consultation:</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>₱500</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-purple-800">Cleaning:</span>
-                      <span className="text-purple-900">₱800</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Cleaning:</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>₱800</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-purple-800">Total Value:</span>
-                      <span className="text-purple-900 font-bold">₱5,000+</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Total Value:</span>
+                      <span className="body-small font-bold" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>₱5,000+</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* System Workflow */}
-              <div className="mt-6 bg-gray-50 rounded-lg p-6">
-                <h4 className="font-medium text-gray-900 mb-4">Complete Workflow</h4>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+              <div className="mt-8 card p-6">
+                <h4 className="title-medium mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Complete Workflow</h4>
+                <div className="flex items-center justify-between overflow-x-auto">
+                  <div className="flex items-center space-x-6 min-w-max">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-sm">1</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
+                        backgroundColor: 'var(--md-sys-color-primary-container)',
+                        borderRadius: 'var(--md-sys-shape-corner-full)'
+                      }}>
+                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>1</span>
                       </div>
-                      <span className="ml-2 text-sm font-medium">Generate 10K Cards</span>
+                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Generate 10K Cards</span>
                     </div>
-                    <span className="text-gray-400">→</span>
+                    <span className="body-large" style={{ color: 'var(--md-sys-color-outline)' }}>→</span>
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-green-600 font-bold text-sm">2</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
+                        backgroundColor: 'var(--md-sys-color-success-container)',
+                        borderRadius: 'var(--md-sys-shape-corner-full)'
+                      }}>
+                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-success-container)' }}>2</span>
                       </div>
-                      <span className="ml-2 text-sm font-medium">Clinic Registration</span>
+                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Clinic Registration</span>
                     </div>
-                    <span className="text-gray-400">→</span>
+                    <span className="body-large" style={{ color: 'var(--md-sys-color-outline)' }}>→</span>
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-purple-600 font-bold text-sm">3</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
+                        backgroundColor: 'var(--md-sys-color-secondary-container)',
+                        borderRadius: 'var(--md-sys-shape-corner-full)'
+                      }}>
+                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>3</span>
                       </div>
-                      <span className="ml-2 text-sm font-medium">Card Activation</span>
+                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Card Activation</span>
                     </div>
-                    <span className="text-gray-400">→</span>
+                    <span className="body-large" style={{ color: 'var(--md-sys-color-outline)' }}>→</span>
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                        <span className="text-orange-600 font-bold text-sm">4</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
+                        backgroundColor: 'var(--md-sys-color-warning-container)',
+                        borderRadius: 'var(--md-sys-shape-corner-full)'
+                      }}>
+                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-warning-container)' }}>4</span>
                       </div>
-                      <span className="ml-2 text-sm font-medium">Perks Redemption</span>
+                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Perks Redemption</span>
                     </div>
                   </div>
                 </div>

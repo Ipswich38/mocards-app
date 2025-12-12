@@ -94,12 +94,12 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'activated': return 'glass-success';
-      case 'assigned': return 'glass-warning';
-      case 'unassigned': return 'glass-info';
-      case 'expired': return 'glass-error';
-      case 'suspended': return 'glass-error';
-      default: return 'glass-info';
+      case 'activated': return 'status-success';
+      case 'assigned': return 'status-warning';
+      case 'unassigned': return 'status-info';
+      case 'expired': return 'status-error';
+      case 'suspended': return 'status-error';
+      default: return 'status-info';
     }
   };
 
@@ -126,30 +126,29 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
   };
 
   return (
-    <div className="min-h-screen py-8 relative overflow-hidden">
-      {/* Floating Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-32 left-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-32 right-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }}></div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
+    <div className="min-h-screen py-8 relative" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+      <div className="container-responsive section-spacing">
         {/* Header */}
         <div className="mb-12">
           {onBack && (
             <button
               onClick={onBack}
-              className="glass-button-secondary flex items-center mb-6"
+              className="btn btn-text flex items-center mb-6 state-layer"
+              style={{
+                color: 'var(--md-sys-color-primary)',
+                padding: '12px 16px',
+                borderRadius: 'var(--md-sys-shape-corner-medium)'
+              }}
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back
             </button>
           )}
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold text-slate-100 mb-4 animate-gradient bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
+            <h1 className="display-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>
               Card Lookup
             </h1>
-            <p className="text-xl text-slate-300">
+            <p className="headline-small" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
               Enter your card control number to view your benefits
             </p>
           </div>
@@ -157,18 +156,18 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
 
         {/* Error Message */}
         {error && (
-          <div className="mb-8 glass glass-error rounded-xl px-6 py-4 flex items-center animate-float">
+          <div className="mb-8 status-error p-6 flex items-center">
             <AlertCircle className="h-6 w-6 mr-3" />
-            <span className="text-lg">{error}</span>
+            <span className="body-large">{error}</span>
           </div>
         )}
 
         {/* Lookup Form */}
-        <div className="glass-card animate-float mb-12">
+        <div className="card-airbnb-elevated p-8 mb-12">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="max-w-md mx-auto">
               <div>
-                <label htmlFor="control" className="block text-lg font-medium text-slate-300 mb-3">
+                <label htmlFor="control" className="block label-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                   Control Number
                 </label>
                 <input
@@ -176,11 +175,12 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                   id="control"
                   value={controlNumber}
                   onChange={(e) => setControlNumber(e.target.value)}
-                  className="glass-input w-full text-xl"
+                  className="input-field w-full"
+                  style={{ fontSize: '20px' }}
                   placeholder="e.g., MOC-01-NCR1-00001"
                   disabled={isLoading}
                 />
-                <p className="mt-2 text-sm text-slate-400">
+                <p className="mt-2 body-small" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                   Enter your card control number with or without dashes
                 </p>
               </div>
@@ -189,11 +189,11 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
             <button
               type="submit"
               disabled={isLoading || !controlNumber}
-              className="glass-button w-full flex items-center justify-center px-6 py-4 text-lg font-medium"
+              className="cta-primary w-full disabled:opacity-50"
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current mr-3"></div>
                   Looking up...
                 </>
               ) : (
@@ -208,95 +208,110 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
 
         {/* Card Details */}
         {cardDetails && (
-          <div className="space-y-8 animate-float" style={{ animationDelay: '1s' }}>
+          <div className="space-y-8">
             {/* Card Information */}
-            <div className="glass-card">
-              <div className="glass p-6 rounded-xl border border-blue-400/50 bg-blue-500/10 mb-6">
+            <div className="card-airbnb-elevated">
+              <div className="p-6 mb-6" style={{
+                backgroundColor: 'var(--md-sys-color-primary-container)',
+                borderRadius: 'var(--md-sys-shape-corner-large)',
+                border: `1px solid var(--md-sys-color-primary)`
+              }}>
                 <div className="flex items-center">
-                  <CreditCard className="h-7 w-7 text-blue-400 mr-4" />
-                  <h2 className="text-2xl font-semibold text-slate-100">Card Information</h2>
+                  <CreditCard className="h-7 w-7 mr-4" style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
+                  <h2 className="headline-medium" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>Card Information</h2>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass p-4 rounded-lg border border-slate-500/30">
-                  <p className="text-sm font-medium text-slate-400 mb-2">Control Number</p>
-                  <p className="text-lg font-mono text-blue-300">{cardDetails.control_number}</p>
-                </div>
-
-                <div className="glass p-4 rounded-lg border border-slate-500/30">
-                  <p className="text-sm font-medium text-slate-400 mb-2">Status</p>
-                  <span className={`glass-badge ${getStatusColor(cardDetails.status)}`}>
-                    {getStatusIcon(cardDetails.status)} {getStatusLabel(cardDetails.status)}
-                  </span>
-                </div>
-
-                {cardDetails.clinic_name && (
-                  <div className="glass p-4 rounded-lg border border-slate-500/30">
-                    <p className="text-sm font-medium text-slate-400 mb-2">Assigned Clinic</p>
-                    <p className="text-slate-200 flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-cyan-400" />
-                      {cardDetails.clinic_name}
-                    </p>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="card p-4">
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Control Number</p>
+                    <p className="body-large font-mono" style={{ color: 'var(--md-sys-color-primary)' }}>{cardDetails.control_number}</p>
                   </div>
-                )}
 
-                {cardDetails.expires_at && (
-                  <div className="glass p-4 rounded-lg border border-slate-500/30">
-                    <p className="text-sm font-medium text-slate-400 mb-2">Expires</p>
-                    <p className="text-slate-200 flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-indigo-400" />
-                      {new Date(cardDetails.expires_at).toLocaleDateString()}
-                    </p>
+                  <div className="card p-4">
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Status</p>
+                    <span className={`badge ${getStatusColor(cardDetails.status).replace('status-', 'badge-')}`}>
+                      {getStatusIcon(cardDetails.status)} {getStatusLabel(cardDetails.status)}
+                    </span>
                   </div>
-                )}
+
+                  {cardDetails.clinic_name && (
+                    <div className="card p-4">
+                      <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Assigned Clinic</p>
+                      <p className="body-medium flex items-center" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                        <MapPin className="h-4 w-4 mr-2" style={{ color: 'var(--md-sys-color-tertiary)' }} />
+                        {cardDetails.clinic_name}
+                      </p>
+                    </div>
+                  )}
+
+                  {cardDetails.expires_at && (
+                    <div className="card p-4">
+                      <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Expires</p>
+                      <p className="body-medium flex items-center" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                        <Calendar className="h-4 w-4 mr-2" style={{ color: 'var(--md-sys-color-secondary)' }} />
+                        {new Date(cardDetails.expires_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Card Status Messages */}
-              {cardDetails.status === 'activated' && cardDetails.activated_at && (
-                <div className="glass glass-success rounded-xl p-4 mt-6">
-                  <p className="flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    Card activated on {new Date(cardDetails.activated_at).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
+              <div className="p-6 pt-0">
+                {cardDetails.status === 'activated' && cardDetails.activated_at && (
+                  <div className="status-success p-4">
+                    <p className="body-medium flex items-center">
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Card activated on {new Date(cardDetails.activated_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
 
-              {cardDetails.status === 'assigned' && (
-                <div className="glass glass-warning rounded-xl p-4 mt-6">
-                  <p className="flex items-center">
-                    <AlertCircle className="h-5 w-5 mr-2" />
-                    <strong>Card Not Yet Activated:</strong> Please visit {cardDetails.clinic_name || 'your assigned clinic'} to activate this card and unlock your benefits.
-                  </p>
-                </div>
-              )}
+                {cardDetails.status === 'assigned' && (
+                  <div className="status-warning p-4">
+                    <p className="body-medium flex items-center">
+                      <AlertCircle className="h-5 w-5 mr-2" />
+                      <strong>Card Not Yet Activated:</strong> Please visit {cardDetails.clinic_name || 'your assigned clinic'} to activate this card and unlock your benefits.
+                    </p>
+                  </div>
+                )}
 
-              {cardDetails.status === 'unassigned' && (
-                <div className="glass glass-info rounded-xl p-4 mt-6">
-                  <p className="flex items-center">
-                    <AlertCircle className="h-5 w-5 mr-2" />
-                    <strong>Card Not Yet Assigned:</strong> This card has not been assigned to a clinic yet. Please contact customer service.
-                  </p>
-                </div>
-              )}
+                {cardDetails.status === 'unassigned' && (
+                  <div className="status-info p-4">
+                    <p className="body-medium flex items-center">
+                      <AlertCircle className="h-5 w-5 mr-2" />
+                      <strong>Card Not Yet Assigned:</strong> This card has not been assigned to a clinic yet. Please contact customer service.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Card Benefits */}
-            <div className="glass-card">
-              <div className="glass p-6 rounded-xl border border-green-400/50 bg-green-500/10 mb-6">
-                <h2 className="text-2xl font-semibold text-slate-100">Available Benefits</h2>
+            <div className="card-airbnb-elevated">
+              <div className="p-6 mb-6" style={{
+                backgroundColor: 'var(--md-sys-color-success-container)',
+                borderRadius: 'var(--md-sys-shape-corner-large)',
+                border: `1px solid var(--md-sys-color-success)`
+              }}>
+                <h2 className="headline-medium" style={{ color: 'var(--md-sys-color-on-success-container)' }}>Available Benefits</h2>
               </div>
 
-              <div className="relative">
+              <div className="p-6 relative">
                 {/* Blur overlay for non-activated cards */}
                 {cardDetails.status !== 'activated' && (
-                  <div className="absolute inset-0 glass rounded-xl z-10 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-xl z-10 flex items-center justify-center" style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backdropFilter: 'blur(8px)'
+                  }}>
                     <div className="text-center p-6">
-                      <AlertCircle className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-slate-200 mb-2">
+                      <AlertCircle className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--md-sys-color-warning)' }} />
+                      <h3 className="title-large mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         Card Activation Required
                       </h3>
-                      <p className="text-slate-400">
+                      <p className="body-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                         Please activate your card at {cardDetails.clinic_name || 'an assigned clinic'} to view your benefits.
                       </p>
                     </div>
@@ -305,27 +320,29 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
 
                 {/* Benefits List */}
                 {cardDetails.perks && cardDetails.perks.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid-responsive">
                     {cardDetails.perks.map((perk) => (
-                      <div key={perk.id} className={`glass p-6 rounded-xl border transition-all duration-300 ${
-                        perk.claimed ? 'border-gray-500/30 opacity-60' : 'border-green-400/30 hover:border-green-400/50'
-                      }`}>
+                      <div key={perk.id} className={`card p-6 transition-all duration-300 ${
+                        perk.claimed ? 'opacity-60' : 'card-hover'
+                      }`} style={{
+                        borderColor: perk.claimed ? 'var(--md-sys-color-outline)' : 'var(--md-sys-color-success)'
+                      }}>
                         <div className="flex justify-between items-start mb-3">
-                          <h4 className="font-semibold text-slate-200">{formatPerkType(perk.perk_type)}</h4>
+                          <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{formatPerkType(perk.perk_type)}</h4>
                           {perk.claimed ? (
-                            <span className="glass-badge text-xs">Used</span>
+                            <span className="badge badge-info label-small">Used</span>
                           ) : (
-                            <span className="glass-badge glass-success text-xs">Available</span>
+                            <span className="badge badge-success label-small">Available</span>
                           )}
                         </div>
-                        <p className="text-2xl font-bold text-green-400 mb-2">
+                        <p className="headline-medium mb-2" style={{ color: 'var(--md-sys-color-success)' }}>
                           {perk.perk_type === 'discount' ? `${perk.perk_value}% OFF` :
                            perk.perk_type === 'cashback' ? formatCurrency(perk.perk_value) :
                            perk.perk_type === 'points' ? `${perk.perk_value} points` :
                            formatCurrency(perk.perk_value)}
                         </p>
                         {perk.claimed && perk.claimed_at && (
-                          <p className="text-xs text-slate-500">
+                          <p className="label-small" style={{ color: 'var(--md-sys-color-outline)' }}>
                             Used on {new Date(perk.claimed_at).toLocaleDateString()}
                           </p>
                         )}
@@ -334,9 +351,9 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <CreditCard className="h-16 w-16 text-slate-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-300 mb-2">No Benefits Available</h3>
-                    <p className="text-slate-500">
+                    <CreditCard className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--md-sys-color-outline)' }} />
+                    <h3 className="title-large mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>No Benefits Available</h3>
+                    <p className="body-medium" style={{ color: 'var(--md-sys-color-outline)' }}>
                       This card doesn't have any benefits assigned yet.
                     </p>
                   </div>
@@ -345,9 +362,9 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
             </div>
 
             {/* Information Footer */}
-            <div className="glass-card">
-              <h4 className="text-lg font-semibold text-slate-200 mb-4">Important Information</h4>
-              <ul className="text-slate-400 space-y-2">
+            <div className="card-airbnb p-6">
+              <h4 className="title-large mb-4" style={{ color: 'var(--md-sys-color-on-surface)' }}>Important Information</h4>
+              <ul className="body-medium space-y-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                 <li>• Benefits can only be used at your assigned clinic</li>
                 <li>• Present this card when making appointments</li>
                 <li>• Benefits expire on the date shown above</li>
