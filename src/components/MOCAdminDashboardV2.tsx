@@ -203,79 +203,84 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
               </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              <div className="card-contrast-primary card-hover p-8">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-lg" style={{
+            {/* Enhanced Stats Grid - Mobile Optimized */}
+            <div className="grid-responsive">
+              <div className="card-contrast-primary card-hover stats-card">
+                <div className="flex items-center w-full">
+                  <div className="p-3 rounded-lg" style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                    borderRadius: 'var(--md-sys-shape-corner-large)',
+                    flexShrink: 0
                   }}>
-                    <CreditCard className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
+                    <CreditCard className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-yellow)' }} />
                   </div>
-                  <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Total Cards</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>{stats.totalCards.toLocaleString()}</p>
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className="label-medium" style={{ color: 'var(--md-sys-color-accent-yellow)', opacity: 0.9 }}>Total Cards</p>
+                    <p className="stats-number number-display">{stats.totalCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-hover p-8">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-lg" style={{
+              <div className="card-airbnb card-hover stats-card">
+                <div className="flex items-center w-full">
+                  <div className="p-3 rounded-lg" style={{
                     backgroundColor: 'var(--md-sys-color-warning-container)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                    borderRadius: 'var(--md-sys-shape-corner-large)',
+                    flexShrink: 0
                   }}>
-                    <Clock className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-warning-container)' }} />
+                    <Clock className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-orange)' }} />
                   </div>
-                  <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Unactivated</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.unactivatedCards.toLocaleString()}</p>
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Unactivated</p>
+                    <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-orange)' }}>{stats.unactivatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-contrast-secondary card-hover p-8">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-lg" style={{
+              <div className="card-contrast-secondary card-hover stats-card">
+                <div className="flex items-center w-full">
+                  <div className="p-3 rounded-lg" style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                    borderRadius: 'var(--md-sys-shape-corner-large)',
+                    flexShrink: 0
                   }}>
-                    <CheckCircle className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-secondary-container)' }} />
+                    <CheckCircle className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-orange)' }} />
                   </div>
-                  <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Activated</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>{stats.activatedCards.toLocaleString()}</p>
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className="label-medium" style={{ color: 'var(--md-sys-color-accent-orange)', opacity: 0.9 }}>Activated</p>
+                    <p className="stats-number number-display">{stats.activatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-hover p-8">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-lg" style={{
+              <div className="card-airbnb card-hover stats-card">
+                <div className="flex items-center w-full">
+                  <div className="p-3 rounded-lg" style={{
                     backgroundColor: 'var(--md-sys-color-tertiary-container)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                    borderRadius: 'var(--md-sys-shape-corner-large)',
+                    flexShrink: 0
                   }}>
-                    <Building2 className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }} />
+                    <Building2 className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-amber)' }} />
                   </div>
-                  <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-tertiary-container)', opacity: 0.9 }}>Clinics</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }}>{stats.totalClinics.toLocaleString()}</p>
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Clinics</p>
+                    <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalClinics.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-airbnb card-hover p-6">
-                <div className="flex items-center">
-                  <div className="p-4 rounded-lg" style={{
+              <div className="card-airbnb card-hover stats-card">
+                <div className="flex items-center w-full">
+                  <div className="p-3 rounded-lg" style={{
                     backgroundColor: 'var(--md-sys-color-tertiary-container)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                    borderRadius: 'var(--md-sys-shape-corner-large)',
+                    flexShrink: 0
                   }}>
-                    <Gift className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }} />
+                    <Gift className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-amber)' }} />
                   </div>
-                  <div className="ml-5">
-                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perks</p>
-                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.totalPerks.toLocaleString()}</p>
+                  <div className="ml-4 flex-1 min-w-0">
+                    <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perks</p>
+                    <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalPerks.toLocaleString()}</p>
                   </div>
                 </div>
               </div>

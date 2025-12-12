@@ -109,9 +109,9 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
   if (showAdminLogin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
-        <div className="card-elevated w-full max-w-md p-8">
-          <div className="flex justify-between items-center mb-8">
-            <div className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Admin Access</div>
+        <div className="card-airbnb-elevated w-full max-w-sm"> {/* Reduced size by 10% */}
+          <div className="flex justify-between items-center mb-6"> {/* Reduced margin */}
+            <div className="title-large" style={{ color: 'var(--md-sys-color-accent-yellow)' }}>Admin Access</div>
             <button
               onClick={() => setShowAdminLogin(false)}
               className="state-layer p-2 rounded-full transition-all duration-200"
@@ -132,14 +132,14 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
             </div>
           )}
 
-          <form onSubmit={handleAdminLogin} className="space-y-6">
+          <form onSubmit={handleAdminLogin} className="space-y-5">
             <div>
               <label className="block label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>Username</label>
               <input
                 type="text"
                 value={adminUser}
                 onChange={(e) => setAdminUser(e.target.value)}
-                className="input-field w-full"
+                className="input-field-enhanced"
                 autoFocus
               />
             </div>
@@ -149,13 +149,13 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
                 type="password"
                 value={adminPass}
                 onChange={(e) => setAdminPass(e.target.value)}
-                className="input-field w-full"
+                className="input-field-enhanced"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-primary btn-lg w-full disabled:opacity-50"
+              className="cta-primary w-full disabled:opacity-50"
             >
               {loading ? 'Verifying...' : 'Authenticate'}
             </button>
@@ -234,18 +234,21 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
 
               {activeTab === 'patient' && (
                 <form onSubmit={handlePatientLookup} className="space-y-5" onClick={e => e.stopPropagation()}>
-                  <input
-                    type="text"
-                    placeholder="Enter your card control number"
-                    value={cardControl}
-                    onChange={(e) => setCardControl(e.target.value)}
-                    className="input-field text-lg"
-                    required
-                  />
+                  <div className="w-full">
+                    <input
+                      type="text"
+                      placeholder="e.g., MOC-01-NCR1-00001"
+                      value={cardControl}
+                      onChange={(e) => setCardControl(e.target.value)}
+                      className="input-field-enhanced"
+                      style={{ fontSize: '16px' }}
+                      required
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={!cardControl.trim()}
-                    className="btn btn-primary btn-lg w-full disabled:opacity-50"
+                    className="cta-primary w-full disabled:opacity-50"
                   >
                     Check Card Status →
                   </button>
@@ -277,24 +280,26 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
 
               {activeTab === 'clinic' && (
                 <form onSubmit={handleClinicLogin} className="space-y-5" onClick={e => e.stopPropagation()}>
-                  <input
-                    type="text"
-                    placeholder="Clinic Code"
-                    value={clinicCode}
-                    onChange={(e) => setClinicCode(e.target.value)}
-                    className="input-field text-lg"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={clinicPassword}
-                    onChange={(e) => setClinicPassword(e.target.value)}
-                    className="input-field text-lg"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Clinic Code"
+                      value={clinicCode}
+                      onChange={(e) => setClinicCode(e.target.value)}
+                      className="input-field-enhanced"
+                    />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={clinicPassword}
+                      onChange={(e) => setClinicPassword(e.target.value)}
+                      className="input-field-enhanced"
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn btn-primary btn-lg w-full disabled:opacity-50"
+                    className="cta-secondary w-full disabled:opacity-50"
                   >
                     {loading ? 'Verifying...' : 'Enter Portal →'}
                   </button>

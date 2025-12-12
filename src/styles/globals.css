@@ -4,16 +4,23 @@
 
 /* Material 3 Design System */
 :root {
-  /* Enhanced Dark Blue to Black Gradient Theme */
+  /* Enhanced Dark Blue to Black Gradient Theme with Better Contrast */
   --md-sys-color-primary: #6A9EF7;
-  --md-sys-color-on-primary: #000B1E;
+  --md-sys-color-on-primary: #FFFFFF;
   --md-sys-color-primary-container: #1E3A8A;
-  --md-sys-color-on-primary-container: #DBEAFE;
+  --md-sys-color-on-primary-container: #FFD60A; /* High contrast yellow */
+
+  /* Enhanced Contrast Colors */
+  --md-sys-color-accent-yellow: #FFD60A;
+  --md-sys-color-accent-orange: #FF9500;
+  --md-sys-color-accent-amber: #FFC107;
+  --md-sys-color-high-contrast-text: #FFFFFF;
+  --md-sys-color-warning-text: #FFB951;
 
   --md-sys-color-secondary: #A5B4FC;
-  --md-sys-color-on-secondary: #1E1B39;
+  --md-sys-color-on-secondary: #FFFFFF;
   --md-sys-color-secondary-container: #312E81;
-  --md-sys-color-on-secondary-container: #E0E7FF;
+  --md-sys-color-on-secondary-container: #FFD60A; /* High contrast yellow */
 
   --md-sys-color-tertiary: #C4B5FD;
   --md-sys-color-on-tertiary: #2D1B3D;
@@ -172,18 +179,24 @@ body {
     background: linear-gradient(135deg, var(--md-sys-color-primary-container) 0%, #1e3a8a 100%);
     border: 1px solid var(--md-sys-color-primary);
     border-radius: var(--md-sys-shape-corner-large);
-    box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(106, 158, 247, 0.1);
-    color: var(--md-sys-color-on-primary-container);
+    box-shadow: var(--md-sys-elevation-level2), 0 0 18px rgba(106, 158, 247, 0.1); /* Reduced by 10% */
+    color: var(--md-sys-color-accent-yellow); /* Enhanced contrast */
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    padding: 18px; /* Consistent padding */
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .card-contrast-secondary {
     background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #312e81 100%);
     border: 1px solid var(--md-sys-color-secondary);
     border-radius: var(--md-sys-shape-corner-large);
-    box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(165, 180, 252, 0.1);
-    color: var(--md-sys-color-on-secondary-container);
+    box-shadow: var(--md-sys-elevation-level2), 0 0 18px rgba(165, 180, 252, 0.1); /* Reduced by 10% */
+    color: var(--md-sys-color-accent-orange); /* Enhanced contrast */
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    padding: 18px; /* Consistent padding */
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .card-hover {
@@ -484,16 +497,18 @@ body {
     background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 16%, transparent);
   }
 
-  /* Airbnb-Style Consistent Card System */
+  /* Enhanced Airbnb-Style Card System - Mobile Optimized */
   .card-airbnb {
     background: var(--md-sys-color-surface-container);
     border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: var(--md-sys-shape-corner-large);
-    box-shadow: 0 2px 16px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 14px -4px rgba(0, 0, 0, 0.4); /* Reduced by 10% */
     color: var(--md-sys-color-on-surface);
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     overflow: hidden;
     position: relative;
+    padding: 16px; /* Consistent padding to prevent overflow */
+    box-sizing: border-box;
   }
 
   .card-airbnb:hover {
@@ -550,47 +565,51 @@ body {
     box-shadow: var(--md-sys-elevation-level2), 0 0 15px rgba(106, 158, 247, 0.15);
   }
 
-  /* Consistent CTA Button System */
+  /* Enhanced CTA Button System with Better Contrast */
   .cta-primary {
-    background: var(--md-gradient-primary);
-    color: var(--md-sys-color-on-primary-container) !important;
-    border: 1px solid var(--md-sys-color-primary);
-    border-radius: var(--md-sys-shape-corner-extra-large);
-    padding: 16px 32px;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    color: var(--md-sys-color-accent-yellow) !important;
+    border: 2px solid var(--md-sys-color-accent-yellow);
+    border-radius: var(--md-sys-shape-corner-large);
+    padding: 14px 28px; /* Reduced by 10% */
     font: var(--md-sys-typescale-title-medium-font);
     font-weight: 600 !important;
-    box-shadow: var(--md-sys-elevation-level3), 0 0 20px rgba(106, 158, 247, 0.3);
+    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(255, 214, 10, 0.3);
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
     text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px; /* Reduced by 10% */
+    min-height: 44px; /* Touch-friendly minimum */
   }
 
   .cta-primary:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--md-sys-elevation-level5), 0 0 30px rgba(106, 158, 247, 0.5);
+    box-shadow: var(--md-sys-elevation-level5), 0 0 25px rgba(255, 214, 10, 0.6);
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    border-color: var(--md-sys-color-accent-orange);
+    color: var(--md-sys-color-accent-orange) !important;
   }
 
   .cta-secondary {
     background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #4338ca 100%);
-    color: var(--md-sys-color-on-secondary-container) !important;
-    border: 1px solid var(--md-sys-color-secondary);
-    border-radius: var(--md-sys-shape-corner-extra-large);
-    padding: 16px 32px;
+    color: var(--md-sys-color-accent-orange) !important;
+    border: 2px solid var(--md-sys-color-accent-orange);
+    border-radius: var(--md-sys-shape-corner-large);
+    padding: 14px 28px; /* Reduced by 10% */
     font: var(--md-sys-typescale-title-medium-font);
     font-weight: 600 !important;
-    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(165, 180, 252, 0.2);
+    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(255, 149, 0, 0.3);
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
     text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px; /* Reduced by 10% */
+    min-height: 44px;
   }
 
   .cta-secondary:hover {
@@ -598,36 +617,94 @@ body {
     box-shadow: var(--md-sys-elevation-level5), 0 0 25px rgba(165, 180, 252, 0.4);
   }
 
-  /* Proper Container System */
+  /* Enhanced Responsive Container System - 10% Smaller */
   .container-responsive {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1080px; /* Reduced by 10% from 1200px */
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 20px; /* Reduced by ~15% for tighter margins */
   }
 
   .section-spacing {
-    padding: 40px 0;
+    padding: 36px 0; /* Reduced by 10% */
   }
 
   .grid-responsive {
     display: grid;
-    gap: 24px;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px; /* Reduced by ~15% */
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); /* Reduced by 10% */
   }
 
+  /* Enhanced Mobile Optimizations */
   @media (max-width: 768px) {
     .container-responsive {
-      padding: 0 16px;
+      padding: 0 14px; /* Reduced by 10% */
     }
 
     .section-spacing {
-      padding: 24px 0;
+      padding: 20px 0; /* Reduced by ~15% */
     }
 
     .grid-responsive {
-      gap: 16px;
+      gap: 14px; /* Reduced by 10% */
       grid-template-columns: 1fr;
     }
+
+    .cta-primary, .cta-secondary {
+      padding: 12px 24px; /* Further reduced for mobile */
+      font-size: 14px;
+    }
+  }
+
+  /* Enhanced Input Field System */
+  .input-field-enhanced {
+    background-color: var(--md-sys-color-surface-container-highest);
+    border: 2px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium);
+    color: var(--md-sys-color-on-surface);
+    font: var(--md-sys-typescale-body-large-font);
+    padding: 14px 18px; /* Reduced by 10% */
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    min-width: 280px; /* Ensure minimum usable width */
+    box-sizing: border-box;
+  }
+
+  .input-field-enhanced:focus {
+    outline: none;
+    border-color: var(--md-sys-color-accent-yellow);
+    background-color: var(--md-sys-color-surface-container-high);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--md-sys-color-accent-yellow);
+  }
+
+  .input-field-enhanced::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.7;
+  }
+
+  /* Number Overflow Prevention */
+  .number-display {
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+  }
+
+  /* Stats Card Enhancements */
+  .stats-card {
+    min-height: 120px; /* Consistent height */
+    display: flex;
+    align-items: center;
+    padding: 16px 18px; /* Reduced padding */
+    box-sizing: border-box;
+  }
+
+  .stats-number {
+    font-size: clamp(18px, 4vw, 32px); /* Responsive font size */
+    font-weight: bold;
+    color: var(--md-sys-color-accent-yellow);
   }
 }
