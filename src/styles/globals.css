@@ -4,63 +4,63 @@
 
 /* Material 3 Design System */
 :root {
-  /* Material 3 Color Tokens */
-  --md-sys-color-primary: #0056D3;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #D3E3FF;
-  --md-sys-color-on-primary-container: #001C3B;
+  /* Material 3 Dark Theme Color Tokens - High Contrast */
+  --md-sys-color-primary: #8AB4F8;
+  --md-sys-color-on-primary: #001D35;
+  --md-sys-color-primary-container: #004A77;
+  --md-sys-color-on-primary-container: #D3E3FF;
 
-  --md-sys-color-secondary: #565E71;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #DAE2F9;
-  --md-sys-color-on-secondary-container: #131C2B;
+  --md-sys-color-secondary: #BDC7DC;
+  --md-sys-color-on-secondary: #283141;
+  --md-sys-color-secondary-container: #3E4759;
+  --md-sys-color-on-secondary-container: #D9E2F9;
 
-  --md-sys-color-tertiary: #705575;
-  --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #FAD8FD;
-  --md-sys-color-on-tertiary-container: #28132E;
+  --md-sys-color-tertiary: #D5BAE4;
+  --md-sys-color-on-tertiary: #3B2947;
+  --md-sys-color-tertiary-container: #523F5E;
+  --md-sys-color-on-tertiary-container: #F2D5FF;
 
-  /* Surface Colors */
-  --md-sys-color-surface: #FCFCFF;
-  --md-sys-color-surface-dim: #DDD8E1;
-  --md-sys-color-surface-bright: #FCFCFF;
-  --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low: #F6F2FF;
-  --md-sys-color-surface-container: #F0ECFF;
-  --md-sys-color-surface-container-high: #EAE7F0;
-  --md-sys-color-surface-container-highest: #E4E1EC;
-  --md-sys-color-on-surface: #1B1B1F;
-  --md-sys-color-on-surface-variant: #44474E;
+  /* Dark Surface Colors */
+  --md-sys-color-surface: #0F0F13;
+  --md-sys-color-surface-dim: #0F0F13;
+  --md-sys-color-surface-bright: #35353A;
+  --md-sys-color-surface-container-lowest: #0A0A0D;
+  --md-sys-color-surface-container-low: #171719;
+  --md-sys-color-surface-container: #1B1B1F;
+  --md-sys-color-surface-container-high: #262629;
+  --md-sys-color-surface-container-highest: #313134;
+  --md-sys-color-on-surface: #E4E1E6;
+  --md-sys-color-on-surface-variant: #C7C5D0;
 
-  /* Outline Colors */
-  --md-sys-color-outline: #74777F;
-  --md-sys-color-outline-variant: #C4C6D0;
+  /* Dark Outline Colors */
+  --md-sys-color-outline: #918F99;
+  --md-sys-color-outline-variant: #44474E;
 
-  /* Error Colors */
-  --md-sys-color-error: #BA1A1A;
-  --md-sys-color-on-error: #FFFFFF;
-  --md-sys-color-error-container: #FFDAD6;
-  --md-sys-color-on-error-container: #410002;
+  /* Dark Error Colors */
+  --md-sys-color-error: #FFB4AB;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000A;
+  --md-sys-color-on-error-container: #FFDAD6;
 
-  /* Success Colors (Custom) */
-  --md-sys-color-success: #146C2E;
-  --md-sys-color-on-success: #FFFFFF;
-  --md-sys-color-success-container: #A7F432;
-  --md-sys-color-on-success-container: #002204;
+  /* Dark Success Colors (Custom) */
+  --md-sys-color-success: #4CAF50;
+  --md-sys-color-on-success: #003909;
+  --md-sys-color-success-container: #005D13;
+  --md-sys-color-on-success-container: #6FDB75;
 
-  /* Warning Colors (Custom) */
-  --md-sys-color-warning: #825500;
-  --md-sys-color-on-warning: #FFFFFF;
-  --md-sys-color-warning-container: #FFDDB3;
-  --md-sys-color-on-warning-container: #291800;
+  /* Dark Warning Colors (Custom) */
+  --md-sys-color-warning: #FFB951;
+  --md-sys-color-on-warning: #452B00;
+  --md-sys-color-warning-container: #633F00;
+  --md-sys-color-on-warning-container: #FFDDB3;
 
-  /* Elevation Shadows */
+  /* Dark Mode Elevation Shadows - Enhanced for visibility */
   --md-sys-elevation-level0: 0px 0px 0px 0px rgba(0, 0, 0, 0);
-  --md-sys-elevation-level1: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-level2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-level3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
-  --md-sys-elevation-level4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
-  --md-sys-elevation-level5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-level1: 0px 1px 3px 1px rgba(0, 0, 0, 0.4), 0px 1px 2px 0px rgba(0, 0, 0, 0.7);
+  --md-sys-elevation-level2: 0px 2px 6px 2px rgba(0, 0, 0, 0.4), 0px 1px 2px 0px rgba(0, 0, 0, 0.7);
+  --md-sys-elevation-level3: 0px 4px 8px 3px rgba(0, 0, 0, 0.4), 0px 1px 3px 0px rgba(0, 0, 0, 0.7);
+  --md-sys-elevation-level4: 0px 6px 10px 4px rgba(0, 0, 0, 0.4), 0px 2px 3px 0px rgba(0, 0, 0, 0.7);
+  --md-sys-elevation-level5: 0px 8px 12px 6px rgba(0, 0, 0, 0.4), 0px 4px 4px 0px rgba(0, 0, 0, 0.7);
 
   /* Typography Scale */
   --md-sys-typescale-display-large-font: 400 57px/64px 'Roboto', sans-serif;
@@ -79,13 +79,13 @@
   --md-sys-typescale-body-medium-font: 400 14px/20px 'Roboto', sans-serif;
   --md-sys-typescale-body-small-font: 400 12px/16px 'Roboto', sans-serif;
 
-  /* Shape Tokens */
+  /* Enhanced Shape Tokens - More Rounded for Aesthetic Appeal */
   --md-sys-shape-corner-none: 0px;
-  --md-sys-shape-corner-extra-small: 4px;
-  --md-sys-shape-corner-small: 8px;
-  --md-sys-shape-corner-medium: 12px;
-  --md-sys-shape-corner-large: 16px;
-  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-extra-small: 6px;
+  --md-sys-shape-corner-small: 12px;
+  --md-sys-shape-corner-medium: 16px;
+  --md-sys-shape-corner-large: 20px;
+  --md-sys-shape-corner-extra-large: 32px;
   --md-sys-shape-corner-full: 50%;
 
   /* Legacy Support */
@@ -99,32 +99,65 @@
   --border-medium: var(--md-sys-color-outline);
 }
 
-/* Base Styles */
+/* Base Styles - Dark Mode */
 body {
-  background-color: var(--md-sys-color-surface-container-low);
+  background-color: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   font: var(--md-sys-typescale-body-medium-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Scrollbar Styling for Dark Mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--md-sys-color-surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-outline);
+}
+
+/* Selection Colors */
+::selection {
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+::-moz-selection {
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
 }
 
 /* Material 3 Components */
 @layer components {
-  /* Surface Components */
+  /* Surface Components - Enhanced Dark Mode */
   .card {
     background-color: var(--md-sys-color-surface-container-low);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--md-sys-shape-corner-large);
     box-shadow: var(--md-sys-elevation-level1);
     color: var(--md-sys-color-on-surface);
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .card-elevated {
     background-color: var(--md-sys-color-surface-container);
-    border: none;
-    border-radius: var(--md-sys-shape-corner-medium);
+    border: 1px solid transparent;
+    border-radius: var(--md-sys-shape-corner-large);
     box-shadow: var(--md-sys-elevation-level2);
     color: var(--md-sys-color-on-surface);
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .card-hover {
@@ -134,13 +167,32 @@ body {
   .card-hover:hover {
     box-shadow: var(--md-sys-elevation-level3);
     border-color: var(--md-sys-color-outline);
+    transform: translateY(-2px);
   }
 
-  /* Button Components */
+  /* New Card Variants */
+  .card-interactive {
+    background-color: var(--md-sys-color-surface-container-high);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-large);
+    box-shadow: var(--md-sys-elevation-level1);
+    color: var(--md-sys-color-on-surface);
+    cursor: pointer;
+    transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .card-interactive:hover {
+    background-color: var(--md-sys-color-surface-container-highest);
+    box-shadow: var(--md-sys-elevation-level4);
+    border-color: var(--md-sys-color-primary);
+    transform: translateY(-4px);
+  }
+
+  /* Button Components - Enhanced Dark Mode */
   .btn {
     font: var(--md-sys-typescale-label-large-font);
-    padding: 10px 24px;
-    border-radius: var(--md-sys-shape-corner-large); /* Changed from corner-full to corner-large */
+    padding: 12px 28px;
+    border-radius: var(--md-sys-shape-corner-large);
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
     border: none;
     cursor: pointer;
@@ -148,20 +200,28 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    position: relative;
+    overflow: hidden;
   }
 
   /* Small buttons use medium corners */
   .btn-sm {
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: var(--md-sys-shape-corner-medium);
     font: var(--md-sys-typescale-label-medium-font);
   }
 
-  /* Large CTA buttons use large corners */
+  /* Large CTA buttons use extra-large corners */
   .btn-lg {
-    padding: 16px 32px;
-    border-radius: var(--md-sys-shape-corner-large);
+    padding: 18px 36px;
+    border-radius: var(--md-sys-shape-corner-extra-large);
     font: var(--md-sys-typescale-title-medium-font);
+    box-shadow: var(--md-sys-elevation-level2);
+  }
+
+  .btn-lg:hover {
+    box-shadow: var(--md-sys-elevation-level4);
+    transform: translateY(-2px);
   }
 
   .btn:focus {
@@ -172,36 +232,44 @@ body {
   .btn-primary {
     background-color: var(--md-sys-color-primary);
     color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-sys-elevation-level1);
   }
 
   .btn-primary:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, black);
-    box-shadow: var(--md-sys-elevation-level1);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 85%, white);
+    box-shadow: var(--md-sys-elevation-level3);
+    transform: translateY(-1px);
   }
 
   .btn-primary:active {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, black);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 75%, white);
+    transform: translateY(0);
   }
 
   .btn-secondary {
-    background-color: var(--md-sys-color-secondary);
-    color: var(--md-sys-color-on-secondary);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    box-shadow: var(--md-sys-elevation-level1);
   }
 
   .btn-secondary:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-secondary) 92%, black);
-    box-shadow: var(--md-sys-elevation-level1);
+    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container) 85%, white);
+    box-shadow: var(--md-sys-elevation-level3);
+    transform: translateY(-1px);
   }
 
   .btn-outline {
     background-color: transparent;
-    border: 1px solid var(--md-sys-color-outline);
+    border: 2px solid var(--md-sys-color-outline);
     color: var(--md-sys-color-primary);
   }
 
   .btn-outline:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+    background-color: var(--md-sys-color-primary-container);
     border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary-container);
+    box-shadow: var(--md-sys-elevation-level2);
+    transform: translateY(-1px);
   }
 
   .btn-text {
@@ -236,26 +304,46 @@ body {
     box-shadow: var(--md-sys-elevation-level1);
   }
 
-  /* Input Components */
+  /* Input Components - Enhanced Dark Mode */
   .input-field {
     background-color: var(--md-sys-color-surface-container-highest);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: var(--md-sys-shape-corner-small);
+    border: 2px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium);
     color: var(--md-sys-color-on-surface);
     font: var(--md-sys-typescale-body-large-font);
-    padding: 16px;
+    padding: 16px 20px;
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 
   .input-field:focus {
     outline: none;
     border-color: var(--md-sys-color-primary);
-    border-width: 2px;
-    padding: 15px; /* Adjust padding to compensate for thicker border */
+    background-color: var(--md-sys-color-surface-container-high);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--md-sys-color-primary);
+  }
+
+  .input-field:hover:not(:focus) {
+    border-color: var(--md-sys-color-outline);
   }
 
   .input-field::placeholder {
     color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.7;
+  }
+
+  /* Search Input Specific Styling */
+  .input-search {
+    background-color: var(--md-sys-color-surface-container-high);
+    border: 2px solid transparent;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    padding: 16px 24px;
+    box-shadow: var(--md-sys-elevation-level2);
+  }
+
+  .input-search:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: var(--md-sys-elevation-level3), 0 0 0 1px var(--md-sys-color-primary);
   }
 
   /* Chip Components */

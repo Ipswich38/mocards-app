@@ -508,28 +508,43 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 py-4 sm:py-6 px-4 sm:px-6">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+      <div className="py-6 px-4 sm:px-6" style={{
+        backgroundColor: 'var(--md-sys-color-surface-container)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        boxShadow: 'var(--md-sys-elevation-level1)'
+      }}>
         <div className="max-w-6xl mx-auto">
           {/* Header with title and logout */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 sm:gap-6">
               <button
                 onClick={onBack}
-                className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors uppercase tracking-wider hover:bg-gray-50 px-2 sm:px-4 py-1 sm:py-2 rounded-lg"
+                className="btn-text state-layer uppercase tracking-wider"
+                style={{
+                  color: 'var(--md-sys-color-on-surface-variant)',
+                  padding: '8px 16px',
+                  borderRadius: 'var(--md-sys-shape-corner-large)'
+                }}
               >
                 ← Back
               </button>
               <div>
-                <div className="text-lg sm:text-2xl text-gray-900 tracking-tight">Clinic Portal</div>
-                <div className="text-sm text-gray-500">Welcome, {clinicCredentials.clinicName}</div>
+                <div className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Clinic Portal</div>
+                <div className="body-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Welcome, {clinicCredentials.clinicName}</div>
               </div>
             </div>
 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="text-xs sm:text-sm text-gray-500 hover:text-red-600 transition-colors uppercase tracking-wider hover:bg-red-50 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border border-transparent hover:border-red-200"
+              className="btn-text state-layer uppercase tracking-wider"
+              style={{
+                color: 'var(--md-sys-color-error)',
+                padding: '8px 12px',
+                borderRadius: 'var(--md-sys-shape-corner-large)',
+                border: '1px solid transparent'
+              }}
               title="Logout"
             >
               <span className="hidden sm:inline">Logout</span>
@@ -543,66 +558,81 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
           <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'overview'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className="px-4 py-3 label-large transition-all duration-200 whitespace-nowrap state-layer"
+                style={{
+                  backgroundColor: activeTab === 'overview' ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: activeTab === 'overview' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  boxShadow: activeTab === 'overview' ? 'var(--md-sys-elevation-level2)' : 'none'
+                }}
               >
                 Overview
               </button>
               <button
                 onClick={() => setActiveTab('cards')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'cards'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className="px-4 py-3 label-large transition-all duration-200 whitespace-nowrap state-layer"
+                style={{
+                  backgroundColor: activeTab === 'cards' ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: activeTab === 'cards' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  boxShadow: activeTab === 'cards' ? 'var(--md-sys-elevation-level2)' : 'none'
+                }}
               >
                 <span className="hidden sm:inline">Card </span>Management
               </button>
               <button
                 onClick={() => setActiveTab('redemptions')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'redemptions'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className="px-4 py-3 label-large transition-all duration-200 whitespace-nowrap state-layer"
+                style={{
+                  backgroundColor: activeTab === 'redemptions' ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: activeTab === 'redemptions' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  boxShadow: activeTab === 'redemptions' ? 'var(--md-sys-elevation-level2)' : 'none'
+                }}
               >
                 Redemptions
               </button>
               <button
                 onClick={() => setActiveTab('appointments')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap ${
-                  activeTab === 'appointments'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className="px-4 py-3 label-large transition-all duration-200 relative whitespace-nowrap state-layer"
+                style={{
+                  backgroundColor: activeTab === 'appointments' ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: activeTab === 'appointments' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  boxShadow: activeTab === 'appointments' ? 'var(--md-sys-elevation-level2)' : 'none'
+                }}
               >
                 Appointments
                 {stats.pendingAppointments > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{
+                    backgroundColor: 'var(--md-sys-color-error)',
+                    color: 'var(--md-sys-color-on-error)'
+                  }}>
                     {stats.pendingAppointments}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setActiveTab('perks')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'perks'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className="px-4 py-3 label-large transition-all duration-200 whitespace-nowrap state-layer"
+                style={{
+                  backgroundColor: activeTab === 'perks' ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: activeTab === 'perks' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  boxShadow: activeTab === 'perks' ? 'var(--md-sys-elevation-level2)' : 'none'
+                }}
               >
                 <span className="hidden sm:inline">Perk</span> Settings
               </button>
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'settings'
-                    ? 'bg-teal-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className="px-4 py-3 label-large transition-all duration-200 whitespace-nowrap state-layer"
+                style={{
+                  backgroundColor: activeTab === 'settings' ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: activeTab === 'settings' ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  boxShadow: activeTab === 'settings' ? 'var(--md-sys-elevation-level2)' : 'none'
+                }}
               >
                 Account
               </button>
@@ -612,7 +642,12 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
 
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-6 border border-red-100">
+          <div className="p-4 text-sm mb-6" style={{
+            backgroundColor: 'var(--md-sys-color-error-container)',
+            color: 'var(--md-sys-color-on-error-container)',
+            border: '1px solid var(--md-sys-color-error)',
+            borderRadius: 'var(--md-sys-shape-corner-large)'
+          }}>
             {error}
           </div>
         )}
@@ -620,10 +655,10 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Active Cards</div>
-                <div className="text-2xl sm:text-3xl text-gray-900 mb-1">{stats.activeCards}</div>
-                <div className="text-xs sm:text-sm text-gray-500">Total active patient cards</div>
+              <div className="card-elevated p-6">
+                <div className="label-small uppercase tracking-wider mb-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Active Cards</div>
+                <div className="headline-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.activeCards}</div>
+                <div className="body-small" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Total active patient cards</div>
               </div>
               <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
                 <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Redemptions Today</div>

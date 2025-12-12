@@ -182,22 +182,22 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         return (
           <div className="space-y-6">
             {/* Header */}
-            <div className="card p-6">
+            <div className="card-elevated p-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">MOC Card System V2.0</h2>
-                  <p className="text-gray-600">
+                  <h2 className="headline-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Card System V2.0</h2>
+                  <p className="body-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
                     Complete dental loyalty card management with new control number format
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Last updated</p>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Last updated</p>
+                  <p className="body-medium font-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                     {lastUpdated.toLocaleTimeString()}
                   </p>
-                  <div className="flex items-center mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                    <span className="text-xs text-green-600">Live sync enabled</span>
+                  <div className="flex items-center mt-2">
+                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: 'var(--md-sys-color-success)' }}></div>
+                    <span className="label-small" style={{ color: 'var(--md-sys-color-success)' }}>Live sync enabled</span>
                   </div>
                 </div>
               </div>
@@ -205,48 +205,60 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              <div className="card card-hover p-6">
+              <div className="card-hover p-8">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-blue-100">
-                    <CreditCard className="h-8 w-8 text-blue-600" />
+                  <div className="p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--md-sys-color-primary-container)',
+                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                  }}>
+                    <CreditCard className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Cards</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalCards.toLocaleString()}</p>
+                  <div className="ml-5">
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Total Cards</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.totalCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card card-hover p-6">
+              <div className="card-hover p-8">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-yellow-100">
-                    <Clock className="h-8 w-8 text-yellow-600" />
+                  <div className="p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--md-sys-color-warning-container)',
+                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                  }}>
+                    <Clock className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-warning-container)' }} />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Unactivated</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.unactivatedCards.toLocaleString()}</p>
+                  <div className="ml-5">
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Unactivated</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.unactivatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card card-hover p-6">
+              <div className="card-hover p-8">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-green-100">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div className="p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--md-sys-color-success-container)',
+                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                  }}>
+                    <CheckCircle className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-success-container)' }} />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Activated</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.activatedCards.toLocaleString()}</p>
+                  <div className="ml-5">
+                    <p className="label-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Activated</p>
+                    <p className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>{stats.activatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card card-hover p-6">
+              <div className="card-hover p-8">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-purple-100">
-                    <Building2 className="h-8 w-8 text-purple-600" />
+                  <div className="p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--md-sys-color-tertiary-container)',
+                    borderRadius: 'var(--md-sys-shape-corner-large)'
+                  }}>
+                    <Building2 className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-tertiary-container)' }} />
                   </div>
-                  <div className="ml-4">
+                  <div className="ml-5">
                     <p className="text-sm font-medium text-gray-600">Clinics</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.totalClinics.toLocaleString()}</p>
                   </div>
@@ -527,12 +539,12 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
       case 'profile':
         return (
-          <div className="card p-6">
-            <h3 className="text-xl font-medium text-gray-900 mb-4">Admin Profile</h3>
-            <div className="text-center py-12">
-              <UserCheck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Admin profile management and system settings coming soon...</p>
-              <p className="text-gray-500 text-sm mt-2">Profile settings, preferences, and account management</p>
+          <div className="card-elevated p-8">
+            <h3 className="headline-small mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Admin Profile</h3>
+            <div className="text-center py-16">
+              <UserCheck className="h-20 w-20 mx-auto mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
+              <p className="body-large mb-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Admin profile management and system settings coming soon...</p>
+              <p className="body-medium" style={{ color: 'var(--md-sys-color-outline)' }}>Profile settings, preferences, and account management</p>
             </div>
           </div>
         );
@@ -543,18 +555,31 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 p-4 flex items-center justify-between" style={{
+        backgroundColor: 'var(--md-sys-color-surface-container)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        boxShadow: 'var(--md-sys-elevation-level2)'
+      }}>
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold mr-3" style={{
+            backgroundColor: 'var(--md-sys-color-primary)',
+            color: 'var(--md-sys-color-on-primary)',
+            borderRadius: 'var(--md-sys-shape-corner-large)'
+          }}>
             M
           </div>
-          <div className="text-xl font-bold text-gray-900">MOC Admin</div>
+          <div className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Admin</div>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="btn-text state-layer rounded-lg focus:outline-none"
+          style={{
+            padding: '8px',
+            color: 'var(--md-sys-color-on-surface)',
+            borderRadius: 'var(--md-sys-shape-corner-medium)'
+          }}
         >
           {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -570,31 +595,50 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
       {/* Sidebar */}
       <div className={`
-        w-64 bg-white shadow-sm border-r border-gray-200 flex flex-col
-        lg:relative lg:translate-x-0 lg:shadow-sm
+        w-64 flex flex-col
+        lg:relative lg:translate-x-0
         fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
+      `} style={{
+        backgroundColor: 'var(--md-sys-color-surface-container-low)',
+        borderRight: '1px solid var(--md-sys-color-outline-variant)',
+        boxShadow: 'var(--md-sys-elevation-level2)'
+      }}>
         <div className="p-6 lg:block hidden">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold mr-3" style={{
+              backgroundColor: 'var(--md-sys-color-primary)',
+              color: 'var(--md-sys-color-on-primary)',
+              borderRadius: 'var(--md-sys-shape-corner-large)'
+            }}>
               M
             </div>
-            <div className="text-xl font-bold text-gray-900">MOC Admin</div>
+            <div className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Admin</div>
           </div>
         </div>
 
         {/* Mobile close button inside sidebar */}
-        <div className="lg:hidden p-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="lg:hidden p-4 flex items-center justify-between" style={{
+          borderBottom: '1px solid var(--md-sys-color-outline-variant)'
+        }}>
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold mr-3" style={{
+              backgroundColor: 'var(--md-sys-color-primary)',
+              color: 'var(--md-sys-color-on-primary)',
+              borderRadius: 'var(--md-sys-shape-corner-large)'
+            }}>
               M
             </div>
-            <div className="text-xl font-bold text-gray-900">MOC Admin</div>
+            <div className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Admin</div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="btn-text state-layer"
+            style={{
+              padding: '8px',
+              borderRadius: 'var(--md-sys-shape-corner-medium)',
+              color: 'var(--md-sys-color-on-surface)'
+            }}
           >
             <X className="h-5 w-5" />
           </button>
@@ -606,45 +650,55 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`w-full text-left px-6 py-3 flex items-center transition-colors ${
-                  activeTab === item.id
-                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                className="w-full text-left px-6 py-4 flex items-center transition-all duration-200 state-layer"
+                style={{
+                  backgroundColor: activeTab === item.id ? 'var(--md-sys-color-secondary-container)' : 'transparent',
+                  color: activeTab === item.id ? 'var(--md-sys-color-on-secondary-container)' : 'var(--md-sys-color-on-surface-variant)',
+                  borderRight: activeTab === item.id ? '3px solid var(--md-sys-color-secondary)' : 'none',
+                  borderRadius: activeTab === item.id ? '0 var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0' : '0'
+                }}
               >
-                <item.icon className="h-5 w-5 mr-3" />
+                <item.icon className="h-6 w-6 mr-4" />
                 <div>
-                  <div className="font-medium">{item.label}</div>
-                  <div className="text-xs opacity-75">{item.description}</div>
+                  <div className="label-large">{item.label}</div>
+                  <div className="label-small opacity-80">{item.description}</div>
                 </div>
               </button>
             ))}
           </div>
 
           {/* Bottom Admin Section */}
-          <div className="mt-6 border-t border-gray-200 pt-4">
+          <div className="mt-6 pt-4" style={{
+            borderTop: '1px solid var(--md-sys-color-outline-variant)'
+          }}>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`w-full text-left px-6 py-3 flex items-center transition-colors ${
-                activeTab === 'profile'
-                  ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
+              className="w-full text-left px-6 py-4 flex items-center transition-all duration-200 state-layer"
+              style={{
+                backgroundColor: activeTab === 'profile' ? 'var(--md-sys-color-secondary-container)' : 'transparent',
+                color: activeTab === 'profile' ? 'var(--md-sys-color-on-secondary-container)' : 'var(--md-sys-color-on-surface-variant)',
+                borderRight: activeTab === 'profile' ? '3px solid var(--md-sys-color-secondary)' : 'none',
+                borderRadius: activeTab === 'profile' ? '0 var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0' : '0'
+              }}
             >
-              <UserCheck className="h-5 w-5 mr-3" />
+              <UserCheck className="h-6 w-6 mr-4" />
               <div>
-                <div className="font-medium">Admin Profile</div>
-                <div className="text-xs opacity-75">Account settings</div>
+                <div className="label-large">Admin Profile</div>
+                <div className="label-small opacity-80">Account settings</div>
               </div>
             </button>
             <button
               onClick={onBack}
-              className="w-full text-left px-6 py-3 flex items-center transition-colors text-red-600 hover:bg-red-50 hover:text-red-800"
+              className="w-full text-left px-6 py-4 flex items-center transition-all duration-200 state-layer"
+              style={{
+                color: 'var(--md-sys-color-error)',
+                backgroundColor: 'transparent'
+              }}
             >
-              <LogOut className="h-5 w-5 mr-3" />
+              <LogOut className="h-6 w-6 mr-4" />
               <div>
-                <div className="font-medium">Logout</div>
-                <div className="text-xs opacity-75">Exit admin panel</div>
+                <div className="label-large">Logout</div>
+                <div className="label-small opacity-80">Exit admin panel</div>
               </div>
             </button>
           </div>
@@ -652,8 +706,8 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6">
+      <div className="flex-1 overflow-auto" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
+        <div className="p-8">
           {renderContent()}
         </div>
       </div>
