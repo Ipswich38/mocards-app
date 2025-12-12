@@ -6,6 +6,8 @@ import { DefaultPerksManagement } from './DefaultPerksManagement';
 import { MOCCardManagement } from './MOCCardManagement';
 import { ClinicManagementCRUD } from './ClinicManagementCRUD';
 import { AppointmentCalendar } from './AppointmentCalendar';
+import { CardExportSystem } from './CardExportSystem';
+import { DataIntegrityChecker } from './DataIntegrityChecker';
 import {
   CreditCard,
   Users,
@@ -17,7 +19,11 @@ import {
   BarChart3,
   Calendar,
   UserCheck,
-  LogOut
+  LogOut,
+  Menu,
+  X,
+  Download,
+  Shield
 } from 'lucide-react';
 
 interface MOCAdminDashboardV2Props {
@@ -26,9 +32,10 @@ interface MOCAdminDashboardV2Props {
 }
 
 export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'perks' | 'activate' | 'appointments' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'perks' | 'activate' | 'appointments' | 'export' | 'integrity' | 'profile'>('dashboard');
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalCards: 0,
     unactivatedCards: 0,
@@ -146,6 +153,18 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       label: 'Appointments',
       icon: Calendar,
       description: 'Manage appointments'
+    },
+    {
+      id: 'export',
+      label: 'Data Export',
+      icon: Download,
+      description: 'Export card data'
+    },
+    {
+      id: 'integrity',
+      label: 'Data Integrity',
+      icon: Shield,
+      description: 'Verify system health'
     },
   ];
 
@@ -297,6 +316,14 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                   <div className="text-sm opacity-75">Manage appointments</div>
                 </button>
 
+                <button
+                  onClick={() => setActiveTab('export')}
+                  className="btn btn-outline p-4 text-left"
+                >
+                  <Download className="h-6 w-6 mb-2" />
+                  <div className="font-medium">Data Export</div>
+                  <div className="text-sm opacity-75">Export all {stats.totalCards.toLocaleString()} cards</div>
+                </button>
 
                 <button
                   onClick={loadStats}
@@ -481,6 +508,12 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       case 'appointments':
         return <AppointmentCalendar token={token} />;
 
+      case 'export':
+        return <CardExportSystem />;
+
+      case 'integrity':
+        return <DataIntegrityChecker />;
+
       case 'profile':
         return (
           <div className="card p-6">
@@ -500,15 +533,60 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200 p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
+            M
+          </div>
+          <div className="text-xl font-bold text-gray-900">MOC Admin</div>
+        </div>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex flex-col">
-        <div className="p-6">
+      <div className={`
+        w-64 bg-white shadow-sm border-r border-gray-200 flex flex-col
+        lg:relative lg:translate-x-0 lg:shadow-sm
+        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="p-6 lg:block hidden">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
               M
             </div>
             <div className="text-xl font-bold text-gray-900">MOC Admin</div>
           </div>
+        </div>
+
+        {/* Mobile close button inside sidebar */}
+        <div className="lg:hidden p-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg font-bold mr-3">
+              M
+            </div>
+            <div className="text-xl font-bold text-gray-900">MOC Admin</div>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <nav className="mt-6 flex-1 flex flex-col">
