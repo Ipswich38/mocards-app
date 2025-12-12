@@ -156,6 +156,49 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     }
   };
 
+  const handleAssignCard = async (cardId: string) => {
+    setLoading(true);
+    try {
+      // Update the card to assign it to this clinic
+      const { error: updateError } = await supabase
+        .from('cards')
+        .update({
+          clinic_id: clinicCredentials.clinicId,
+          status: 'assigned',
+          assigned_at: new Date().toISOString(),
+          assigned_by: clinicCredentials.clinicId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId);
+
+      if (updateError) throw updateError;
+
+      // Log the assignment
+      await dbOperations.logTransaction({
+        card_id: cardId,
+        transaction_type: 'assigned',
+        performed_by: 'clinic',
+        performed_by_id: clinicCredentials.clinicId,
+        details: {
+          assigned_by_clinic: clinicCredentials.clinicName,
+          assigned_via: 'self_assignment'
+        }
+      });
+
+      // Refresh data
+      loadClinicCards();
+      setFoundCard(null);
+      setSearchControl('');
+      setError('');
+
+    } catch (err: any) {
+      console.error('Error assigning card:', err);
+      setError('Failed to assign card: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleActivateCard = async (cardId: string) => {
     try {
       // Prompt for staff member name who is activating the card
@@ -528,7 +571,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         {activeTab === 'cards' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Card Lookup & Activation</h3>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Card Lookup, Assignment & Activation</h3>
               <form onSubmit={handleCardLookup} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <input
                   type="text"
@@ -566,9 +609,13 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                     )}
 
                     {foundCard.status === 'unassigned' && (
-                      <span className="bg-gray-100 text-gray-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium self-start sm:self-auto">
-                        Not Assigned to Clinic
-                      </span>
+                      <button
+                        onClick={() => handleAssignCard(foundCard.id)}
+                        disabled={loading}
+                        className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 self-start sm:self-auto"
+                      >
+                        {loading ? 'Assigning...' : 'Assign to Clinic'}
+                      </button>
                     )}
 
                     {foundCard.status === 'activated' && (

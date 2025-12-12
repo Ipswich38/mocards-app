@@ -8,6 +8,7 @@ import { ClinicManagementCRUD } from './ClinicManagementCRUD';
 import { AppointmentCalendar } from './AppointmentCalendar';
 import { CardExportSystem } from './CardExportSystem';
 import { DataIntegrityChecker } from './DataIntegrityChecker';
+import { CardAssignmentSystem } from './CardAssignmentSystem';
 import {
   CreditCard,
   Users,
@@ -23,7 +24,8 @@ import {
   Menu,
   X,
   Download,
-  Shield
+  Shield,
+  ArrowRightLeft
 } from 'lucide-react';
 
 interface MOCAdminDashboardV2Props {
@@ -32,7 +34,7 @@ interface MOCAdminDashboardV2Props {
 }
 
 export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'perks' | 'activate' | 'appointments' | 'export' | 'integrity' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'assignments' | 'perks' | 'activate' | 'appointments' | 'export' | 'integrity' | 'profile'>('dashboard');
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -135,6 +137,12 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       label: 'Clinic Management',
       icon: Building2,
       description: 'Manage clinics and registration'
+    },
+    {
+      id: 'assignments',
+      label: 'Card Assignment',
+      icon: ArrowRightLeft,
+      description: 'Assign cards to clinics'
     },
     {
       id: 'perks',
@@ -498,6 +506,9 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
       case 'clinics':
         return <ClinicManagementCRUD />;
+
+      case 'assignments':
+        return <CardAssignmentSystem />;
 
       case 'perks':
         return <DefaultPerksManagement token={token} />;
