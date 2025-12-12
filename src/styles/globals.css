@@ -238,7 +238,7 @@ body {
     transform: translateY(-4px);
   }
 
-  /* Button Components - Enhanced Dark Mode */
+  /* Button Components - Enhanced Dark Mode with Emergency Contrast Fixes */
   .btn {
     font: var(--md-sys-typescale-label-large-font);
     padding: 12px 28px;
@@ -252,6 +252,7 @@ body {
     gap: 8px;
     position: relative;
     overflow: hidden;
+    min-height: 44px;
   }
 
   /* Small buttons use medium corners */
@@ -280,10 +281,11 @@ body {
   }
 
   .btn-primary {
-    background: var(--md-gradient-primary);
-    color: var(--md-sys-color-on-primary);
+    background: var(--md-gradient-primary) !important;
+    color: var(--md-sys-color-accent-yellow) !important;
     box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(106, 158, 247, 0.2);
     border: 1px solid var(--md-sys-color-primary);
+    font-weight: 600 !important;
   }
 
   .btn-primary:hover {
@@ -299,10 +301,11 @@ body {
   }
 
   .btn-secondary {
-    background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #312e81 100%);
-    color: var(--md-sys-color-on-secondary-container);
+    background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #312e81 100%) !important;
+    color: var(--md-sys-color-accent-orange) !important;
     box-shadow: var(--md-sys-elevation-level2), 0 0 15px rgba(165, 180, 252, 0.15);
     border: 1px solid var(--md-sys-color-secondary);
+    font-weight: 600 !important;
   }
 
   .btn-secondary:hover {
@@ -312,15 +315,16 @@ body {
   }
 
   .btn-outline {
-    background-color: transparent;
+    background-color: transparent !important;
     border: 2px solid var(--md-sys-color-outline);
-    color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-accent-yellow) !important;
+    font-weight: 600 !important;
   }
 
   .btn-outline:hover {
-    background-color: var(--md-sys-color-primary-container);
+    background-color: var(--md-sys-color-primary-container) !important;
     border-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary-container);
+    color: var(--md-sys-color-accent-yellow) !important;
     box-shadow: var(--md-sys-elevation-level2);
     transform: translateY(-1px);
   }
@@ -683,6 +687,21 @@ body {
     opacity: 0.7;
   }
 
+  /* Emergency Contrast Fixes - Universal Override */
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .cta-primary,
+  .cta-secondary {
+    color: var(--md-sys-color-accent-yellow) !important;
+    font-weight: 600 !important;
+  }
+
+  .btn-secondary,
+  .cta-secondary {
+    color: var(--md-sys-color-accent-orange) !important;
+  }
+
   /* Number Overflow Prevention */
   .number-display {
     font-variant-numeric: tabular-nums;
@@ -706,5 +725,26 @@ body {
     font-size: clamp(18px, 4vw, 32px); /* Responsive font size */
     font-weight: bold;
     color: var(--md-sys-color-accent-yellow);
+  }
+
+  /* Universal Dark Blue Background Text Fix */
+  .text-blue-600, .text-blue-900, .text-indigo-600 {
+    color: var(--md-sys-color-accent-yellow) !important;
+  }
+
+  .text-red-600, .text-red-900 {
+    color: var(--md-sys-color-accent-orange) !important;
+  }
+
+  .text-green-600, .text-green-900 {
+    color: var(--md-sys-color-accent-yellow) !important;
+  }
+
+  /* Force proper contrast on all dark backgrounds */
+  [style*="background: linear-gradient"] .btn,
+  [style*="background-color"] .btn,
+  .bg-blue-500 .btn,
+  .bg-indigo-500 .btn {
+    color: var(--md-sys-color-accent-yellow) !important;
   }
 }

@@ -75,6 +75,8 @@ export function ClinicManagementCRUD() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordFor, setShowPasswordFor] = useState<string | null>(null);
+  const [clinicPasswords, setClinicPasswords] = useState<{[key: string]: string}>({});
 
   const regions = [
     { code: '01', name: 'National Capital Region (NCR)' },
@@ -178,6 +180,9 @@ export function ClinicManagementCRUD() {
 
         const passwordHash = await bcrypt.hash(formData.temporary_password, 10);
 
+        // Store the temporary password for admin reference
+        const tempPassword = formData.temporary_password;
+
         console.log('Creating clinic with data:', {
           clinic_name: formData.clinic_name,
           clinic_code: formData.clinic_code,
@@ -219,7 +224,12 @@ export function ClinicManagementCRUD() {
 
         if (data && data.length > 0) {
           console.log('Clinic successfully created:', data[0]);
-          setSuccess(`Clinic '${data[0].clinic_name}' created successfully with code '${data[0].clinic_code}'!`);
+          // Store the temporary password for this clinic
+          setClinicPasswords(prev => ({
+            ...prev,
+            [data[0].id]: tempPassword
+          }));
+          setSuccess(`Clinic '${data[0].clinic_name}' created successfully with code '${data[0].clinic_code}' and temporary password: ${tempPassword}`);
         } else {
           throw new Error('Clinic creation appeared successful but no data returned');
         }
@@ -700,6 +710,16 @@ export function ClinicManagementCRUD() {
                           <div className="text-xs text-gray-500">Code: {clinic.location_code}</div>
                         )}
                       </div>
+                      {/* Show password if requested */}
+                      {showPasswordFor === clinic.id && clinicPasswords[clinic.id] && (
+                        <div className="mt-2 p-2 rounded text-xs" style={{
+                          backgroundColor: 'var(--md-sys-color-warning-container)',
+                          border: '1px solid var(--md-sys-color-warning)',
+                          color: 'var(--md-sys-color-on-warning-container)'
+                        }}>
+                          <strong>Temp Password:</strong> {clinicPasswords[clinic.id]}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(clinic.status)}
@@ -709,14 +729,24 @@ export function ClinicManagementCRUD() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       <button
+                        onClick={() => setShowPasswordFor(showPasswordFor === clinic.id ? null : clinic.id)}
+                        style={{ color: 'var(--md-sys-color-accent-yellow)' }}
+                        className="hover:opacity-80 mr-2"
+                        title="View temporary password"
+                      >
+                        {showPasswordFor === clinic.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      <button
                         onClick={() => handleEdit(clinic)}
-                        className="text-blue-600 hover:text-blue-900"
+                        style={{ color: 'var(--md-sys-color-accent-orange)' }}
+                        className="hover:opacity-80"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(clinic)}
-                        className="text-red-600 hover:text-red-900"
+                        style={{ color: '#ef4444' }}
+                        className="hover:opacity-80"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

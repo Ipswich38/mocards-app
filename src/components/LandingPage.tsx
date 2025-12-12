@@ -109,8 +109,8 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
   if (showAdminLogin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
-        <div className="card-airbnb-elevated w-full max-w-sm"> {/* Reduced size by 10% */}
-          <div className="flex justify-between items-center mb-6"> {/* Reduced margin */}
+        <div className="card-airbnb-elevated w-full max-w-md p-8"> {/* Restored padding and size */}
+          <div className="flex justify-between items-center mb-8"> {/* Restored margin */}
             <div className="title-large" style={{ color: 'var(--md-sys-color-accent-yellow)' }}>Admin Access</div>
             <button
               onClick={() => setShowAdminLogin(false)}
