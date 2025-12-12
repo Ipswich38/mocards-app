@@ -265,7 +265,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.check_clinic_integrity()
 RETURNS TABLE (
     check_name TEXT,
-    status TEXT,
+    check_status TEXT,
     count_affected INTEGER,
     details TEXT
 ) AS $$
@@ -277,8 +277,8 @@ BEGIN
         CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'FAIL' END::TEXT,
         COUNT(*)::INTEGER,
         'Clinics without password hash'::TEXT
-    FROM public.mocards_clinics
-    WHERE password_hash IS NULL OR password_hash = '';
+    FROM public.mocards_clinics c
+    WHERE c.password_hash IS NULL OR c.password_hash = '';
 
     -- Check for clinics requiring password change
     RETURN QUERY
@@ -287,8 +287,8 @@ BEGIN
         'INFO'::TEXT,
         COUNT(*)::INTEGER,
         'Clinics that must change password on next login'::TEXT
-    FROM public.mocards_clinics
-    WHERE password_must_be_changed = true;
+    FROM public.mocards_clinics c
+    WHERE c.password_must_be_changed = true;
 
     -- Check for duplicate clinic codes
     RETURN QUERY
@@ -298,9 +298,9 @@ BEGIN
         COUNT(*)::INTEGER,
         'Duplicate clinic codes found'::TEXT
     FROM (
-        SELECT clinic_code, COUNT(*) as code_count
-        FROM public.mocards_clinics
-        GROUP BY clinic_code
+        SELECT c.clinic_code, COUNT(*) as code_count
+        FROM public.mocards_clinics c
+        GROUP BY c.clinic_code
         HAVING COUNT(*) > 1
     ) duplicates;
 
@@ -314,15 +314,15 @@ $$ LANGUAGE plpgsql;
 -- Create view for regional clinic statistics
 CREATE OR REPLACE VIEW public.regional_clinic_stats AS
 SELECT
-    region,
+    c.region,
     COUNT(*) as total_clinics,
-    COUNT(CASE WHEN status = 'active' THEN 1 END) as active_clinics,
-    COUNT(CASE WHEN password_must_be_changed = true THEN 1 END) as pending_password_changes,
-    MIN(created_at) as first_clinic_date,
-    MAX(last_password_change) as latest_password_change
-FROM public.mocards_clinics
-WHERE region IS NOT NULL
-GROUP BY region
+    COUNT(CASE WHEN c.status = 'active' THEN 1 END) as active_clinics,
+    COUNT(CASE WHEN c.password_must_be_changed = true THEN 1 END) as pending_password_changes,
+    MIN(c.created_at) as first_clinic_date,
+    MAX(c.last_password_change) as latest_password_change
+FROM public.mocards_clinics c
+WHERE c.region IS NOT NULL
+GROUP BY c.region
 ORDER BY total_clinics DESC;
 
 -- =============================================================================
@@ -359,11 +359,11 @@ VALUES ('PASSWORD_SCHEMA_UPDATED', 'Clinic password management system successful
 SELECT
     'PASSWORD SCHEMA UPDATE COMPLETED' as status,
     COUNT(*) as total_clinics,
-    COUNT(CASE WHEN password_must_be_changed = true THEN 1 END) as clinics_requiring_password_change,
-    COUNT(CASE WHEN status = 'active' THEN 1 END) as active_clinics,
-    COUNT(CASE WHEN region IS NOT NULL THEN 1 END) as clinics_with_region,
-    COUNT(CASE WHEN location_code IS NOT NULL THEN 1 END) as clinics_with_location_code
-FROM public.mocards_clinics;
+    COUNT(CASE WHEN c.password_must_be_changed = true THEN 1 END) as clinics_requiring_password_change,
+    COUNT(CASE WHEN c.status = 'active' THEN 1 END) as active_clinics,
+    COUNT(CASE WHEN c.region IS NOT NULL THEN 1 END) as clinics_with_region,
+    COUNT(CASE WHEN c.location_code IS NOT NULL THEN 1 END) as clinics_with_location_code
+FROM public.mocards_clinics c;
 
 -- Log completion
 INSERT INTO public.system_audit_log (operation, description, details)

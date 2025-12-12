@@ -354,7 +354,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.check_assignment_integrity()
 RETURNS TABLE (
     check_name TEXT,
-    status TEXT,
+    check_status TEXT,
     count_affected INTEGER,
     details TEXT
 ) AS $$
@@ -377,8 +377,8 @@ BEGIN
         CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'WARNING' END::TEXT,
         COUNT(*)::INTEGER,
         'Cards with assigned clinic but status is unassigned'::TEXT
-    FROM public.cards
-    WHERE assigned_clinic_id IS NOT NULL AND status = 'unassigned';
+    FROM public.cards c
+    WHERE c.assigned_clinic_id IS NOT NULL AND c.status = 'unassigned';
 
     -- Check for missing assignment dates
     RETURN QUERY
@@ -387,8 +387,8 @@ BEGIN
         CASE WHEN COUNT(*) = 0 THEN 'PASS' ELSE 'WARNING' END::TEXT,
         COUNT(*)::INTEGER,
         'Assigned cards without assignment timestamp'::TEXT
-    FROM public.cards
-    WHERE assigned_clinic_id IS NOT NULL AND assigned_at IS NULL;
+    FROM public.cards c
+    WHERE c.assigned_clinic_id IS NOT NULL AND c.assigned_at IS NULL;
 
 END;
 $$ LANGUAGE plpgsql;
