@@ -74,9 +74,11 @@ export function CardExportSystem() {
         .from('cards')
         .select(`
           *,
-          perks:card_perks(*),
-          assigned_clinic:mocards_clinics!cards_assigned_clinic_id_fkey(clinic_name, clinic_code),
-          activated_clinic:mocards_clinics!cards_activated_by_clinic_id_fkey(clinic_name, clinic_code)
+          card_perks(*),
+          mocards_clinics!assigned_clinic_id(
+            clinic_name,
+            clinic_code
+          )
         `)
         .order('created_at', { ascending: true });
 
@@ -147,19 +149,19 @@ export function CardExportSystem() {
       card.migration_version || 'V1',
       card.location_code_v2 || '',
       card.clinic_code_v2 || '',
-      card.assigned_clinic?.clinic_name || '',
-      card.assigned_clinic?.clinic_code || '',
-      card.activated_clinic?.clinic_name || '',
-      card.activated_clinic?.clinic_code || '',
+      card.mocards_clinics?.clinic_name || '',
+      card.mocards_clinics?.clinic_code || '',
+      card.mocards_clinics?.clinic_name || '',
+      card.mocards_clinics?.clinic_code || '',
       card.activated_at ? new Date(card.activated_at).toLocaleDateString() : '',
       card.expires_at ? new Date(card.expires_at).toLocaleDateString() : '',
       card.holder_name || '',
       card.phone_number || '',
       card.email || '',
-      card.perks?.length || 0,
-      card.perks?.filter((p: any) => !p.claimed).length || 0,
-      card.perks?.filter((p: any) => p.claimed).length || 0,
-      card.perks?.map((p: any) => p.perk_type).join('; ') || '',
+      card.card_perks?.length || 0,
+      card.card_perks?.filter((p: any) => !p.claimed).length || 0,
+      card.card_perks?.filter((p: any) => p.claimed).length || 0,
+      card.card_perks?.map((p: any) => p.perk_type).join('; ') || '',
       new Date(card.created_at).toLocaleDateString(),
       new Date(card.updated_at).toLocaleDateString()
     ]);
@@ -207,8 +209,7 @@ export function CardExportSystem() {
         migrationVersion: card.migration_version,
         locationCodeV2: card.location_code_v2,
         clinicCodeV2: card.clinic_code_v2,
-        assignedClinic: card.assigned_clinic,
-        activatedClinic: card.activated_clinic,
+        assignedClinic: card.mocards_clinics,
         activationDate: card.activated_at,
         expiryDate: card.expires_at,
         holderInfo: {
@@ -216,7 +217,7 @@ export function CardExportSystem() {
           phone: card.phone_number,
           email: card.email
         },
-        perks: card.perks?.map((perk: any) => ({
+        perks: card.card_perks?.map((perk: any) => ({
           id: perk.id,
           type: perk.perk_type,
           claimed: perk.claimed,

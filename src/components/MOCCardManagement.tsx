@@ -188,7 +188,7 @@ export function MOCCardManagement() {
         .from('cards')
         .select(`
           *,
-          assigned_clinic:assigned_clinic_id(
+          mocards_clinics!assigned_clinic_id(
             id,
             clinic_name,
             clinic_code
@@ -215,7 +215,7 @@ export function MOCCardManagement() {
         } else {
           // Text search - include clinic name search via join
           query = query.or(
-            `control_number.ilike.%${searchTerm}%,control_number_v2.ilike.%${searchTerm}%,assigned_clinic.clinic_name.ilike.%${searchTerm}%`
+            `control_number.ilike.%${searchTerm}%,control_number_v2.ilike.%${searchTerm}%,mocards_clinics.clinic_name.ilike.%${searchTerm}%`
           );
         }
       }
