@@ -281,50 +281,53 @@ body {
   }
 
   .btn-primary {
-    background: var(--md-gradient-primary) !important;
-    color: var(--md-sys-color-accent-yellow) !important;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
     box-shadow: var(--md-sys-elevation-level2), 0 0 20px rgba(106, 158, 247, 0.2);
     border: 1px solid var(--md-sys-color-primary);
     font-weight: 600 !important;
   }
 
   .btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #FFFFFF !important;
     box-shadow: var(--md-sys-elevation-level4), 0 0 30px rgba(106, 158, 247, 0.4);
     transform: translateY(-2px);
   }
 
   .btn-primary:active {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    color: #FFFFFF !important;
     transform: translateY(0);
     box-shadow: var(--md-sys-elevation-level2);
   }
 
   .btn-secondary {
-    background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #312e81 100%) !important;
-    color: var(--md-sys-color-accent-orange) !important;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
     box-shadow: var(--md-sys-elevation-level2), 0 0 15px rgba(165, 180, 252, 0.15);
     border: 1px solid var(--md-sys-color-secondary);
     font-weight: 600 !important;
   }
 
   .btn-secondary:hover {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #FFFFFF !important;
     box-shadow: var(--md-sys-elevation-level4), 0 0 25px rgba(165, 180, 252, 0.3);
     transform: translateY(-2px);
   }
 
   .btn-outline {
     background-color: transparent !important;
-    border: 2px solid var(--md-sys-color-outline);
-    color: var(--md-sys-color-accent-yellow) !important;
+    border: 2px solid #1e40af !important;
+    color: #1e40af !important;
     font-weight: 600 !important;
   }
 
   .btn-outline:hover {
-    background-color: var(--md-sys-color-primary-container) !important;
-    border-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-accent-yellow) !important;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    border-color: #1e40af !important;
+    color: #FFFFFF !important;
     box-shadow: var(--md-sys-elevation-level2);
     transform: translateY(-1px);
   }
@@ -569,16 +572,16 @@ body {
     box-shadow: var(--md-sys-elevation-level2), 0 0 15px rgba(106, 158, 247, 0.15);
   }
 
-  /* Enhanced CTA Button System with Better Contrast */
+  /* Enhanced CTA Button System with Blue Background and White Text */
   .cta-primary {
-    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-    color: var(--md-sys-color-accent-yellow) !important;
-    border: 2px solid var(--md-sys-color-accent-yellow);
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
+    border: 2px solid #1e40af !important;
     border-radius: var(--md-sys-shape-corner-large);
     padding: 14px 28px; /* Reduced by 10% */
     font: var(--md-sys-typescale-title-medium-font);
     font-weight: 600 !important;
-    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(255, 214, 10, 0.3);
+    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(30, 64, 175, 0.3);
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
     text-decoration: none !important;
@@ -591,21 +594,21 @@ body {
 
   .cta-primary:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--md-sys-elevation-level5), 0 0 25px rgba(255, 214, 10, 0.6);
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    border-color: var(--md-sys-color-accent-orange);
-    color: var(--md-sys-color-accent-orange) !important;
+    box-shadow: var(--md-sys-elevation-level5), 0 0 25px rgba(30, 64, 175, 0.6);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    border-color: #2563eb !important;
+    color: #FFFFFF !important;
   }
 
   .cta-secondary {
-    background: linear-gradient(135deg, var(--md-sys-color-secondary-container) 0%, #4338ca 100%);
-    color: var(--md-sys-color-accent-orange) !important;
-    border: 2px solid var(--md-sys-color-accent-orange);
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
+    border: 2px solid #1e40af !important;
     border-radius: var(--md-sys-shape-corner-large);
     padding: 14px 28px; /* Reduced by 10% */
     font: var(--md-sys-typescale-title-medium-font);
     font-weight: 600 !important;
-    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(255, 149, 0, 0.3);
+    box-shadow: var(--md-sys-elevation-level3), 0 0 15px rgba(30, 64, 175, 0.3);
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
     text-decoration: none !important;
@@ -618,7 +621,9 @@ body {
 
   .cta-secondary:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--md-sys-elevation-level5), 0 0 25px rgba(165, 180, 252, 0.4);
+    box-shadow: var(--md-sys-elevation-level5), 0 0 25px rgba(30, 64, 175, 0.6);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #FFFFFF !important;
   }
 
   /* Enhanced Responsive Container System - 10% Smaller */
@@ -918,18 +923,53 @@ body {
     background-color: var(--md-sys-color-surface-container) !important;
   }
 
-  /* Ensure buttons in any context have proper text color */
+  /* UNIVERSAL BLUE BUTTON OVERRIDE - All buttons must be blue with white text */
   button, .btn, [role="button"] {
-    color: var(--md-sys-color-on-surface) !important;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1e40af !important;
   }
 
-  /* Button with specific states */
-  .btn-primary, .cta-primary {
-    color: var(--md-sys-color-accent-yellow) !important;
+  button:hover, .btn:hover, [role="button"]:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #FFFFFF !important;
+    border-color: #2563eb !important;
   }
 
-  .btn-secondary, .cta-secondary {
-    color: var(--md-sys-color-accent-orange) !important;
+  /* Button with specific states - all blue with white text */
+  .btn-primary, .cta-primary,
+  .btn-secondary, .cta-secondary,
+  .btn-outline {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1e40af !important;
+  }
+
+  .btn-primary:hover, .cta-primary:hover,
+  .btn-secondary:hover, .cta-secondary:hover,
+  .btn-outline:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+    color: #FFFFFF !important;
+    border-color: #2563eb !important;
+  }
+
+  /* Icon backgrounds - blue with white icons */
+  .w-10.h-10, .w-12.h-12, .w-14.h-14, .icon-container {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Stats icons and containers */
+  .p-3.rounded-lg {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Any icon with background classes */
+  .bg-blue-100, .bg-green-100, .bg-yellow-100, .bg-red-100,
+  .bg-primary-container, .bg-secondary-container {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    color: #FFFFFF !important;
   }
 
   /* Link overrides */
