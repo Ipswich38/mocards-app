@@ -210,7 +210,7 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
           </p>
         </div>
 
-        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Patient Card */}
           <div
             className={`card-interactive transition-all duration-200 ${
@@ -221,7 +221,7 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
               borderColor: activeTab === 'patient' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline-variant)'
             }}
           >
-            <div className="p-8 md:p-10">
+            <div className="p-6 sm:p-8 lg:p-10">
               <div className="w-14 h-14 flex items-center justify-center text-2xl mb-6" style={{
                 backgroundColor: 'var(--md-sys-color-primary-container)',
                 color: 'var(--md-sys-color-on-primary-container)',
@@ -267,7 +267,7 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
               borderColor: activeTab === 'clinic' ? 'var(--md-sys-color-secondary)' : 'var(--md-sys-color-outline-variant)'
             }}
           >
-            <div className="p-8 md:p-10">
+            <div className="p-6 sm:p-8 lg:p-10">
               <div className="w-14 h-14 flex items-center justify-center text-2xl mb-6" style={{
                 backgroundColor: 'var(--md-sys-color-secondary-container)',
                 color: 'var(--md-sys-color-on-secondary-container)',
