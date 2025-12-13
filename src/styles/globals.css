@@ -1165,6 +1165,28 @@ body {
     margin-top: 1.5rem;
   }
 
+  /* Enhanced stats display typography */
+  .stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  .stats-card .label-medium {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  @media (max-width: 768px) {
+    .stats-number {
+      font-size: 2rem;
+    }
+  }
+
   /* Print styles for better printing */
   @media print {
     .no-print {

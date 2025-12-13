@@ -215,7 +215,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <CreditCard className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-yellow)' }} />
                   </div>
                   <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium" style={{ color: 'var(--md-sys-color-accent-yellow)', opacity: 0.9 }}>Total Cards</p>
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-accent-yellow)', opacity: 0.9 }}>Total Cards</p>
                     <p className="stats-number number-display">{stats.totalCards.toLocaleString()}</p>
                   </div>
                 </div>
@@ -231,7 +231,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <Clock className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-orange)' }} />
                   </div>
                   <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Unactivated</p>
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Unactivated</p>
                     <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-orange)' }}>{stats.unactivatedCards.toLocaleString()}</p>
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <CheckCircle className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-orange)' }} />
                   </div>
                   <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium" style={{ color: 'var(--md-sys-color-accent-orange)', opacity: 0.9 }}>Activated</p>
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-accent-orange)', opacity: 0.9 }}>Activated</p>
                     <p className="stats-number number-display">{stats.activatedCards.toLocaleString()}</p>
                   </div>
                 </div>
@@ -263,7 +263,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <Building2 className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-amber)' }} />
                   </div>
                   <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Clinics</p>
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Clinics</p>
                     <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalClinics.toLocaleString()}</p>
                   </div>
                 </div>
@@ -279,7 +279,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <Gift className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-amber)' }} />
                   </div>
                   <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perks</p>
+                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perks</p>
                     <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalPerks.toLocaleString()}</p>
                   </div>
                 </div>
