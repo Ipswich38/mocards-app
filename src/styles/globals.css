@@ -831,16 +831,91 @@ body {
     color: var(--md-sys-color-on-surface-variant) !important;
   }
 
-  /* White background overrides */
-  .bg-white, .bg-white *,
-  .bg-gray-50, .bg-gray-50 *,
-  .bg-slate-50, .bg-slate-50 * {
+  /* CONVERT ALL WHITE BACKGROUNDS TO DARK */
+  /* Fix white UI boxes by making them dark instead */
+  .bg-white {
+    background-color: var(--md-sys-color-surface-container) !important;
+    border: 1px solid var(--md-sys-color-outline-variant) !important;
+  }
+
+  .bg-gray-50 {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+  }
+
+  .bg-slate-50 {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+  }
+
+  .bg-gray-100 {
+    background-color: var(--md-sys-color-surface-container-high) !important;
+  }
+
+  /* Modal and overlay backgrounds */
+  .fixed .bg-white {
+    background-color: var(--md-sys-color-surface-container) !important;
+    border: 1px solid var(--md-sys-color-outline) !important;
+  }
+
+  /* Table backgrounds */
+  table {
+    background-color: var(--md-sys-color-surface-container) !important;
+  }
+
+  thead {
+    background-color: var(--md-sys-color-surface-container-high) !important;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: var(--md-sys-color-surface-container) !important;
+  }
+
+  /* Card backgrounds - override any white cards */
+  .card {
+    background-color: var(--md-sys-color-surface-container) !important;
+    border: 1px solid var(--md-sys-color-outline-variant) !important;
+  }
+
+  /* Input and form backgrounds */
+  input, textarea, select {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+    border: 1px solid var(--md-sys-color-outline) !important;
     color: var(--md-sys-color-on-surface) !important;
   }
 
-  /* Modal and overlay content */
-  .fixed .bg-white *, .fixed .bg-gray-50 * {
+  input:focus, textarea:focus, select:focus {
+    background-color: var(--md-sys-color-surface-container) !important;
+    border-color: var(--md-sys-color-primary) !important;
+  }
+
+  /* Dropdown and select backgrounds */
+  option {
+    background-color: var(--md-sys-color-surface-container) !important;
     color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Dialog and modal content */
+  [role="dialog"], .modal, .popup {
+    background-color: var(--md-sys-color-surface-container) !important;
+    border: 1px solid var(--md-sys-color-outline) !important;
+  }
+
+  /* Shadow boxes and elevated content */
+  .shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
+    background-color: var(--md-sys-color-surface-container) !important;
+  }
+
+  /* Rounded containers */
+  .rounded, .rounded-lg, .rounded-xl, .rounded-2xl {
+    background-color: var(--md-sys-color-surface-container) !important;
+  }
+
+  /* Override any remaining white containers */
+  [class*="bg-white"], [style*="background-color: white"], [style*="background: white"] {
+    background-color: var(--md-sys-color-surface-container) !important;
   }
 
   /* Ensure buttons in any context have proper text color */
