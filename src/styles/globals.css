@@ -747,4 +747,147 @@ body {
   .bg-indigo-500 .btn {
     color: var(--md-sys-color-accent-yellow) !important;
   }
+
+  /* ================================================================= */
+  /* UNIVERSAL DARK TEXT TO WHITE TEXT OVERRIDES */
+  /* Fix ALL dark text on dark backgrounds across the entire app */
+  /* ================================================================= */
+
+  /* Text color overrides - Gray scale */
+  .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-black {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  .text-gray-500, .text-gray-400, .text-gray-300 {
+    color: var(--md-sys-color-on-surface-variant) !important;
+  }
+
+  /* Slate color overrides */
+  .text-slate-900, .text-slate-800, .text-slate-700, .text-slate-600 {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  .text-slate-500, .text-slate-400, .text-slate-300 {
+    color: var(--md-sys-color-on-surface-variant) !important;
+  }
+
+  /* Zinc color overrides */
+  .text-zinc-900, .text-zinc-800, .text-zinc-700, .text-zinc-600 {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Table elements */
+  th, td, thead, tbody {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  th.text-gray-500, th.text-slate-500,
+  td.text-gray-500, td.text-slate-500 {
+    color: var(--md-sys-color-on-surface-variant) !important;
+  }
+
+  /* Form elements */
+  label, .label {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--md-sys-color-on-surface-variant) !important;
+  }
+
+  /* Typography elements */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  p, span, div {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Specific combinations that commonly appear */
+  .font-medium.text-gray-900,
+  .font-bold.text-gray-900,
+  .font-semibold.text-gray-900,
+  .text-sm.text-gray-600,
+  .text-xs.text-gray-500,
+  .text-lg.text-gray-900 {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Status badge text overrides */
+  .text-green-800, .text-yellow-800, .text-red-800, .text-blue-800,
+  .text-emerald-800, .text-amber-800, .text-rose-800, .text-indigo-800 {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Card content overrides */
+  .card *, .card-airbnb *, .card-interactive *, .card-elevated * {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Table header overrides */
+  .uppercase.tracking-wider,
+  .font-medium.uppercase {
+    color: var(--md-sys-color-on-surface-variant) !important;
+  }
+
+  /* White background overrides */
+  .bg-white, .bg-white *,
+  .bg-gray-50, .bg-gray-50 *,
+  .bg-slate-50, .bg-slate-50 * {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Modal and overlay content */
+  .fixed .bg-white *, .fixed .bg-gray-50 * {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Ensure buttons in any context have proper text color */
+  button, .btn, [role="button"] {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Button with specific states */
+  .btn-primary, .cta-primary {
+    color: var(--md-sys-color-accent-yellow) !important;
+  }
+
+  .btn-secondary, .cta-secondary {
+    color: var(--md-sys-color-accent-orange) !important;
+  }
+
+  /* Link overrides */
+  a, .link {
+    color: var(--md-sys-color-accent-yellow) !important;
+  }
+
+  a:hover, .link:hover {
+    color: var(--md-sys-color-accent-orange) !important;
+  }
+
+  /* List items */
+  li, ul, ol {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  /* Code and pre elements */
+  code, pre, .font-mono {
+    color: var(--md-sys-color-on-surface) !important;
+    background-color: var(--md-sys-color-surface-container-low) !important;
+  }
+
+  /* Small text elements */
+  small, .text-xs, .text-sm {
+    color: var(--md-sys-color-on-surface-variant) !important;
+  }
+
+  /* Override any remaining dark text */
+  * {
+    color: inherit;
+  }
+
+  body, body * {
+    color: var(--md-sys-color-on-surface);
+  }
 }
