@@ -81,25 +81,42 @@ export function ClinicManagementCRUD() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordFor, setShowPasswordFor] = useState<string | null>(null);
   const [clinicPasswords, setClinicPasswords] = useState<{[key: string]: string}>({});
+  const [selectedProvince, setSelectedProvince] = useState<string>('');
+  const [clinicCodeType, setClinicCodeType] = useState<'predefined' | 'custom'>('predefined');
 
   const regions = [
-    { code: '01', name: 'National Capital Region (NCR)' },
-    { code: '02', name: 'Cordillera Administrative Region (CAR)' },
-    { code: '03', name: 'Region I (Ilocos Region)' },
-    { code: '04', name: 'Region II (Cagayan Valley)' },
-    { code: '05', name: 'Region III (Central Luzon)' },
-    { code: '06', name: 'Region IV-A (CALABARZON)' },
-    { code: '07', name: 'Region IV-B (MIMAROPA)' },
-    { code: '08', name: 'Region V (Bicol Region)' },
-    { code: '09', name: 'Region VI (Western Visayas)' },
-    { code: '10', name: 'Region VII (Central Visayas)' },
-    { code: '11', name: 'Region VIII (Eastern Visayas)' },
-    { code: '12', name: 'Region IX (Zamboanga Peninsula)' },
-    { code: '13', name: 'Region X (Northern Mindanao)' },
-    { code: '14', name: 'Region XI (Davao Region)' },
-    { code: '15', name: 'Region XII (SOCCSKSARGEN)' },
-    { code: '16', name: 'Region XIII (Caraga)' }
+    { code: '01', name: 'Region 01 - National Capital Region (NCR)' },
+    { code: '02', name: 'Region 02 - Cordillera Administrative Region (CAR)' },
+    { code: '03', name: 'Region 03 - Ilocos Region' },
+    { code: '04', name: 'Region 04 - Cagayan Valley' },
+    { code: '05', name: 'Region 05 - Central Luzon' },
+    { code: '06', name: 'Region 06 - Bicol Region' },
+    { code: '07', name: 'Region 07 - Western Visayas' },
+    { code: '08', name: 'Region 08 - Central Visayas' },
+    { code: '09', name: 'Region 09 - Eastern Visayas' },
+    { code: '10', name: 'Region 10 - Zamboanga Peninsula' },
+    { code: '11', name: 'Region 11 - Northern Mindanao' },
+    { code: '12', name: 'Region 12 - Davao Region' },
+    { code: '13', name: 'Region 13 - SOCCSKSARGEN' },
+    { code: '14', name: 'Region 14 - Caraga' },
+    { code: '15', name: 'Region 15 - Bangsamoro Autonomous Region' },
+    { code: '16', name: 'Region 16 - Special Administrative Regions' },
+    { code: '4A', name: 'Region 4A - CALABARZON' },
+    { code: '4B', name: 'Region 4B - MIMAROPA' }
   ];
+
+  const getClinicCodes = (locationCode: string): Record<string, { code: string; name: string; }[]> => {
+    switch (locationCode) {
+      case '4A': // CALABARZON
+        return {
+          'Cavite': Array.from({ length: 10 }, (_, i) => ({ code: `CVT${String(i + 1).padStart(3, '0')}`, name: `CVT${String(i + 1).padStart(3, '0')} - Cavite ${i + 1}` })),
+          'Batangas': Array.from({ length: 10 }, (_, i) => ({ code: `BTG${String(i + 1).padStart(3, '0')}`, name: `BTG${String(i + 1).padStart(3, '0')} - Batangas ${i + 1}` })),
+          'Laguna': Array.from({ length: 10 }, (_, i) => ({ code: `LGN${String(i + 1).padStart(3, '0')}`, name: `LGN${String(i + 1).padStart(3, '0')} - Laguna ${i + 1}` }))
+        };
+      default:
+        return {};
+    }
+  };
 
   useEffect(() => {
     loadClinics();
@@ -299,6 +316,27 @@ export function ClinicManagementCRUD() {
       password: clinicPasswords[clinic.id] || clinic.current_password || '', // Load current password
       temporary_password: ''
     });
+
+    // Set province and clinic code type for CALABARZON region
+    if (clinic.location_code === '4A' && clinic.clinic_code) {
+      // Determine province based on clinic code prefix
+      let province = '';
+      if (clinic.clinic_code.startsWith('CVT')) province = 'Cavite';
+      else if (clinic.clinic_code.startsWith('BTG')) province = 'Batangas';
+      else if (clinic.clinic_code.startsWith('LGN')) province = 'Laguna';
+
+      if (province) {
+        setSelectedProvince(province);
+        setClinicCodeType('predefined');
+      } else {
+        setSelectedProvince('');
+        setClinicCodeType('custom');
+      }
+    } else {
+      setSelectedProvince('');
+      setClinicCodeType('predefined');
+    }
+
     setShowForm(true);
   };
 
@@ -336,6 +374,8 @@ export function ClinicManagementCRUD() {
       password: '',
       temporary_password: ''
     });
+    setSelectedProvince('');
+    setClinicCodeType('predefined');
     setEditingClinic(null);
     setShowForm(false);
   };
@@ -571,7 +611,7 @@ export function ClinicManagementCRUD() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Region
+                      Region/Location Code
                     </label>
                     <select
                       value={formData.location_code}
@@ -582,6 +622,8 @@ export function ClinicManagementCRUD() {
                           location_code: e.target.value,
                           region: selectedRegion?.name || ''
                         }));
+                        setSelectedProvince(''); // Reset province selection
+                        setClinicCodeType('predefined'); // Reset clinic code type
                       }}
                       className="input-field"
                     >
@@ -609,6 +651,112 @@ export function ClinicManagementCRUD() {
                     </select>
                   </div>
                 </div>
+
+                {/* Clinic Code Selection - CALABARZON Region */}
+                {formData.location_code === '4A' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Province (CALABARZON)
+                      </label>
+                      <select
+                        value={selectedProvince}
+                        onChange={(e) => {
+                          setSelectedProvince(e.target.value);
+                          setFormData(prev => ({ ...prev, clinic_code: '' })); // Reset clinic code when province changes
+                        }}
+                        className="input-field"
+                      >
+                        <option value="">Select Province</option>
+                        <option value="Cavite">Cavite</option>
+                        <option value="Batangas">Batangas</option>
+                        <option value="Laguna">Laguna</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Clinic Code Type
+                      </label>
+                      <select
+                        value={clinicCodeType}
+                        onChange={(e) => {
+                          setClinicCodeType(e.target.value as 'predefined' | 'custom');
+                          setFormData(prev => ({ ...prev, clinic_code: '' })); // Reset clinic code when type changes
+                        }}
+                        className="input-field"
+                      >
+                        <option value="predefined">Predefined Codes</option>
+                        <option value="custom">Custom Code</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Predefined Clinic Code Dropdown */}
+                {formData.location_code === '4A' && selectedProvince && clinicCodeType === 'predefined' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Clinic Code ({selectedProvince})
+                    </label>
+                    <select
+                      value={formData.clinic_code}
+                      onChange={(e) => setFormData(prev => ({ ...prev, clinic_code: e.target.value }))}
+                      className="input-field"
+                    >
+                      <option value="">Select Clinic Code</option>
+                      {getClinicCodes(formData.location_code)[selectedProvince]?.map(clinic => (
+                        <option key={clinic.code} value={clinic.code}>
+                          {clinic.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Custom Clinic Code Input */}
+                {formData.location_code === '4A' && clinicCodeType === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Custom Clinic Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.clinic_code}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        setFormData(prev => ({ ...prev, clinic_code: value }));
+                      }}
+                      placeholder="Enter custom clinic code (e.g., CUST001)"
+                      className="input-field"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Use format: XXX### (e.g., CUST001, SPEC002)
+                    </p>
+                  </div>
+                )}
+
+                {/* Default Clinic Code for Other Regions */}
+                {formData.location_code && formData.location_code !== '4A' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Clinic Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.clinic_code}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        setFormData(prev => ({ ...prev, clinic_code: value }));
+                      }}
+                      placeholder={`Enter clinic code for ${formData.region}`}
+                      className="input-field"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Custom clinic code for this region (e.g., {formData.location_code}001)
+                    </p>
+                  </div>
+                )}
 
                 {!editingClinic && (
                   <div>
