@@ -1,68 +1,46 @@
-import { useState, useEffect } from 'react';
-import { streamlinedOps, Card, LocationCodeV2, ClinicCodeByRegion } from '../lib/streamlined-operations';
-import { Search, CheckCircle, AlertCircle, MapPin, Building, CreditCard } from 'lucide-react';
+import { useState } from 'react';
+import { dbOperations, supabase } from '../lib/supabase';
+import { Search, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
 
 interface CardActivationV2Props {
   clinicId: string;
   clinicName: string;
 }
 
-export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props) {
+export function CardActivationV2({ clinicName }: CardActivationV2Props) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const [locationCodes, setLocationCodes] = useState<LocationCodeV2[]>([]);
-  const [clinicCodes, setClinicCodes] = useState<ClinicCodeByRegion[]>([]);
-  const [selectedLocationCode, setSelectedLocationCode] = useState('');
-  const [selectedClinicCode, setSelectedClinicCode] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedCard, setSelectedCard] = useState<any | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   // Search results
-  const [searchResults, setSearchResults] = useState<Card[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
-
-  useEffect(() => {
-    loadLocationCodes();
-    loadClinicCodes();
-  }, []);
-
-  const loadLocationCodes = async () => {
-    try {
-      const codes = await (streamlinedOps as any).getLocationCodesV2();
-      setLocationCodes(codes);
-    } catch (error) {
-      console.error('Error loading location codes:', error);
-    }
-  };
-
-  const loadClinicCodes = async () => {
-    try {
-      const codes = await (streamlinedOps as any).getClinicCodesByRegion();
-      setClinicCodes(codes);
-    } catch (error) {
-      console.error('Error loading clinic codes:', error);
-    }
-  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
     setSearching(true);
     setError('');
+    setSearchResults([]);
+    setSelectedCard(null);
 
     try {
-      const { cards } = await (streamlinedOps as any).getCardsV2(10, 0, {
-        activated: false, // Only unactivated cards
-        search: searchQuery
-      });
+      // Search for cards using the existing function
+      const card = await dbOperations.getCardByControlNumber(searchQuery.trim());
 
-      setSearchResults(cards);
-
-      if (cards.length === 1) {
-        setSelectedCard(cards[0]);
+      if (card) {
+        // Check if card is unactivated
+        if (!card.is_activated) {
+          setSearchResults([card]);
+          setSelectedCard(card);
+        } else {
+          setError('Card is already activated');
+        }
+      } else {
+        setError('Card not found');
       }
     } catch (err: any) {
       setError('Error searching for cards: ' + err.message);
@@ -71,20 +49,9 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
     }
   };
 
-  const handleRegionChange = (regionType: string) => {
-    setSelectedRegion(regionType);
-    setSelectedClinicCode('');
-    // Filter clinic codes by region
-  };
-
-  const getFilteredClinicCodes = () => {
-    if (!selectedRegion) return clinicCodes;
-    return clinicCodes.filter(code => code.region_type === selectedRegion);
-  };
-
   const handleActivateCard = async () => {
-    if (!selectedCard || !selectedLocationCode || !selectedClinicCode) {
-      setError('Please select a card, location code, and clinic code');
+    if (!selectedCard) {
+      setError('Please select a card to activate');
       return;
     }
 
@@ -92,49 +59,50 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
     setError('');
 
     try {
-      const success = await (streamlinedOps as any).activateCardV2(
-        selectedCard.id,
-        selectedLocationCode,
-        selectedClinicCode,
-        clinicId
-      );
+      // Use simple activation - just activate the card
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          is_activated: true,
+          status: 'activated',
+          activated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedCard.id);
 
-      if (success) {
-        const newControlNumber = (streamlinedOps as any).generateControlNumberV2(
-          selectedCard.card_number || 0,
-          selectedLocationCode,
-          selectedClinicCode
-        );
+      if (error) throw error;
 
-        setSuccess(`✅ Card activated successfully! New control number: ${newControlNumber}`);
+      // Auto-assign default perks
+      const { data: defaultPerks } = await supabase
+        .from('default_perk_templates')
+        .select('*')
+        .eq('is_default', true);
 
-        // Reset form
-        setSelectedCard(null);
-        setSearchQuery('');
-        setSearchResults([]);
-        setSelectedLocationCode('');
-        setSelectedClinicCode('');
-        setSelectedRegion('');
-      } else {
-        throw new Error('Failed to activate card');
+      if (defaultPerks && defaultPerks.length > 0) {
+        const perkAssignments = defaultPerks.map(perk => ({
+          card_id: selectedCard.id,
+          perk_type: perk.perk_type,
+          perk_value: perk.perk_value,
+          is_claimed: false,
+          created_at: new Date().toISOString()
+        }));
+
+        await supabase
+          .from('card_perks')
+          .insert(perkAssignments);
       }
+
+      setSuccess(`✅ Card ${selectedCard.control_number_v2} activated successfully!`);
+
+      // Reset form
+      setSelectedCard(null);
+      setSearchQuery('');
+      setSearchResults([]);
     } catch (err: any) {
       setError('Error activating card: ' + err.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const previewControlNumber = () => {
-    if (!selectedCard || !selectedLocationCode || !selectedClinicCode) {
-      return selectedCard ? `MOC-__-____-${selectedCard.card_number?.toString().padStart(5, '0')}` : '';
-    }
-
-    return (streamlinedOps as any).generateControlNumberV2(
-      selectedCard.card_number || 0,
-      selectedLocationCode,
-      selectedClinicCode
-    );
   };
 
   return (
@@ -243,94 +211,31 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
                 </div>
               </div>
 
-              {/* Preview */}
-              <div className="border border-blue-200 p-6 rounded-lg bg-blue-50">
-                <h4 className="text-sm font-medium text-blue-700 mb-3">New Control Number Preview</h4>
-                <div className="font-mono text-2xl text-blue-600 font-bold">
-                  {previewControlNumber()}
-                </div>
-              </div>
             </div>
 
-            {/* Selection Form */}
+            {/* Activation Form */}
             <div className="space-y-6">
-              {/* Location Code Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  <MapPin className="h-5 w-5 inline mr-2 text-blue-600" />
-                  Location Code (01-16) *
-                </label>
-                <select
-                  value={selectedLocationCode}
-                  onChange={(e) => setSelectedLocationCode(e.target.value)}
-                  className="input-field text-lg"
-                >
-                  <option value="">Select Location Code</option>
-                  {locationCodes.map((location) => (
-                    <option key={location.id} value={location.code}>
-                      {location.code} - {location.region_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <div className="text-center">
+                <p className="text-gray-600 mb-6">Ready to activate this card?</p>
 
-              {/* Region Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  <Building className="h-5 w-5 inline mr-2 text-blue-600" />
-                  Region Type *
-                </label>
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => handleRegionChange(e.target.value)}
-                  className="input-field text-lg"
+                <button
+                  onClick={handleActivateCard}
+                  disabled={loading}
+                  className="btn w-full px-6 py-4 text-lg font-bold uppercase tracking-wider flex items-center justify-center bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">Select Region</option>
-                  <option value="visayas">Visayas (Cebu)</option>
-                  <option value="luzon_4a">Luzon Region 4A (CALABARZON)</option>
-                  <option value="ncr">National Capital Region (NCR)</option>
-                </select>
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                      Activating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 mr-3" />
+                      Activate Card
+                    </>
+                  )}
+                </button>
               </div>
-
-              {/* Clinic Code Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  <Building className="h-5 w-5 inline mr-2 text-blue-600" />
-                  Clinic Code *
-                </label>
-                <select
-                  value={selectedClinicCode}
-                  onChange={(e) => setSelectedClinicCode(e.target.value)}
-                  className="input-field text-lg"
-                  disabled={!selectedRegion}
-                >
-                  <option value="">Select Clinic Code</option>
-                  {getFilteredClinicCodes().map((clinic) => (
-                    <option key={clinic.id} value={clinic.clinic_code}>
-                      {clinic.clinic_code} - {clinic.region_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Activate Button */}
-              <button
-                onClick={handleActivateCard}
-                disabled={loading || !selectedLocationCode || !selectedClinicCode}
-                className="btn w-full px-6 py-4 text-lg font-bold uppercase tracking-wider flex items-center justify-center bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                    Activating...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-5 w-5 mr-3" />
-                    Activate Card
-                  </>
-                )}
-              </button>
             </div>
           </div>
         </div>
@@ -363,23 +268,23 @@ export function CardActivationV2({ clinicId, clinicName }: CardActivationV2Props
           <ul className="text-gray-700 space-y-2 text-base">
             <li className="flex items-start">
               <span className="text-blue-600 mr-3">•</span>
-              Search for unactivated cards using control number or card number
+              Search for unactivated cards using control number or 5-digit number (00001-10000)
             </li>
             <li className="flex items-start">
               <span className="text-blue-600 mr-3">•</span>
-              Select location code (01-16) corresponding to the region
+              Only unactivated cards will appear in search results
             </li>
             <li className="flex items-start">
               <span className="text-blue-600 mr-3">•</span>
-              Choose region type and specific clinic code
-            </li>
-            <li className="flex items-start">
-              <span className="text-blue-600 mr-3">•</span>
-              Card will get new control number: <span className="font-mono text-blue-600">MOC-[location]-[clinic]-[number]</span>
+              Click "Activate Card" to activate the selected card
             </li>
             <li className="flex items-start">
               <span className="text-blue-600 mr-3">•</span>
               Default perks will be automatically assigned to activated card
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-3">•</span>
+              Card status will change from "unassigned" to "activated"
             </li>
           </ul>
         </div>
