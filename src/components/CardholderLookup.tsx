@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { streamlinedOps, codeUtils } from '../lib/streamlined-operations';
+import { dbOperations } from '../lib/supabase';
+import { SearchComponent } from './SearchComponent';
 import { Search, CreditCard, ArrowLeft, CheckCircle, AlertCircle, Calendar, MapPin } from 'lucide-react';
 
 interface CardDetails {
@@ -30,10 +31,13 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
   const [cardDetails, setCardDetails] = useState<CardDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [searchSuggestions] = useState<any[]>([]);
 
-  const lookupCard = async () => {
-    if (!controlNumber) {
-      setError('Please enter your control number');
+
+  const lookupCard = async (query?: string) => {
+    const searchQuery = query || controlNumber;
+    if (!searchQuery) {
+      setError('Please enter your card number');
       return;
     }
 
@@ -42,44 +46,44 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
     setCardDetails(null);
 
     try {
-      // Normalize the input code
-      const normalizedControl = codeUtils.normalizeControlNumber(controlNumber.trim());
+      // Use universal card lookup system
+      const card = await dbOperations.getCardByControlNumber(searchQuery.trim());
 
-      // Look up the card using streamlined operations (control number only)
-      const card = await (streamlinedOps as any).lookupCard(normalizedControl);
+      if (card) {
+        const cardDetails: CardDetails = {
+          id: card.id,
+          control_number: card.control_number_v2 || card.control_number || '',
+          passcode: card.passcode || '',
+          status: card.status,
+          activated_at: card.activated_at,
+          expires_at: card.expires_at,
+          clinic_name: card.clinic?.clinic_name,
+          perks: (card.perks || []).map(perk => ({
+            id: perk.id,
+            perk_type: perk.perk_type,
+            perk_value: 500, // Default value, should be mapped from actual perk data
+            claimed: perk.claimed,
+            claimed_at: perk.claimed_at
+          }))
+        };
 
-      const cardDetails: CardDetails = {
-        id: card.id,
-        control_number: card.control_number,
-        passcode: card.passcode,
-        status: card.status,
-        activated_at: card.activated_at,
-        expires_at: card.expires_at,
-        clinic_name: card.clinics?.clinic_name,
-        perks: card.card_perks || []
-      };
+        setCardDetails(cardDetails);
 
-      setCardDetails(cardDetails);
-
-      // If callback is provided, call it
-      if (onCardFound) {
-        onCardFound(cardDetails);
+        // If callback is provided, call it
+        if (onCardFound) {
+          onCardFound(cardDetails);
+        }
+      } else {
+        setError('Card not found. Try searching with 5-digit format (e.g., 00001) or full control number.');
       }
     } catch (err: any) {
-      if (err.message.includes('PGRST116') || err.message.includes('not found')) {
-        setError('Card not found. Please check your control number.');
-      } else {
-        setError('Error looking up card. Please try again.');
-      }
+      console.error('Card lookup error:', err);
+      setError('Error looking up card. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    lookupCard();
-  };
 
   const formatPerkType = (perkType: string) => {
     return perkType.charAt(0).toUpperCase() + perkType.slice(1).replace('_', ' ');
@@ -162,48 +166,64 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
           </div>
         )}
 
-        {/* Lookup Form */}
+        {/* Universal Card Lookup */}
         <div className="card-airbnb-elevated p-8 mb-12">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             <div className="max-w-md mx-auto">
-              <div>
-                <label htmlFor="control" className="block label-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                  Control Number
-                </label>
+              <label className="block label-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                Find Your Card
+              </label>
+              <SearchComponent
+                placeholder="Enter 5-digit card number (e.g., 00001) or full control number"
+                suggestions={searchSuggestions}
+                onSearch={lookupCard}
+                onSuggestionSelect={(suggestion) => lookupCard(suggestion.text)}
+                isLoading={isLoading}
+                results={[]}
+                className="w-full"
+                variant="hero"
+                showRecentSearches={true}
+              />
+              <p className="mt-2 body-small" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                Search with your 5-digit card number or full control number
+              </p>
+            </div>
+
+            {/* Legacy manual input for backup */}
+            <details className="mt-6">
+              <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-900">
+                Manual Entry (Legacy)
+              </summary>
+              <div className="mt-4 max-w-md mx-auto">
                 <input
                   type="text"
-                  id="control"
                   value={controlNumber}
                   onChange={(e) => setControlNumber(e.target.value)}
                   className="input-field w-full"
-                  style={{ fontSize: '20px' }}
                   placeholder="e.g., MOC-01-NCR1-00001"
                   disabled={isLoading}
                 />
-                <p className="mt-2 body-small" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
-                  Enter your card control number with or without dashes
-                </p>
+                <button
+                  type="button"
+                  onClick={() => lookupCard()}
+                  disabled={isLoading || !controlNumber}
+                  className="cta-primary w-full mt-3 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current mr-3"></div>
+                      Looking up...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-6 w-6 mr-3" />
+                      Look Up Card
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || !controlNumber}
-              className="cta-primary w-full disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current mr-3"></div>
-                  Looking up...
-                </>
-              ) : (
-                <>
-                  <Search className="h-6 w-6 mr-3" />
-                  Look Up Card
-                </>
-              )}
-            </button>
-          </form>
+            </details>
+          </div>
         </div>
 
         {/* Card Details */}

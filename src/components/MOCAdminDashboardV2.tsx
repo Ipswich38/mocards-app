@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, dbOperations } from '../lib/supabase';
 import { CardGenerationSystemV2 } from './CardGenerationSystemV2';
 import { CardActivationV2 } from './CardActivationV2';
 import { DefaultPerksManagement } from './DefaultPerksManagement';
@@ -9,6 +9,7 @@ import { AppointmentCalendar } from './AppointmentCalendar';
 import { CardExportSystem } from './CardExportSystem';
 import { DataIntegrityChecker } from './DataIntegrityChecker';
 import { CardAssignmentSystem } from './CardAssignmentSystem';
+import { SearchComponent } from './SearchComponent';
 import {
   CreditCard,
   Users,
@@ -45,6 +46,12 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
     totalClinics: 0,
     totalPerks: 0
   });
+
+  // Universal Card Lookup State
+  const [searchSuggestions] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [foundCard, setFoundCard] = useState<any>(null);
+  const [searchError, setSearchError] = useState('');
 
   useEffect(() => {
     loadStats();
@@ -115,6 +122,51 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
     } finally {
       setLoading(false);
     }
+  };
+
+  // Universal Card Lookup Functions (mirrored from clinic portal)
+
+  const handleUniversalSearch = async (query: string) => {
+    if (!query.trim()) return;
+
+    setSearchLoading(true);
+    setSearchError('');
+    setFoundCard(null);
+
+    try {
+      const card = await dbOperations.getCardByControlNumber(query.trim());
+      if (card) {
+        setFoundCard(card);
+
+        // Load clinic info if assigned
+        if (card.assigned_clinic_id) {
+          const { data: clinic } = await supabase
+            .from('mocards_clinics')
+            .select('clinic_name, clinic_code')
+            .eq('id', card.assigned_clinic_id)
+            .single();
+
+          if (clinic) {
+            setFoundCard((prev: any) => ({ ...prev, clinic }));
+          }
+        }
+      } else {
+        setSearchError('Card not found. Try searching with 5-digit format (e.g., 00001) or full control number.');
+      }
+    } catch (error: any) {
+      console.error('Search error:', error);
+      setSearchError('Search failed: ' + error.message);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSearchResultSelect = (result: any) => {
+    console.log('Selected search result:', result);
+  };
+
+  const handleSuggestionSelect = (suggestion: any) => {
+    handleUniversalSearch(suggestion.text);
   };
 
   const menuItems = [
@@ -287,6 +339,60 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalPerks.toLocaleString()}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Universal Card Lookup */}
+            <div className="card-airbnb-elevated p-8">
+              <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Universal Card Lookup</h3>
+              <div className="space-y-4">
+                <SearchComponent
+                  placeholder="Search any card by 5-digit number (00001-10000) or full control number"
+                  suggestions={searchSuggestions}
+                  onSearch={handleUniversalSearch}
+                  onResultSelect={handleSearchResultSelect}
+                  onSuggestionSelect={handleSuggestionSelect}
+                  isLoading={searchLoading}
+                  results={[]}
+                  className="w-full"
+                  showRecentSearches={true}
+                />
+
+                {searchError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {searchError}
+                  </div>
+                )}
+
+                {foundCard && (
+                  <div className="border border-gray-200 rounded-xl p-6 bg-white">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                      <div>
+                        <div className="font-mono text-lg break-all font-bold" style={{ color: 'var(--md-sys-color-primary)' }}>
+                          {foundCard.control_number_v2 || foundCard.control_number}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          Card #{foundCard.card_number} • Status: {foundCard.status}
+                          {foundCard.is_activated && <span className="text-green-600 ml-2">• ✅ Activated</span>}
+                          {!foundCard.is_activated && foundCard.assigned_clinic_id && <span className="text-blue-600 ml-2">• 📋 Assigned</span>}
+                          {!foundCard.is_activated && !foundCard.assigned_clinic_id && <span className="text-orange-600 ml-2">• ⏳ Unassigned</span>}
+                        </div>
+                        {foundCard.clinic && (
+                          <div className="text-sm text-gray-600 mt-1">
+                            📍 {foundCard.clinic.clinic_name} ({foundCard.clinic.clinic_code})
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <div>Location: {foundCard.location_code || 'Not set'}</div>
+                        <div>Created: {new Date(foundCard.created_at).toLocaleDateString()}</div>
+                        {foundCard.activated_at && (
+                          <div>Activated: {new Date(foundCard.activated_at).toLocaleDateString()}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

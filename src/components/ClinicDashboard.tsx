@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { dbOperations, Card, Appointment } from '../lib/supabase';
-import { streamlinedOps } from '../lib/streamlined-operations';
 import { supabase } from '../lib/supabase';
 import bcrypt from 'bcryptjs';
 // Removed useAutoLogout hook dependency
@@ -342,38 +341,6 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     }
   };
 
-  const handleActivateCard = async (cardId: string) => {
-    try {
-      // Prompt for staff member name who is activating the card
-      const staffName = prompt('Enter the name of the staff member activating this card:');
-
-      if (!staffName || staffName.trim() === '') {
-        setError('Staff name is required for card activation');
-        return;
-      }
-
-      // Use the new activation function with staff tracking
-      const activatedCard = await streamlinedOps.activateCard(
-        cardId,
-        clinicCredentials.clinicId,
-        clinicCredentials.clinicCode, // Staff ID/Code
-        staffName.trim() // Staff Name
-      );
-
-      // Refresh data
-      loadClinicCards();
-      loadStats();
-      setFoundCard(null);
-      setSearchControl('');
-
-      // Show success message
-      setError('');
-      console.log(`Card ${activatedCard.control_number} activated by ${staffName}`);
-    } catch (err: any) {
-      console.error('Error activating card:', err);
-      setError(err.message || 'Failed to activate card');
-    }
-  };
 
   const handleRedeemPerk = async (perkId: string, cardId: string) => {
     try {
@@ -750,7 +717,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         {activeTab === 'cards' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Card Lookup, Assignment & Activation</h3>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Card Lookup & Management</h3>
               <div className="w-full">
                 <SearchComponent
                   placeholder="Enter 5-digit card number (e.g., 00001) or full control number"
@@ -779,13 +746,10 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                         <div className="text-xs text-red-600">Assigned to different clinic</div>
                       )}
                     </div>
-                    {foundCard.status === 'assigned' && (
-                      <button
-                        onClick={() => handleActivateCard(foundCard.id)}
-                        className="bg-teal-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors self-start sm:self-auto"
-                      >
-                        Activate Card
-                      </button>
+                    {foundCard.status === 'assigned' && foundCard.assigned_clinic_id === clinicCredentials.clinicId && (
+                      <span className="bg-blue-100 text-blue-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium self-start sm:self-auto">
+                        📋 Assigned to Your Clinic (Admin will activate)
+                      </span>
                     )}
 
                     {foundCard.status === 'unassigned' && (

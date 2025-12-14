@@ -59,6 +59,7 @@ export function MOCCardManagement() {
   const [showAssignmentDropdown, setShowAssignmentDropdown] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [showBatchAssignment, setShowBatchAssignment] = useState(false);
+  const [activationLoading, setActivationLoading] = useState<string | null>(null);
   const [batchForm, setBatchForm] = useState({
     startCardNumber: '',
     endCardNumber: '',
@@ -288,6 +289,56 @@ export function MOCCardManagement() {
       setClinics(data || []);
     } catch (err) {
       console.error('Error loading clinics:', err);
+    }
+  };
+
+  const handleActivateCard = async (cardId: string) => {
+    setActivationLoading(cardId);
+    try {
+      // Update the card to activated status
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          is_activated: true,
+          status: 'activated',
+          activated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId);
+
+      if (error) throw error;
+
+      // Auto-assign default perks
+      const { data: defaultPerks } = await supabase
+        .from('default_perk_templates')
+        .select('*')
+        .eq('is_default', true);
+
+      if (defaultPerks && defaultPerks.length > 0) {
+        const perkAssignments = defaultPerks.map(perk => ({
+          card_id: cardId,
+          perk_type: perk.perk_type,
+          perk_value: perk.perk_value,
+          is_claimed: false,
+          created_at: new Date().toISOString()
+        }));
+
+        await supabase
+          .from('card_perks')
+          .insert(perkAssignments);
+      }
+
+      setSuccessMessage(`Card activated successfully at ${new Date().toLocaleString()}`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+      // Refresh cards and stats
+      loadCards();
+      loadStats();
+
+    } catch (err: any) {
+      setError('Failed to activate card: ' + err.message);
+    } finally {
+      setActivationLoading(null);
     }
   };
 
@@ -766,6 +817,22 @@ export function MOCCardManagement() {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </button>
+
+                        {/* Admin-Only Activation Button */}
+                        {!card.is_activated && (
+                          <button
+                            onClick={() => handleActivateCard(card.id)}
+                            disabled={activationLoading === card.id}
+                            className="text-green-600 hover:text-green-900 flex items-center disabled:opacity-50"
+                          >
+                            {activationLoading === card.id ? (
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                            )}
+                            Activate
+                          </button>
+                        )}
 
                         {/* Assignment Dropdown */}
                         {!(card as any).assigned_clinic && (
