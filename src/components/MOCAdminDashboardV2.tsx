@@ -78,10 +78,14 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         totalClinicsResult,
         totalPerksResult
       ] = await Promise.all([
-        supabase.from('cards').select('*', { count: 'exact', head: true }),
-        supabase.from('cards').select('*', { count: 'exact', head: true }).eq('is_activated', false),
-        supabase.from('cards').select('*', { count: 'exact', head: true }).eq('is_activated', true),
-        supabase.from('cards').select('*', { count: 'exact', head: true }).eq('migration_version', 2),
+        // Total sequential cards (1-10000)
+        supabase.from('cards').select('*', { count: 'exact', head: true }).gte('card_number', 1).lte('card_number', 10000),
+        // Unactivated sequential cards (available for assignment)
+        supabase.from('cards').select('*', { count: 'exact', head: true }).eq('is_activated', false).gte('card_number', 1).lte('card_number', 10000),
+        // Activated sequential cards
+        supabase.from('cards').select('*', { count: 'exact', head: true }).eq('is_activated', true).gte('card_number', 1).lte('card_number', 10000),
+        // Cards with proper V2 format
+        supabase.from('cards').select('*', { count: 'exact', head: true }).like('control_number_v2', 'MOC-%').gte('card_number', 1).lte('card_number', 10000),
         supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }),
         supabase.from('default_perk_templates').select('*', { count: 'exact', head: true })
       ]);
