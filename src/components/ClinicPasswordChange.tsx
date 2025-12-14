@@ -72,6 +72,7 @@ export function ClinicPasswordChange({ clinic, onPasswordChanged, onSkipForNow }
         .from('mocards_clinics')
         .update({
           password_hash: newPasswordHash,
+          current_password: newPassword, // Store for admin visibility
           password_must_be_changed: false,
           first_login: false,
           last_password_change: new Date().toISOString(),

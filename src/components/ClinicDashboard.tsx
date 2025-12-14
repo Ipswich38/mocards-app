@@ -547,6 +547,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         .from('mocards_clinics')
         .update({
           password_hash: newPasswordHash,
+          current_password: passwordData.newPassword, // Store for admin visibility
           password_must_be_changed: false,
           last_password_change: new Date().toISOString(),
           updated_at: new Date().toISOString()

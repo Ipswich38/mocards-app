@@ -126,6 +126,17 @@ export function ClinicManagementCRUD() {
 
       if (error) throw error;
       setClinics(data || []);
+
+      // Load existing passwords into local state for immediate display
+      if (data) {
+        const passwordMap: { [key: string]: string } = {};
+        data.forEach(clinic => {
+          if (clinic.current_password) {
+            passwordMap[clinic.id] = clinic.current_password;
+          }
+        });
+        setClinicPasswords(prev => ({ ...prev, ...passwordMap }));
+      }
     } catch (err: any) {
       setError('Failed to load clinics: ' + err.message);
     } finally {
@@ -235,6 +246,7 @@ export function ClinicManagementCRUD() {
             location_code: formData.location_code,
             status: formData.status,
             password_hash: passwordHash,
+            current_password: tempPassword, // Store the actual password for admin visibility
             password_must_be_changed: true,
             first_login: true,
             created_at: new Date().toISOString(),
