@@ -68,6 +68,15 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     loadClinicCards();
     loadStats();
     loadAppointments();
+
+    // Auto-refresh data every 30 seconds for real-time updates
+    const interval = setInterval(() => {
+      loadClinicCards();
+      loadStats();
+      loadAppointments();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Enhanced search functionality for clinic dashboard
@@ -78,20 +87,31 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     }
 
     try {
-      // Get suggestions for cards assigned to this clinic
-      const { data: clinicCardSuggestions } = await supabase
+      // Get suggestions for ALL cards, prioritizing unassigned and assigned to this clinic
+      const { data: allCardSuggestions } = await supabase
         .from('cards')
-        .select('control_number, control_number_v2, card_number')
-        .eq('assigned_clinic_id', clinicCredentials.clinicId)
+        .select('control_number, control_number_v2, card_number, status, assigned_clinic_id')
         .or(`control_number.ilike.${query}%,control_number_v2.ilike.${query}%`)
-        .limit(5);
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-      const suggestions = (clinicCardSuggestions || []).map(card => ({
-        id: `control-${card.control_number || card.control_number_v2}`,
-        text: card.control_number_v2 || card.control_number || '',
-        type: 'control_number' as const,
-        count: 1
-      })).filter((suggestion, index, self) =>
+      const suggestions = (allCardSuggestions || []).map(card => {
+        const controlNumber = card.control_number_v2 || card.control_number || '';
+        const isAssignedToThisClinic = card.assigned_clinic_id === clinicCredentials.clinicId;
+        const statusLabel = isAssignedToThisClinic ? 'Your Clinic' : card.status;
+
+        return {
+          id: `control-${controlNumber}`,
+          text: controlNumber,
+          type: 'control_number' as const,
+          count: 1,
+          metadata: {
+            status: card.status,
+            isAssignedToThisClinic,
+            statusLabel
+          }
+        };
+      }).filter((suggestion, index, self) =>
         index === self.findIndex(s => s.text === suggestion.text) && suggestion.text
       );
 
@@ -239,15 +259,39 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
       const { error: updateError } = await supabase
         .from('cards')
         .update({
-          clinic_id: clinicCredentials.clinicId,
+          assigned_clinic_id: clinicCredentials.clinicId,
           status: 'assigned',
           assigned_at: new Date().toISOString(),
-          assigned_by: clinicCredentials.clinicId,
           updated_at: new Date().toISOString()
         })
         .eq('id', cardId);
 
       if (updateError) throw updateError;
+
+      // Assign default perks to the card
+      const { data: defaultPerks } = await supabase
+        .from('default_perk_templates')
+        .select('*')
+        .eq('is_active', true)
+        .eq('is_default', true);
+
+      if (defaultPerks && defaultPerks.length > 0) {
+        const perkInserts = defaultPerks.map(template => ({
+          card_id: cardId,
+          perk_type: template.perk_type,
+          claimed: false,
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: perksError } = await supabase
+          .from('card_perks')
+          .insert(perkInserts);
+
+        if (perksError) {
+          console.error('Error assigning default perks:', perksError);
+          // Don't throw here, just log - assignment is still successful
+        }
+      }
 
       // Log the assignment
       await dbOperations.logTransaction({
@@ -257,15 +301,19 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
         performed_by_id: clinicCredentials.clinicId,
         details: {
           assigned_by_clinic: clinicCredentials.clinicName,
-          assigned_via: 'self_assignment'
+          assigned_via: 'self_assignment',
+          perks_assigned: defaultPerks?.length || 0
         }
       });
 
       // Refresh data
       loadClinicCards();
+      loadStats(); // Update stats to reflect new assignment
       setFoundCard(null);
       setSearchControl('');
       setError('');
+
+      console.log(`Card assigned successfully to ${clinicCredentials.clinicName}`);
 
     } catch (err: any) {
       console.error('Error assigning card:', err);
@@ -705,8 +753,11 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                 <div className="border border-gray-200 rounded-xl p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                     <div>
-                      <div className="font-mono text-base sm:text-lg break-all">{foundCard.control_number}</div>
+                      <div className="font-mono text-base sm:text-lg break-all">{foundCard.control_number_v2 || foundCard.control_number}</div>
                       <div className="text-xs sm:text-sm text-gray-500">Status: {foundCard.status}</div>
+                      {foundCard.assigned_clinic_id && foundCard.assigned_clinic_id !== clinicCredentials.clinicId && (
+                        <div className="text-xs text-red-600">Assigned to different clinic</div>
+                      )}
                     </div>
                     {foundCard.status === 'assigned' && (
                       <button
@@ -767,7 +818,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                     <div key={card.id} className="border border-gray-200 rounded-xl p-3 sm:p-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
-                          <div className="font-mono text-sm sm:text-base break-all">{card.control_number}</div>
+                          <div className="font-mono text-sm sm:text-base break-all">{card.control_number_v2 || card.control_number}</div>
                           <div className="text-xs sm:text-sm text-gray-500">
                             Status: {card.status} •
                             Activated: {card.activated_at ? new Date(card.activated_at).toLocaleDateString() : 'N/A'}
@@ -801,7 +852,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div>
                             <div className="font-medium text-sm sm:text-base">{getPerkDisplayName(perk.perk_type)}</div>
-                            <div className="text-xs sm:text-sm text-gray-500">Card: <span className="break-all">{card.control_number}</span></div>
+                            <div className="text-xs sm:text-sm text-gray-500">Card: <span className="break-all">{card.control_number_v2 || card.control_number}</span></div>
                           </div>
                           <div className="text-left sm:text-right self-start sm:self-auto">
                             <div className="text-sm text-gray-900">₱{getPerkValue(perk.perk_type)}</div>

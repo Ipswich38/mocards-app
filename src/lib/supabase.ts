@@ -317,6 +317,7 @@ export const dbOperations = {
   },
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
+    // Try to find card by either control_number or control_number_v2
     let query = supabase
       .from('cards')
       .select(`
@@ -324,7 +325,7 @@ export const dbOperations = {
         clinic:mocards_clinics(*),
         perks:card_perks(*)
       `)
-      .eq('control_number', controlNumber);
+      .or(`control_number.eq.${controlNumber},control_number_v2.eq.${controlNumber}`);
 
     if (passcode) {
       query = query.eq('passcode', passcode);
