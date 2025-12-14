@@ -87,13 +87,31 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     }
 
     try {
-      // Get suggestions for ALL cards, prioritizing unassigned and assigned to this clinic
-      const { data: allCardSuggestions } = await supabase
-        .from('cards')
-        .select('control_number, control_number_v2, card_number, status, assigned_clinic_id')
-        .or(`control_number.ilike.${query}%,control_number_v2.ilike.${query}%`)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // Check if query is 5-digit pattern
+      const fiveDigitPattern = /^\d{2,5}$/;
+      const isFiveDigitSearch = fiveDigitPattern.test(query);
+
+      let queryBuilder;
+
+      if (isFiveDigitSearch) {
+        // For 5-digit searches, look for cards ending with those digits
+        queryBuilder = supabase
+          .from('cards')
+          .select('control_number, control_number_v2, card_number, status, assigned_clinic_id')
+          .or(`control_number.like.%${query},control_number_v2.like.%${query}`)
+          .order('card_number', { ascending: true })
+          .limit(10);
+      } else {
+        // For other searches, use standard prefix matching
+        queryBuilder = supabase
+          .from('cards')
+          .select('control_number, control_number_v2, card_number, status, assigned_clinic_id')
+          .or(`control_number.ilike.${query}%,control_number_v2.ilike.${query}%`)
+          .order('created_at', { ascending: false })
+          .limit(10);
+      }
+
+      const { data: allCardSuggestions } = await queryBuilder;
 
       const suggestions = (allCardSuggestions || []).map(card => {
         const controlNumber = card.control_number_v2 || card.control_number || '';
@@ -108,7 +126,8 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
           metadata: {
             status: card.status,
             isAssignedToThisClinic,
-            statusLabel
+            statusLabel,
+            cardNumber: card.card_number
           }
         };
       }).filter((suggestion, index, self) =>
@@ -733,7 +752,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
               <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Card Lookup, Assignment & Activation</h3>
               <div className="w-full">
                 <SearchComponent
-                  placeholder="Enter control number (e.g., MOC-01-NCR1-00001)"
+                  placeholder="Enter 5-digit card number (e.g., 00001) or full control number"
                   suggestions={searchSuggestions}
                   onSearch={handleEnhancedSearch}
                   onResultSelect={handleSearchResultSelect}

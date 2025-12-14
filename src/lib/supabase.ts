@@ -317,15 +317,33 @@ export const dbOperations = {
   },
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
-    // Try to find card by either control_number or control_number_v2
-    let query = supabase
-      .from('cards')
-      .select(`
-        *,
-        clinic:mocards_clinics(*),
-        perks:card_perks(*)
-      `)
-      .or(`control_number.eq.${controlNumber},control_number_v2.eq.${controlNumber}`);
+    // Check if input is just the 5-digit card number (00001 to 10000)
+    const fiveDigitPattern = /^\d{5}$/;
+    const isFiveDigitSearch = fiveDigitPattern.test(controlNumber);
+
+    let query;
+
+    if (isFiveDigitSearch) {
+      // Search by last 5 digits - match control numbers ending with the input
+      query = supabase
+        .from('cards')
+        .select(`
+          *,
+          clinic:mocards_clinics(*),
+          perks:card_perks(*)
+        `)
+        .or(`control_number.like.%${controlNumber},control_number_v2.like.%${controlNumber}`);
+    } else {
+      // Search by full control number
+      query = supabase
+        .from('cards')
+        .select(`
+          *,
+          clinic:mocards_clinics(*),
+          perks:card_perks(*)
+        `)
+        .or(`control_number.eq.${controlNumber},control_number_v2.eq.${controlNumber}`);
+    }
 
     if (passcode) {
       query = query.eq('passcode', passcode);
