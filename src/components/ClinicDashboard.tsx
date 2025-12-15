@@ -88,7 +88,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
     try {
       // Check if query is 5-digit pattern
       const fiveDigitPattern = /^\d{2,5}$/;
-      const isFiveDigitSearch = fiveDigitPattern.search(query);
+      const isFiveDigitSearch = fiveDigitPattern.test(query);
 
       let queryBuilder;
 
@@ -223,7 +223,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
           if (perk.claimed) {
             const claimedDate = new Date(perk.claimed_at || '');
             const today = new Date();
-            if (claimedDate.toDasearchring() === today.toDasearchring()) {
+            if (claimedDate.toDateString() === today.toDateString()) {
               todayRedemptions++;
             }
             totalValue += getPerkValue(perk.perk_type);
@@ -806,7 +806,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                           <div className="font-mono text-sm sm:text-base break-all">{card.control_number_v2 || card.control_number}</div>
                           <div className="text-xs sm:text-sm text-gray-500">
                             Status: {card.status} •
-                            Activated: {card.activated_at ? new Date(card.activated_at).toLocaleDasearchring() : 'N/A'}
+                            Activated: {card.activated_at ? new Date(card.activated_at).toLocaleDateString() : 'N/A'}
                           </div>
                         </div>
                         <div className="text-xs sm:text-sm text-gray-400 self-start sm:self-auto">
@@ -842,7 +842,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                           <div className="text-left sm:text-right self-start sm:self-auto">
                             <div className="text-sm text-gray-900">₱{getPerkValue(perk.perk_type)}</div>
                             <div className="text-xs text-gray-400">
-                              {perk.claimed_at ? new Date(perk.claimed_at).toLocaleDasearchring() : ''}
+                              {perk.claimed_at ? new Date(perk.claimed_at).toLocaleDateString() : ''}
                             </div>
                           </div>
                         </div>
@@ -1036,7 +1036,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                             <div>
-                              <strong>Date:</strong> {new Date(appointment.appointment_date).toLocaleDasearchring()}
+                              <strong>Date:</strong> {new Date(appointment.appointment_date).toLocaleDateString()}
                             </div>
                             <div>
                               <strong>Time:</strong> {appointment.appointment_time}
@@ -1045,7 +1045,7 @@ export function ClinicDashboard({ clinicCredentials, onBack }: ClinicDashboardPr
                               <strong>Card:</strong> <span className="break-all">{appointment.control_number}</span>
                             </div>
                             <div>
-                              <strong>Day:</strong> {new Date(appointment.appointment_date).toLocaleDasearchring(undefined, { weekday: 'long' })}
+                              <strong>Day:</strong> {new Date(appointment.appointment_date).toLocaleDateString(undefined, { weekday: 'long' })}
                             </div>
                           </div>
 

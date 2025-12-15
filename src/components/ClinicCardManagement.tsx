@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase, dbOperations } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 interface AssignedCard {
   id: string;
@@ -440,10 +440,10 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
                             <td className="px-6 py-4 whitespace-nowrap font-mono text-blue-600">{card.control_number}</td>
                             <td className="px-6 py-4 whitespace-nowrap font-mono text-green-600">{card.passcode}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {card.activated_at ? new Date(card.activated_at).toLocaleDasearchring() : '-'}
+                              {card.activated_at ? new Date(card.activated_at).toLocaleDateString() : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {card.expires_at ? new Date(card.expires_at).toLocaleDasearchring() : '-'}
+                              {card.expires_at ? new Date(card.expires_at).toLocaleDateString() : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <button
@@ -644,7 +644,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
                 {cardPerks.map(perk => (
                   <div key={perk.id} className={`p-2 rounded text-sm ${perk.claimed ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700'}`}>
                     {perk.claimed ? '❌' : '✅'} {perk.perk_type}
-                    {perk.claimed && ` (Used: ${new Date(perk.claimed_at!).toLocaleDasearchring()})`}
+                    {perk.claimed && ` (Used: ${new Date(perk.claimed_at!).toLocaleDateString()})`}
                   </div>
                 ))}
               </div>

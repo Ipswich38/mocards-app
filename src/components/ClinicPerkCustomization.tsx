@@ -69,9 +69,9 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
   const handleEditPerk = (customization: PerkCustomization) => {
     setEditingPerk(customization);
     setEditForm({
-      custom_name: customization.custom_name || customization.perk_template?.name || '',
-      custom_description: customization.custom_description || customization.perk_template?.description || '',
-      custom_value: customization.custom_value || customization.perk_template?.default_value || 0,
+      custom_name: customization.custom_name || customization.perk_datalate?.name || '',
+      custom_description: customization.custom_description || customization.perk_datalate?.description || '',
+      custom_value: customization.custom_value || customization.perk_datalate?.default_value || 0,
       is_enabled: customization.is_enabled,
       requires_appointment: customization.requires_appointment,
       max_redemptions_per_card: customization.max_redemptions_per_card,
@@ -142,9 +142,9 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
 
   const filteredCustomizations = customizations.filter(custom => {
     const matchesSearch =
-      (custom.custom_name || custom.perk_template?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (custom.custom_description || custom.perk_template?.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (custom.perk_template?.category || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (custom.custom_name || custom.perk_datalate?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (custom.custom_description || custom.perk_datalate?.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (custom.perk_datalate?.category || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilter =
       filterEnabled === 'all' ||
@@ -223,24 +223,24 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="text-2xl">{getIconDisplay(customization.perk_template?.icon)}</span>
+                      <span className="text-2xl">{getIconDisplay(customization.perk_datalate?.icon)}</span>
                       <div>
                         <h4 className="font-medium text-gray-900">
-                          {customization.custom_name || customization.perk_template?.name}
+                          {customization.custom_name || customization.perk_datalate?.name}
                         </h4>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Type: {customization.perk_template?.perk_type}</span>
-                          <span>Value: ₱{(customization.custom_value || customization.perk_template?.default_value || 0).toLocaleString()}</span>
-                          {customization.perk_template?.category && (
-                            <span>Category: {customization.perk_template.category}</span>
+                          <span>Type: {customization.perk_datalate?.perk_type}</span>
+                          <span>Value: ₱{(customization.custom_value || customization.perk_datalate?.default_value || 0).toLocaleString()}</span>
+                          {customization.perk_datalate?.category && (
+                            <span>Category: {customization.perk_datalate.category}</span>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    {(customization.custom_description || customization.perk_template?.description) && (
+                    {(customization.custom_description || customization.perk_datalate?.description) && (
                       <p className="text-sm text-gray-600 mb-3">
-                        {customization.custom_description || customization.perk_template?.description}
+                        {customization.custom_description || customization.perk_datalate?.description}
                       </p>
                     )}
 
@@ -321,7 +321,7 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
-                Customize: {editingPerk.perk_template?.name}
+                Customize: {editingPerk.perk_datalate?.name}
               </h3>
               <button
                 onClick={() => {
@@ -342,7 +342,7 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
                     type="text"
                     value={editForm.custom_name}
                     onChange={(e) => setEditForm({...editForm, custom_name: e.target.value})}
-                    placeholder={editingPerk.perk_template?.name}
+                    placeholder={editingPerk.perk_datalate?.name}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -365,7 +365,7 @@ export function ClinicPerkCustomization({ clinicId, clinicName }: ClinicPerkCust
                 <textarea
                   value={editForm.custom_description}
                   onChange={(e) => setEditForm({...editForm, custom_description: e.target.value})}
-                  placeholder={editingPerk.perk_template?.description}
+                  placeholder={editingPerk.perk_datalate?.description}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
                   rows={3}
                 />

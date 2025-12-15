@@ -81,7 +81,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         totalCardsResult,
         unactivatedCardsResult,
         activatedCardsResult,
-        v2CardsResult,
+        _v2CardsResult,
         totalClinicsResult,
         totalPerksResult
       ] = await Promise.all([
@@ -107,15 +107,8 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
       setLastUpdated(new Date());
 
-      // Log stats for debugging
+      // Stats loaded successfully
       // Production: logging removed
-        total: totalCardsResult.count,
-        unactivated: unactivatedCardsResult.count,
-        activated: activatedCardsResult.count,
-        v2Cards: v2CardsResult.count,
-        clinics: totalClinicsResult.count,
-        perks: totalPerksResult.count
-      });
 
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -161,7 +154,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
     }
   };
 
-  const handleSearchResultSelect = (result: any) => {
+  const handleSearchResultSelect = (_result: any) => {
     // Production: logging removed
   };
 
@@ -385,9 +378,9 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                       </div>
                       <div className="text-sm text-gray-500">
                         <div>Location: {foundCard.location_code || 'Not set'}</div>
-                        <div>Created: {new Date(foundCard.created_at).toLocaleDasearchring()}</div>
+                        <div>Created: {new Date(foundCard.created_at).toLocaleDateString()}</div>
                         {foundCard.activated_at && (
-                          <div>Activated: {new Date(foundCard.activated_at).toLocaleDasearchring()}</div>
+                          <div>Activated: {new Date(foundCard.activated_at).toLocaleDateString()}</div>
                         )}
                       </div>
                     </div>

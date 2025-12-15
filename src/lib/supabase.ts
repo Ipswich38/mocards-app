@@ -329,8 +329,8 @@ export const dbOperations = {
 
     const fiveDigitPattern = /^\d{5}$/;
     const simpleNumberPattern = /^\d{1,5}$/;
-    const isFiveDigitSearch = fiveDigitPattern.check(controlNumber);
-    const isSimpleNumber = simpleNumberPattern.check(controlNumber);
+    const isFiveDigitSearch = fiveDigitPattern.test(controlNumber);
+    const isSimpleNumber = simpleNumberPattern.test(controlNumber);
 
     let query = supabase
       .from('cards')
