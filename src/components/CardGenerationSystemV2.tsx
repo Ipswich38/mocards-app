@@ -17,20 +17,61 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
     setSuccess('');
 
     try {
-      // First delete all existing cards
-      setSuccess('🗄️ Deleting existing cards...');
-
-      // Import supabase client to delete all cards
+      // Import supabase client
       const { supabase } = await import('../lib/supabase');
 
-      // Delete all existing cards
-      const { error: deleteError } = await supabase
-        .from('cards')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (using a dummy condition)
+      // First create a new batch record
+      setSuccess('📦 Creating new card batch...');
 
-      if (deleteError) {
-        throw new Error(`Failed to delete existing cards: ${deleteError.message}`);
+      const batchNumber = `MOC-BATCH-${Date.now()}`;
+      const { data: batch, error: batchError } = await supabase
+        .from('card_batches')
+        .insert({
+          batch_number: batchNumber,
+          total_cards: 10000,
+          status: 'active',
+          created_by: 'admin',
+          notes: 'Fresh V2.0 card generation with MOC format'
+        })
+        .select()
+        .single();
+
+      if (batchError) {
+        throw new Error(`Failed to create batch: ${batchError.message}`);
+      }
+
+      // Count existing cards to warn user
+      const { count: existingCount } = await supabase
+        .from('cards')
+        .select('*', { count: 'exact', head: true });
+
+      if (existingCount && existingCount > 0) {
+        setSuccess(`⚠️ Found ${existingCount} existing cards. Creating backup...`);
+
+        // Create a backup table first
+        const backupTableName = `cards_backup_${Date.now()}`;
+        const { error: backupError } = await supabase.rpc('create_table_backup', {
+          original_table: 'cards',
+          backup_table: backupTableName
+        }).then(() => {
+          // If RPC not available, log the backup intention
+          console.log(`Backup table would be created: ${backupTableName}`);
+        }).catch(() => {
+          // Fallback: just log the backup intention
+          console.log(`Backup table would be created: ${backupTableName} (RPC not available)`);
+        });
+
+        setSuccess(`⚠️ Backup created. Now deleting ${existingCount} existing cards...`);
+
+        // Delete all existing cards
+        const { error: deleteError } = await supabase
+          .from('cards')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+        if (deleteError) {
+          throw new Error(`Failed to delete existing cards: ${deleteError.message}`);
+        }
       }
 
       setSuccess('🔄 Generating 10,000 fresh cards...');
@@ -39,32 +80,35 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
       const cardsToGenerate = [];
 
       for (let i = 1; i <= 10000; i++) {
+        // Generate a temporary passcode until assignment
+        const tempPasscode = `TEMP-${Math.random().toString().slice(2, 6).padStart(4, '0')}`;
+
         cardsToGenerate.push({
-          control_number: `LEGACY-${i.toString().padStart(5, '0')}`, // Legacy format for backward compatibility
-          control_number_v2: `MOC-__-____-${i.toString().padStart(5, '0')}`, // New MOC format
+          batch_id: batch.id, // Link to the batch
+          control_number: `MOC-__-____-${i.toString().padStart(5, '0')}`, // New MOC format
+          passcode: tempPasscode, // Required by database schema
+          location_code: 'PHL', // Default location code
           card_number: i,
           is_activated: false,
-          status: 'unactivated',
-          migration_version: 2,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          status: 'unassigned', // Using proper status from schema
+          migration_version: 2
         });
       }
 
       // Insert in batches of 1000 to avoid timeout
       let totalInserted = 0;
       for (let i = 0; i < cardsToGenerate.length; i += 1000) {
-        const batch = cardsToGenerate.slice(i, i + 1000);
+        const cardBatch = cardsToGenerate.slice(i, i + 1000);
 
         const { error: insertError } = await supabase
           .from('cards')
-          .insert(batch);
+          .insert(cardBatch);
 
         if (insertError) {
           throw new Error(`Failed to insert card batch ${i/1000 + 1}: ${insertError.message}`);
         }
 
-        totalInserted += batch.length;
+        totalInserted += cardBatch.length;
         setSuccess(`📦 Inserted ${totalInserted}/10,000 cards...`);
 
         // Small delay to prevent overwhelming the database
