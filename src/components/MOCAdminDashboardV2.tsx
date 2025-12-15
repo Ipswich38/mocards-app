@@ -7,8 +7,6 @@ import { MOCCardManagement } from './MOCCardManagement';
 import { ClinicManagementCRUD } from './ClinicManagementCRUD';
 import { AppointmentCalendar } from './AppointmentCalendar';
 import { CardExportSystem } from './CardExportSystem';
-import { DataIntegrityChecker } from './DataIntegrityChecker';
-import { CardAssignmentSystem } from './CardAssignmentSystem';
 import { SearchComponent } from './SearchComponent';
 import {
   CreditCard,
@@ -26,7 +24,7 @@ import {
   X,
   Download,
   Shield,
-  ArrowRightLeft
+  Settings
 } from 'lucide-react';
 
 interface MOCAdminDashboardV2Props {
@@ -35,10 +33,11 @@ interface MOCAdminDashboardV2Props {
 }
 
 export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'generate' | 'mocards' | 'clinics' | 'assignments' | 'perks' | 'activate' | 'appointments' | 'export' | 'integrity' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'mocards' | 'clinics' | 'appointments' | 'export' | 'settings' | 'profile'>('dashboard');
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mocardsSubTab, setMocardsSubTab] = useState<'overview' | 'generate' | 'perks' | 'activation'>('overview');
   const [stats, setStats] = useState({
     totalCards: 0,
     unactivatedCards: 0,
@@ -167,62 +166,38 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       id: 'dashboard',
       label: 'Dashboard',
       icon: BarChart3,
-      description: 'System overview and statistics'
-    },
-    {
-      id: 'generate',
-      label: 'Generate Cards',
-      icon: CreditCard,
-      description: 'Generate MOC cards'
+      description: 'System overview'
     },
     {
       id: 'mocards',
       label: 'MOCARDS Management',
-      icon: Users,
-      description: 'View and manage 10,000 cards'
+      icon: CreditCard,
+      description: 'Cards, perks & activation'
     },
     {
       id: 'clinics',
       label: 'Clinic Management',
       icon: Building2,
-      description: 'Manage clinics and registration'
-    },
-    {
-      id: 'assignments',
-      label: 'Card Assignment',
-      icon: ArrowRightLeft,
-      description: 'Assign cards to clinics'
-    },
-    {
-      id: 'perks',
-      label: 'Perks Management',
-      icon: Gift,
-      description: 'Manage default perks'
-    },
-    {
-      id: 'activate',
-      label: 'Card Activation',
-      icon: CheckCircle,
-      description: 'Card activation system'
+      description: 'Manage clinics'
     },
     {
       id: 'appointments',
       label: 'Appointments',
       icon: Calendar,
-      description: 'Manage appointments'
+      description: 'Booking system'
     },
     {
       id: 'export',
       label: 'Data Export',
       icon: Download,
-      description: 'Export card data'
+      description: 'Export data'
     },
     {
-      id: 'integrity',
-      label: 'Data Integrity',
-      icon: Shield,
-      description: 'Verify system health'
-    },
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      description: 'System settings'
+    }
   ];
 
   const renderContent = () => {
@@ -392,9 +367,12 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
             {/* Quick Actions */}
             <div className="card-airbnb-elevated p-8">
               <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
-                  onClick={() => setActiveTab('generate')}
+                  onClick={() => {
+                    setActiveTab('mocards');
+                    setMocardsSubTab('generate');
+                  }}
                   className="btn btn-primary p-4 text-left"
                 >
                   <CreditCard className="h-6 w-6 mb-2" />
@@ -412,15 +390,6 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('activate')}
-                  className="btn btn-outline p-4 text-left"
-                >
-                  <CheckCircle className="h-6 w-6 mb-2" />
-                  <div className="font-medium">Activate Cards</div>
-                  <div className="text-sm opacity-75">Assign location & clinic codes</div>
-                </button>
-
-                <button
                   onClick={() => setActiveTab('clinics')}
                   className="btn btn-outline p-4 text-left"
                 >
@@ -430,21 +399,12 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('perks')}
-                  className="btn btn-outline p-4 text-left"
-                >
-                  <Gift className="h-6 w-6 mb-2" />
-                  <div className="font-medium">Manage Perks</div>
-                  <div className="text-sm opacity-75">Default perks datalates</div>
-                </button>
-
-                <button
                   onClick={() => setActiveTab('appointments')}
                   className="btn btn-outline p-4 text-left"
                 >
                   <Calendar className="h-6 w-6 mb-2" />
                   <div className="font-medium">Appointments</div>
-                  <div className="text-sm opacity-75">Manage appointments</div>
+                  <div className="text-sm opacity-75">Booking system</div>
                 </button>
 
                 <button
@@ -453,7 +413,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 >
                   <Download className="h-6 w-6 mb-2" />
                   <div className="font-medium">Data Export</div>
-                  <div className="text-sm opacity-75">Export all {stats.totalCards.toLocaleString()} cards</div>
+                  <div className="text-sm opacity-75">Export data</div>
                 </button>
 
                 <button
@@ -463,7 +423,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 >
                   <RefreshCw className={`h-6 w-6 mb-2 ${loading ? 'animate-spin' : ''}`} />
                   <div className="font-medium">Refresh Stats</div>
-                  <div className="text-sm opacity-75">Update dashboard data</div>
+                  <div className="text-sm opacity-75">Update data</div>
                 </button>
               </div>
             </div>
@@ -633,23 +593,73 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
           </div>
         );
 
-      case 'generate':
-        return <CardGenerationSystemV2 token={token} />;
-
       case 'mocards':
-        return <MOCCardManagement />;
+        return (
+          <div className="space-y-6">
+            {/* MOCARDS Management Header */}
+            <div className="card-elevated p-6">
+              <h2 className="text-2xl font-bold mb-4">MOCARDS Management</h2>
+              <p className="text-gray-600">Comprehensive card management system</p>
+            </div>
+
+            {/* Sub-navigation */}
+            <div className="card p-2">
+              <div className="flex space-x-1">
+                <button
+                  onClick={() => setMocardsSubTab('overview')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    mocardsSubTab === 'overview'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  onClick={() => setMocardsSubTab('generate')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    mocardsSubTab === 'generate'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Generate Cards
+                </button>
+                <button
+                  onClick={() => setMocardsSubTab('perks')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    mocardsSubTab === 'perks'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Perks Management
+                </button>
+                <button
+                  onClick={() => setMocardsSubTab('activation')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    mocardsSubTab === 'activation'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Card Activation
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-tab content */}
+            <div>
+              {mocardsSubTab === 'overview' && <MOCCardManagement />}
+              {mocardsSubTab === 'generate' && <CardGenerationSystemV2 token={token} />}
+              {mocardsSubTab === 'perks' && <DefaultPerksManagement token={token} />}
+              {mocardsSubTab === 'activation' && <CardActivationV2 clinicId="admin" clinicName="Admin Portal" />}
+            </div>
+          </div>
+        );
 
       case 'clinics':
         return <ClinicManagementCRUD />;
-
-      case 'assignments':
-        return <CardAssignmentSystem />;
-
-      case 'perks':
-        return <DefaultPerksManagement token={token} />;
-
-      case 'activate':
-        return <CardActivationV2 clinicId="admin" clinicName="Admin Portal" />;
 
       case 'appointments':
         return <AppointmentCalendar token={token} />;
@@ -657,17 +667,26 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       case 'export':
         return <CardExportSystem />;
 
-      case 'integrity':
-        return <DataIntegrityChecker />;
+      case 'settings':
+        return (
+          <div className="card-elevated p-8">
+            <h3 className="text-2xl font-bold mb-6">Settings</h3>
+            <div className="text-center py-16">
+              <Settings className="h-20 w-20 mx-auto mb-6 text-gray-400" />
+              <p className="text-lg mb-3 text-gray-600">System settings and configuration</p>
+              <p className="text-gray-500">Settings panel coming soon...</p>
+            </div>
+          </div>
+        );
 
       case 'profile':
         return (
           <div className="card-elevated p-8">
-            <h3 className="headline-small mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Admin Profile</h3>
+            <h3 className="text-2xl font-bold mb-6">Profile</h3>
             <div className="text-center py-16">
-              <UserCheck className="h-20 w-20 mx-auto mb-6" style={{ color: 'var(--md-sys-color-on-surface-variant)' }} />
-              <p className="body-large mb-3" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Admin profile management and system settings coming soon...</p>
-              <p className="body-medium" style={{ color: 'var(--md-sys-color-outline)' }}>Profile settings, preferences, and account management</p>
+              <UserCheck className="h-20 w-20 mx-auto mb-6 text-gray-400" />
+              <p className="text-lg mb-3 text-gray-600">Profile & account management</p>
+              <p className="text-gray-500">Profile settings coming soon...</p>
             </div>
           </div>
         );
