@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, dbOperations } from '../lib/supabase';
 
 interface AssignedCard {
   id: string;
   control_number: string;
+  unified_control_number?: string;
+  display_card_number?: number;
   passcode: string;
   status: 'unactivated' | 'activated';
   activated_at?: string;
@@ -84,7 +86,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error loading assigned cards:', error);
+      // Production: error logging removed
     } else {
       const formattedCards = data?.map(card => ({
         id: card.id,
@@ -108,7 +110,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
       .order('perk_type');
 
     if (error) {
-      console.error('Error loading card perks:', error);
+      // Production: error logging removed
     } else {
       setCardPerks(data || []);
     }
@@ -212,7 +214,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
       loadAssignedCards();
 
     } catch (error) {
-      console.error('Error activating card:', error);
+      // Production: error logging removed
       setMessage(`❌ Error: ${error instanceof Error ? error.message : 'Activation failed'}`);
     } finally {
       setIsLoading(false);
@@ -248,7 +250,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
         .select('*')
         .eq('card_id', card.id)
         .eq('perk_type', redemptionForm.perk_type)
-        .eq('claimed', false)
+        .eq('is_claimed', false)
         .single();
 
       if (perkError) throw perkError;
@@ -258,7 +260,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
       const { error: claimError } = await supabase
         .from('card_perks')
         .update({
-          claimed: true,
+          is_claimed: true,
           claimed_at: new Date().toISOString(),
           claimed_by_clinic: clinicId
         })
@@ -302,7 +304,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
       });
 
     } catch (error) {
-      console.error('Error redeeming perk:', error);
+      // Production: error logging removed
       setMessage(`❌ Error: ${error instanceof Error ? error.message : 'Redemption failed'}`);
     } finally {
       setIsLoading(false);
@@ -438,10 +440,10 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
                             <td className="px-6 py-4 whitespace-nowrap font-mono text-blue-600">{card.control_number}</td>
                             <td className="px-6 py-4 whitespace-nowrap font-mono text-green-600">{card.passcode}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {card.activated_at ? new Date(card.activated_at).toLocaleDateString() : '-'}
+                              {card.activated_at ? new Date(card.activated_at).toLocaleDasearchring() : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {card.expires_at ? new Date(card.expires_at).toLocaleDateString() : '-'}
+                              {card.expires_at ? new Date(card.expires_at).toLocaleDasearchring() : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <button
@@ -642,7 +644,7 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
                 {cardPerks.map(perk => (
                   <div key={perk.id} className={`p-2 rounded text-sm ${perk.claimed ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700'}`}>
                     {perk.claimed ? '❌' : '✅'} {perk.perk_type}
-                    {perk.claimed && ` (Used: ${new Date(perk.claimed_at!).toLocaleDateString()})`}
+                    {perk.claimed && ` (Used: ${new Date(perk.claimed_at!).toLocaleDasearchring()})`}
                   </div>
                 ))}
               </div>

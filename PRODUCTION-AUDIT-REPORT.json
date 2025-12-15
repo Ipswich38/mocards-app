@@ -1,0 +1,1430 @@
+{
+  "timestamp": "2025-12-14T23:35:30.365Z",
+  "duration": 15.598,
+  "summary": {
+    "total_issues": 176,
+    "critical": 7,
+    "major": 31,
+    "minor": 138,
+    "production_ready": false
+  },
+  "issues": {
+    "critical": [
+      {
+        "severity": "critical",
+        "category": "SECURITY",
+        "description": "Found \"passwordError, setPasswordError] = useState(''\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 46,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "critical",
+        "category": "SECURITY",
+        "description": "Found \"passwordSuccess, setPasswordSuccess] = useState(''\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 47,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "critical",
+        "category": "SECURITY",
+        "description": "Found \"PasswordChange} className=\"space-y-4\"\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 909,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "critical",
+        "category": "SECURITY",
+        "description": "Found \"password === 'admin123'\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 756,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "critical",
+        "category": "SECURITY",
+        "description": "Found \"password === 'clinic123'\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 775,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "critical",
+        "category": "PORTAL_ACCESS",
+        "description": "Admin portal: Expected 10,000 cards, got 1000",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:20.988Z"
+      },
+      {
+        "severity": "critical",
+        "category": "PORTAL_ACCESS",
+        "description": "Clinic portal: Expected 10,000 cards, got 1000",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:21.633Z"
+      }
+    ],
+    "major": [
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 388,
+        "timestamp": "2025-12-14T23:35:20.168Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 390,
+        "timestamp": "2025-12-14T23:35:20.169Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"test\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 91,
+        "timestamp": "2025-12-14T23:35:20.171Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 226,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 226,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 809,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 845,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 1039,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 1048,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 443,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 446,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 647,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/CardholderLookup.tsx",
+        "line": 274,
+        "timestamp": "2025-12-14T23:35:20.176Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/CardholderLookup.tsx",
+        "line": 287,
+        "timestamp": "2025-12-14T23:35:20.176Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"teSt\" in code",
+        "file": "src/components/CardholderLookup.tsx",
+        "line": 366,
+        "timestamp": "2025-12-14T23:35:20.176Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"Example\" in code",
+        "file": "src/components/SearchComponent.tsx",
+        "line": 356,
+        "timestamp": "2025-12-14T23:35:20.176Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"test\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 332,
+        "timestamp": "2025-12-14T23:35:20.177Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"test\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 333,
+        "timestamp": "2025-12-14T23:35:20.177Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"demo\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 755,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"Demo\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 756,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"demo\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 774,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "major",
+        "category": "DEMO_CODE",
+        "description": "Found \"Demo\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 775,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "major",
+        "category": "PORTAL_ACCESS",
+        "description": "Patient portal: Cannot find card with \"MOC-00001\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:23.170Z"
+      },
+      {
+        "severity": "major",
+        "category": "PORTAL_ACCESS",
+        "description": "Patient portal: Cannot find card with \"MOC-10000-01-CVT001\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:24.245Z"
+      },
+      {
+        "severity": "major",
+        "category": "PERK_SYSTEM",
+        "description": "Invalid perk type: \"discount\" in template \"New Patient Discount\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:26.497Z"
+      },
+      {
+        "severity": "major",
+        "category": "PERK_SYSTEM",
+        "description": "Invalid perk type: \"discount\" in template \"Senior Citizen Discount\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:26.497Z"
+      },
+      {
+        "severity": "major",
+        "category": "PERK_SYSTEM",
+        "description": "Invalid perk type: \"discount\" in template \"Student Discount\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:26.497Z"
+      },
+      {
+        "severity": "major",
+        "category": "PERK_SYSTEM",
+        "description": "Invalid perk type: \"cashback\" in template \"Checkup Cashback\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:26.497Z"
+      },
+      {
+        "severity": "major",
+        "category": "PERK_SYSTEM",
+        "description": "Invalid perk type: \"points\" in template \"Loyalty Points\"",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:26.497Z"
+      },
+      {
+        "severity": "major",
+        "category": "SEARCH",
+        "description": "Universal search failed for \"MOC-00001\" (Legacy format)",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:28.484Z"
+      },
+      {
+        "severity": "major",
+        "category": "SEARCH",
+        "description": "Universal search failed for \"MOC-10000-01-CVT001\" (Unified format)",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:29.304Z"
+      }
+    ],
+    "minor": [
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 97,
+        "timestamp": "2025-12-14T23:35:20.170Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 445,
+        "timestamp": "2025-12-14T23:35:20.170Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.log\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 111,
+        "timestamp": "2025-12-14T23:35:20.170Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 121,
+        "timestamp": "2025-12-14T23:35:20.170Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 157,
+        "timestamp": "2025-12-14T23:35:20.170Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.log\" in code",
+        "file": "src/components/MOCAdminDashboardV2.tsx",
+        "line": 165,
+        "timestamp": "2025-12-14T23:35:20.170Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"TODO\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 64,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 291,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 297,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 299,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 300,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 138,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 208,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 243,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 254,
+        "timestamp": "2025-12-14T23:35:20.172Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 310,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.log\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 335,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 338,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 361,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 401,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicDashboard.tsx",
+        "line": 427,
+        "timestamp": "2025-12-14T23:35:20.173Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 89,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 113,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 217,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/ClinicCardManagement.tsx",
+        "line": 307,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/components/CardActivationV2.tsx",
+        "line": 77,
+        "timestamp": "2025-12-14T23:35:20.175Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/CardholderLookup.tsx",
+        "line": 80,
+        "timestamp": "2025-12-14T23:35:20.176Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/SearchComponent.tsx",
+        "line": 368,
+        "timestamp": "2025-12-14T23:35:20.176Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/components/SearchComponent.tsx",
+        "line": 394,
+        "timestamp": "2025-12-14T23:35:20.177Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 140,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 167,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 179,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 179,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 185,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 199,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 281,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 706,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 707,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 707,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 707,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 709,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 711,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 719,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 722,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 724,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 730,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 733,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 735,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 742,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 745,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 747,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 753,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 756,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 756,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 758,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 768,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 771,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 773,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 773,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 774,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 779,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 833,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 833,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 847,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 847,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 923,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 923,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 927,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/supabase.ts",
+        "line": 927,
+        "timestamp": "2025-12-14T23:35:20.178Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 187,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 229,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 338,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 338,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 338,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 340,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 361,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 362,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 362,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 367,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 368,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 376,
+        "timestamp": "2025-12-14T23:35:20.181Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 376,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 376,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 399,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 400,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 400,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 405,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 406,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1434,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1435,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1436,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1949,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1950,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1950,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1953,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1961,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1966,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1967,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1967,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1967,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1969,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1972,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1974,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1977,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1983,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1985,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1995,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2000,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"Temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2001,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2001,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2004,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2006,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEMO_CODE",
+        "description": "Found \"temp\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2011,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 9,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 13,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 325,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 332,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 362,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 400,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 462,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 521,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 717,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.warn\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1298,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1306,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1333,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1347,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1362,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1376,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1449,
+        "timestamp": "2025-12-14T23:35:20.182Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.log\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1837,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.log\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1873,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1878,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1896,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1944,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1961,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 1995,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "DEBUG_CODE",
+        "description": "Found \"console.error\" in code",
+        "file": "src/lib/streamlined-operations.ts",
+        "line": 2011,
+        "timestamp": "2025-12-14T23:35:20.183Z"
+      },
+      {
+        "severity": "minor",
+        "category": "PERK_SYSTEM",
+        "description": "No card perks found - may need initial perk assignment",
+        "file": null,
+        "line": null,
+        "timestamp": "2025-12-14T23:35:26.822Z"
+      }
+    ],
+    "demo_traces": [],
+    "non_functioning": [],
+    "flow_issues": []
+  }
+}

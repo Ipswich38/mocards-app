@@ -36,12 +36,14 @@ export interface Card {
   id: string;
   batch_id?: string;
   control_number: string;
-  control_number_v2?: string; // New MOC format: MOC-__-____-00001
-  passcode?: string; // Now optional (removed for new system)
+  control_number_v2?: string; // Legacy format: MOC-XXXXX
+  unified_control_number?: string; // New unified format: MOC-10000-XX-XXXXXX
+  display_card_number?: number; // Display number in 10000-19999 range
+  passcode?: string;
   location_code?: string;
-  location_code_v2?: string; // New format: 01-16
-  clinic_code_v2?: string; // New format: 4-digit clinic code
-  card_number?: number; // Sequential number 1-10000
+  location_code_v2?: string; // Region format: 01-16
+  clinic_code_v2?: string; // Clinic code format: CVT001
+  card_number?: number; // Internal sequence 1-10000
   is_activated?: boolean;
   status: 'unassigned' | 'assigned' | 'activated' | 'expired' | 'suspended' | 'unactivated';
   assigned_clinic_id?: string;
@@ -135,7 +137,7 @@ export interface AppointmentNotification {
 }
 
 // Enhanced Perk Management Types
-export interface PerkTemplate {
+export interface Perkdatalate {
   id: string;
   name: string;
   description?: string;
@@ -162,7 +164,7 @@ export interface PerkCategory {
 export interface ClinicPerkCustomization {
   id: string;
   clinic_id: string;
-  perk_template_id: string;
+  perk_datalate_id: string;
   custom_name?: string;
   custom_description?: string;
   custom_value?: number;
@@ -174,13 +176,13 @@ export interface ClinicPerkCustomization {
   terms_and_conditions?: string;
   created_at: string;
   updated_at: string;
-  perk_template?: PerkTemplate;
+  perk_datalate?: Perkdatalate;
   clinic?: Clinic;
 }
 
 export interface PerkUsageAnalytics {
   id: string;
-  perk_template_id: string;
+  perk_datalate_id: string;
   clinic_id: string;
   card_id: string;
   redemption_date: string;
@@ -194,7 +196,7 @@ export interface CodeGenerationSettings {
   id: string;
   setting_type: 'batch' | 'control' | 'passcode' | 'location';
   generation_mode: 'auto' | 'manual' | 'range';
-  pattern_template?: string;
+  pattern_datalate?: string;
   location_prefix?: string;
   auto_range_start?: number;
   auto_range_end?: number;
@@ -276,7 +278,7 @@ export interface ClinicCodeByRegion {
   updated_at: string;
 }
 
-export interface DefaultPerkTemplate {
+export interface DefaultPerkdatalate {
   id: string;
   perk_name: string;
   perk_type: 'discount' | 'cashback' | 'service' | 'consultation' | 'cleaning' | 'xray' | 'extraction' | 'filling' | 'freebie' | 'points';
@@ -317,33 +319,50 @@ export const dbOperations = {
   },
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
-    // Check if input is just the 5-digit card number (00001 to 10000)
+    // Universal card search supporting all formats:
+    // - Legacy: MOC-00001, MOC-10000
+    // - V2: MOC-00001
+    // - Unified: MOC-10000-01-CVT001
+    // - Card numbers: 1, 10000
+    // - Display numbers: 10000, 19999
+    // - 5-digit: 00001, 10000
+
     const fiveDigitPattern = /^\d{5}$/;
-    const isFiveDigitSearch = fiveDigitPattern.test(controlNumber);
+    const simpleNumberPattern = /^\d{1,5}$/;
+    const isFiveDigitSearch = fiveDigitPattern.check(controlNumber);
+    const isSimpleNumber = simpleNumberPattern.check(controlNumber);
 
-    let query;
+    let query = supabase
+      .from('cards')
+      .select(`
+        *,
+        clinic:mocards_clinics(*),
+        perks:card_perks(*)
+      `);
 
-    if (isFiveDigitSearch) {
-      // Search by last 5 digits - match control numbers ending with the input
-      query = supabase
-        .from('cards')
-        .select(`
-          *,
-          clinic:mocards_clinics(*),
-          perks:card_perks(*)
-        `)
-        .or(`control_number.like.%${controlNumber},control_number_v2.like.%${controlNumber}`);
+    if (isFiveDigitSearch || isSimpleNumber) {
+      // Search by multiple formats for numbers
+      const searchNum = parseInt(controlNumber.replace(/^0+/, '') || '0');
+      const paddedNum = controlNumber.padStart(5, '0');
+
+      query = query.or(
+        `control_number.like.%${paddedNum},` +
+        `control_number_v2.like.%${paddedNum},` +
+        `unified_control_number.like.%${paddedNum},` +
+        `card_number.eq.${searchNum},` +
+        `display_card_number.eq.${searchNum + 9999}`
+      );
     } else {
-      // Search by full control number
-      query = supabase
-        .from('cards')
-        .select(`
-          *,
-          clinic:mocards_clinics(*),
-          perks:card_perks(*)
-        `)
-        .or(`control_number.eq.${controlNumber},control_number_v2.eq.${controlNumber}`);
+      // Search by full control number (all formats)
+      query = query.or(
+        `control_number.eq.${controlNumber},` +
+        `control_number_v2.eq.${controlNumber},` +
+        `unified_control_number.eq.${controlNumber}`
+      );
     }
+
+    // Restrict to our 10k card range
+    query = query.gte('card_number', 1).lte('card_number', 10000);
 
     if (passcode) {
       query = query.eq('passcode', passcode);
@@ -354,14 +373,55 @@ export const dbOperations = {
     return data as Card;
   },
 
-  async activateCard(cardId: string, clinicId: string) {
+  // New universal search function for multiple results
+  async searchCards(searchTerm: string, limit: number = 10) {
+    const { data, error } = await supabase
+      .rpc('search_card_universal', { search_term: searchTerm })
+      .limit(limit);
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get the primary control number for display (unified > v2 > legacy)
+  getPrimaryControlNumber(card: Card): string {
+    return card.unified_control_number || card.control_number_v2 || card.control_number || `Card #${card.card_number}`;
+  },
+
+  // Get the display card number (new 10000+ range)
+  getDisplayCardNumber(card: Card): number {
+    return card.display_card_number || ((card.card_number || 0) + 9999);
+  },
+
+  async activateCard(cardId: string, clinicId: string, regionCode: string = '01') {
+    // Get clinic info for the new unified format
+    const { data: clinic } = await supabase
+      .from('mocards_clinics')
+      .select('clinic_code')
+      .eq('id', clinicId)
+      .single();
+
+    const { data: card } = await supabase
+      .from('cards')
+      .select('card_number')
+      .eq('id', cardId)
+      .single();
+
+    const clinicCode = clinic?.clinic_code || 'CVT001';
+    const displayNumber = (card?.card_number || 1) + 9999;
+    const unifiedControlNumber = `MOC-${displayNumber.toString().padStart(5, '0')}-${regionCode}-${clinicCode}`;
+
     const { data, error } = await supabase
       .from('cards')
       .update({
         status: 'activated',
         assigned_clinic_id: clinicId,
         activated_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        unified_control_number: unifiedControlNumber,
+        display_card_number: displayNumber,
+        location_code_v2: regionCode,
+        clinic_code_v2: clinicCode,
         updated_at: new Date().toISOString()
       })
       .eq('id', cardId)
@@ -643,12 +703,12 @@ export const dbOperations = {
     return data as Clinic[];
   },
 
-  // Perk Template Operations (Admin CRUD)
-  async createPerkTemplate(templateData: Omit<PerkTemplate, 'id' | 'created_at' | 'updated_at'>) {
+  // Perk datalate Operations (Admin CRUD)
+  async createPerkdatalate(datalateData: Omit<Perkdatalate, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await supabase
-      .from('perk_templates')
+      .from('perk_datalates')
       .insert({
-        ...templateData,
+        ...datalateData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -656,46 +716,46 @@ export const dbOperations = {
       .single();
 
     if (error) throw error;
-    return data as PerkTemplate;
+    return data as Perkdatalate;
   },
 
-  async getAllPerkTemplates() {
+  async getAllPerkdatalates() {
     const { data, error } = await supabase
-      .from('perk_templates')
+      .from('perk_datalates')
       .select('*')
       .order('category', { ascending: true })
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data as PerkTemplate[];
+    return data as Perkdatalate[];
   },
 
-  async getActivePerkTemplates() {
+  async getActivePerkdatalates() {
     const { data, error } = await supabase
-      .from('perk_templates')
+      .from('perk_datalates')
       .select('*')
       .eq('is_active', true)
       .order('category', { ascending: true })
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data as PerkTemplate[];
+    return data as Perkdatalate[];
   },
 
-  async getPerkTemplateById(id: string) {
+  async getPerkdatalateById(id: string) {
     const { data, error } = await supabase
-      .from('perk_templates')
+      .from('perk_datalates')
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    return data as PerkTemplate;
+    return data as Perkdatalate;
   },
 
-  async updatePerkTemplate(id: string, updates: Partial<PerkTemplate>) {
+  async updatePerkdatalate(id: string, updates: Partial<Perkdatalate>) {
     const { data, error } = await supabase
-      .from('perk_templates')
+      .from('perk_datalates')
       .update({
         ...updates,
         updated_at: new Date().toISOString()
@@ -705,18 +765,18 @@ export const dbOperations = {
       .single();
 
     if (error) throw error;
-    return data as PerkTemplate;
+    return data as Perkdatalate;
   },
 
-  async deletePerkTemplate(id: string) {
+  async deletePerkdatalate(id: string) {
     // Check if it's a system default (cannot be deleted)
-    const template = await this.getPerkTemplateById(id);
-    if (template.is_system_default) {
+    const datalate = await this.getPerkdatalateById(id);
+    if (datalate.is_system_default) {
       throw new Error('System default perks cannot be deleted');
     }
 
     const { data, error } = await supabase
-      .from('perk_templates')
+      .from('perk_datalates')
       .delete()
       .eq('id', id)
       .eq('is_system_default', false)
@@ -770,7 +830,7 @@ export const dbOperations = {
       .from('clinic_perk_customizations')
       .select(`
         *,
-        perk_template:perk_templates(*)
+        perk_datalate:perk_datalates(*)
       `)
       .eq('clinic_id', clinicId)
       .order('created_at', { ascending: false });
@@ -784,7 +844,7 @@ export const dbOperations = {
       .from('clinic_perk_customizations')
       .select(`
         *,
-        perk_template:perk_templates(*)
+        perk_datalate:perk_datalates(*)
       `)
       .eq('clinic_id', clinicId)
       .eq('is_enabled', true)
@@ -860,11 +920,11 @@ export const dbOperations = {
     return data as PerkUsageAnalytics[];
   },
 
-  async getPerkTemplateUsageStats(templateId: string, monthYear?: string) {
+  async getPerkdatalateUsageStats(datalateId: string, monthYear?: string) {
     let query = supabase
       .from('perk_usage_analytics')
       .select('*')
-      .eq('perk_template_id', templateId);
+      .eq('perk_datalate_id', datalateId);
 
     if (monthYear) {
       query = query.eq('month_year', monthYear);

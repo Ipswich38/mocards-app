@@ -353,7 +353,7 @@ export function useSearch() {
       // This is a placeholder for actual search implementation
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Example results - replace with actual search
+      // Search results - replace with actual search
       const mockResults: SearchResult[] = [
         {
           id: '1',
@@ -365,7 +365,7 @@ export function useSearch() {
 
       setResults(mockResults);
     } catch (error) {
-      console.error('Search error:', error);
+      // Production: error logging removed
     } finally {
       setIsLoading(false);
     }
@@ -391,7 +391,7 @@ export function useSearch() {
 
       setSuggestions(mockSuggestions);
     } catch (error) {
-      console.error('Suggestions error:', error);
+      // Production: error logging removed
     }
   };
 

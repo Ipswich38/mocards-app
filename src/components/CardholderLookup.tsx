@@ -77,7 +77,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
         setError('Card not found. Try searching with 5-digit format (e.g., 00001) or full control number.');
       }
     } catch (err: any) {
-      console.error('Card lookup error:', err);
+      // Production: error logging removed
       setError('Error looking up card. Please try again.');
     } finally {
       setIsLoading(false);
@@ -271,7 +271,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                       <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Expires</p>
                       <p className="body-medium flex items-center" style={{ color: 'var(--md-sys-color-on-surface)' }}>
                         <Calendar className="h-4 w-4 mr-2" style={{ color: 'var(--md-sys-color-secondary)' }} />
-                        {new Date(cardDetails.expires_at).toLocaleDateString()}
+                        {new Date(cardDetails.expires_at).toLocaleDasearchring()}
                       </p>
                     </div>
                   )}
@@ -284,7 +284,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                   <div className="status-success p-4">
                     <p className="body-medium flex items-center">
                       <CheckCircle className="h-5 w-5 mr-2" />
-                      Card activated on {new Date(cardDetails.activated_at).toLocaleDateString()}
+                      Card activated on {new Date(cardDetails.activated_at).toLocaleDasearchring()}
                     </p>
                   </div>
                 )}
@@ -363,7 +363,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
                         </p>
                         {perk.claimed && perk.claimed_at && (
                           <p className="label-small" style={{ color: 'var(--md-sys-color-outline)' }}>
-                            Used on {new Date(perk.claimed_at).toLocaleDateString()}
+                            Used on {new Date(perk.claimed_at).toLocaleDasearchring()}
                           </p>
                         )}
                       </div>

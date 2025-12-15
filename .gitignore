@@ -1,0 +1,9 @@
+
+# Security - Never commit these files
+.env.local
+.env.production.local
+*.key
+*.pem
+*password*
+*secret*
+*token*

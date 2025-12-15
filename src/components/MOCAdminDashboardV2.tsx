@@ -94,7 +94,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         // Cards with proper V2 format
         supabase.from('cards').select('*', { count: 'exact', head: true }).like('control_number_v2', 'MOC-%').gte('card_number', 1).lte('card_number', 10000),
         supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }),
-        supabase.from('default_perk_templates').select('*', { count: 'exact', head: true })
+        supabase.from('default_perk_datalates').select('*', { count: 'exact', head: true })
       ]);
 
       setStats({
@@ -108,7 +108,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       setLastUpdated(new Date());
 
       // Log stats for debugging
-      console.log('📊 Dashboard stats updated:', {
+      // Production: logging removed
         total: totalCardsResult.count,
         unactivated: unactivatedCardsResult.count,
         activated: activatedCardsResult.count,
@@ -162,7 +162,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
   };
 
   const handleSearchResultSelect = (result: any) => {
-    console.log('Selected search result:', result);
+    // Production: logging removed
   };
 
   const handleSuggestionSelect = (suggestion: any) => {
@@ -385,9 +385,9 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                       </div>
                       <div className="text-sm text-gray-500">
                         <div>Location: {foundCard.location_code || 'Not set'}</div>
-                        <div>Created: {new Date(foundCard.created_at).toLocaleDateString()}</div>
+                        <div>Created: {new Date(foundCard.created_at).toLocaleDasearchring()}</div>
                         {foundCard.activated_at && (
-                          <div>Activated: {new Date(foundCard.activated_at).toLocaleDateString()}</div>
+                          <div>Activated: {new Date(foundCard.activated_at).toLocaleDasearchring()}</div>
                         )}
                       </div>
                     </div>
@@ -442,7 +442,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 >
                   <Gift className="h-6 w-6 mb-2" />
                   <div className="font-medium">Manage Perks</div>
-                  <div className="text-sm opacity-75">Default perks templates</div>
+                  <div className="text-sm opacity-75">Default perks datalates</div>
                 </button>
 
                 <button

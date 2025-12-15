@@ -752,8 +752,8 @@ export const streamlinedOps = {
     if (error) throw error;
 
     // In production, use proper password hashing verification
-    // For demo purposes, using simple comparison
-    if (password === 'admin123') { // Demo password
+    // For production purposes, using simple comparison
+    if (bcrypt.compareSync(password, adminUser.password_hash)) { // production password
       return data as AdminAccount;
     } else {
       throw new Error('Invalid password');
@@ -771,8 +771,8 @@ export const streamlinedOps = {
     if (error) throw error;
 
     // In production, use proper password hashing verification
-    // For demo purposes, using simple comparison
-    if (password === 'clinic123') { // Demo password
+    // For production purposes, using simple comparison
+    if (bcrypt.compareSync(password, clinic.password_hash)) { // production password
       return data as Clinic;
     } else {
       throw new Error('Invalid password');

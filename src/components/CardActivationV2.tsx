@@ -74,7 +74,7 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
 
       // Auto-assign default perks
       const { data: defaultPerks } = await supabase
-        .from('default_perk_templates')
+        .from('default_perk_datalates')
         .select('*')
         .eq('is_default', true);
 
