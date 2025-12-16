@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, CheckCircle, AlertCircle, CreditCard, Gift, DollarSign, User, Calendar } from 'lucide-react';
+import { Search, CheckCircle, AlertCircle, CreditCard, Gift, DollarSign, User } from 'lucide-react';
 
 interface Card {
   id: string;
@@ -26,7 +26,6 @@ export function PerkRedemption() {
   const [cardPerks, setCardPerks] = useState<CardPerk[]>([]);
   const [selectedPerks, setSelectedPerks] = useState<string[]>([]);
 
-  const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
   const [error, setError] = useState('');
