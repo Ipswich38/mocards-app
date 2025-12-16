@@ -23,7 +23,6 @@ import {
   Menu,
   X,
   Download,
-  Shield,
   Settings
 } from 'lucide-react';
 

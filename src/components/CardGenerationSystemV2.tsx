@@ -50,16 +50,16 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
 
         // Create a backup table first
         const backupTableName = `cards_backup_${Date.now()}`;
-        const { error: backupError } = await supabase.rpc('create_table_backup', {
-          original_table: 'cards',
-          backup_table: backupTableName
-        }).then(() => {
-          // If RPC not available, log the backup intention
-          console.log(`Backup table would be created: ${backupTableName}`);
-        }).catch(() => {
+        try {
+          await supabase.rpc('create_table_backup', {
+            original_table: 'cards',
+            backup_table: backupTableName
+          });
+          console.log(`Backup table created: ${backupTableName}`);
+        } catch (backupError) {
           // Fallback: just log the backup intention
           console.log(`Backup table would be created: ${backupTableName} (RPC not available)`);
-        });
+        }
 
         setSuccess(`⚠️ Backup created. Now deleting ${existingCount} existing cards...`);
 
