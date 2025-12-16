@@ -143,9 +143,9 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="card card-hover p-6">
+      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
         <h2 className="text-3xl font-bold mb-2 text-gray-900">MOC Card Generation System V2.0</h2>
         <p className="text-gray-600 text-lg">
           Generate 10,000 fresh unactivated cards with new control number format
@@ -153,10 +153,10 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
       </div>
 
       {/* Main Generation Card */}
-      <div className="card card-hover p-8">
+      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
         <div className="text-center space-y-6">
-          <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-            <CreditCard className="h-10 w-10 text-blue-600" />
+          <div className="mx-auto w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center">
+            <CreditCard className="h-10 w-10 text-blue-500" />
           </div>
 
           <div>
@@ -166,7 +166,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
             </p>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-left">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-left">
             <h4 className="font-medium text-blue-800 mb-3">New Card Format Features:</h4>
             <ul className="text-blue-700 space-y-2 text-sm">
               <li className="flex items-center">
@@ -192,7 +192,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
             <div className="space-y-4">
               <button
                 onClick={() => setShowConfirmation(true)}
-                className="btn btn-primary px-8 py-4 text-lg font-bold flex items-center justify-center"
+                className="bg-[#1A535C] text-white rounded-xl shadow-md hover:shadow-lg font-bold px-8 py-4 text-lg flex items-center justify-center transition-all hover:scale-[1.02] mx-auto"
               >
                 <RefreshCw className="h-6 w-6 mr-3" />
                 Generate 10,000 Fresh Cards
@@ -200,19 +200,21 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
 
               <button
                 onClick={downloadSampleCards}
-                className="btn btn-outline px-6 py-2 text-sm flex items-center justify-center"
+                className="bg-white text-[#1A535C] rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium px-6 py-2 text-sm flex items-center justify-center transition-all hover:scale-[1.02] mx-auto"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download Sample Format (First 100 Cards)
               </button>
             </div>
           ) : (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
               <div className="flex items-center justify-center mb-4">
-                <AlertTriangle className="h-8 w-8 text-yellow-600" />
+                <div className="p-2 rounded-2xl bg-orange-100">
+                  <AlertTriangle className="h-6 w-6 text-orange-600" />
+                </div>
               </div>
-              <h4 className="font-bold text-yellow-800 mb-2">⚠️ Confirmation Required</h4>
-              <p className="text-yellow-700 mb-6">
+              <h4 className="font-bold text-orange-800 mb-2">⚠️ Confirmation Required</h4>
+              <p className="text-orange-700 mb-6">
                 This will <strong>delete all existing cards</strong> and generate 10,000 fresh unactivated cards with the new MOC format. This action cannot be undone.
               </p>
 
@@ -220,7 +222,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
                 <button
                   onClick={handleGenerateCards}
                   disabled={loading}
-                  className="btn bg-red-600 hover:bg-red-700 text-white px-6 py-3 flex items-center disabled:opacity-50"
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-md hover:shadow-lg font-bold px-6 py-3 flex items-center disabled:opacity-50 transition-all hover:scale-[1.02]"
                 >
                   {loading ? (
                     <>
@@ -237,7 +239,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
 
                 <button
                   onClick={() => setShowConfirmation(false)}
-                  className="btn btn-secondary px-6 py-3"
+                  className="bg-white text-gray-700 rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-bold px-6 py-3 transition-all hover:scale-[1.02]"
                   disabled={loading}
                 >
                   Cancel
@@ -250,22 +252,22 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
 
       {/* Messages */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg flex items-center">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center">
           <AlertTriangle className="h-6 w-6 mr-3" />
           <span className="text-lg">{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg flex items-center">
+        <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl flex items-center">
           <CheckCircle className="h-6 w-6 mr-3" />
           <span className="text-lg">{success}</span>
         </div>
       )}
 
       {/* Information */}
-      <div className="card p-6">
-        <div className="border border-blue-200 p-6 rounded-lg bg-blue-50">
+      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+        <div className="border border-blue-200 p-6 rounded-2xl bg-blue-50">
           <h4 className="text-lg font-medium text-blue-700 mb-4">How the New System Works:</h4>
           <div className="grid md:grid-cols-2 gap-6">
             <div>

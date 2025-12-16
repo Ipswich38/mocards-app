@@ -620,14 +620,14 @@ export function MOCCardManagement() {
   const getStatusBadge = (card: Card) => {
     if (card.is_activated) {
       return (
-        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
+        <span className="bg-green-50 text-green-700 text-xs px-3 py-1.5 rounded-xl font-medium flex items-center border border-green-200">
           <CheckCircle className="h-3 w-3 mr-1" />
           Activated
         </span>
       );
     } else {
       return (
-        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
+        <span className="bg-orange-50 text-orange-700 text-xs px-3 py-1.5 rounded-xl font-medium flex items-center border border-orange-200">
           <Clock className="h-3 w-3 mr-1" />
           Unactivated
         </span>
@@ -648,10 +648,10 @@ export function MOCCardManagement() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="card p-6">
+      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">MOCARDS Management</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">MOCARDS Overview</h2>
             <p className="text-gray-600">
               Manage {stats.totalCards.toLocaleString()} MOC cards with organized columns and tables
             </p>
@@ -659,7 +659,7 @@ export function MOCCardManagement() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setShowBatchAssignment(true)}
-              className="btn btn-outline flex items-center px-4 py-2"
+              className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold px-4 py-2 flex items-center transition-all hover:scale-[1.02]"
             >
               <Package className="h-4 w-4 mr-2" />
               Batch Assign
@@ -667,7 +667,7 @@ export function MOCCardManagement() {
             <button
               onClick={exportCards}
               disabled={loading}
-              className="btn btn-outline flex items-center px-4 py-2 disabled:opacity-50"
+              className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold px-4 py-2 flex items-center disabled:opacity-50 transition-all hover:scale-[1.02]"
             >
               <Download className="h-4 w-4 mr-2" />
               Export CSV
@@ -675,7 +675,7 @@ export function MOCCardManagement() {
             <button
               onClick={() => {loadCards(); loadStats();}}
               disabled={loading}
-              className="btn btn-primary flex items-center px-4 py-2 disabled:opacity-50"
+              className="bg-[#1A535C] text-white rounded-xl shadow-md hover:shadow-lg font-bold px-4 py-2 flex items-center disabled:opacity-50 transition-all hover:scale-[1.02]"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -686,57 +686,57 @@ export function MOCCardManagement() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card p-6">
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-blue-100">
-              <CreditCard className="h-8 w-8 text-blue-600" />
+            <div className="p-3 rounded-2xl bg-blue-50">
+              <CreditCard className="h-6 w-6 text-blue-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Cards</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCards.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Cards</p>
+              <p className="text-2xl font-bold text-blue-500">{stats.totalCards.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="card p-6">
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-green-100">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="p-3 rounded-2xl bg-green-50">
+              <CheckCircle className="h-6 w-6 text-green-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Activated</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.activatedCards.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Activated</p>
+              <p className="text-2xl font-bold text-green-500">{stats.activatedCards.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="card p-6">
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-yellow-100">
-              <Clock className="h-8 w-8 text-yellow-600" />
+            <div className="p-3 rounded-2xl bg-orange-50">
+              <Clock className="h-6 w-6 text-orange-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Unactivated</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.unactivatedCards.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Unactivated</p>
+              <p className="text-2xl font-bold text-orange-500">{stats.unactivatedCards.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="card p-6">
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-purple-100">
-              <CreditCard className="h-8 w-8 text-purple-600" />
+            <div className="p-3 rounded-2xl bg-purple-50">
+              <CreditCard className="h-6 w-6 text-purple-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">V2 System</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.v2Cards.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">V2 System</p>
+              <p className="text-2xl font-bold text-purple-500">{stats.v2Cards.toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="card p-6">
+      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Enhanced Search */}
           <div className="flex-1 max-w-2xl">
@@ -758,7 +758,7 @@ export function MOCCardManagement() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="input-field min-w-[140px]"
+            className="px-4 py-2 border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent min-w-[140px]"
           >
             <option value="all">All Cards</option>
             <option value="unactivated">Unactivated</option>
@@ -778,19 +778,19 @@ export function MOCCardManagement() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setStatusFilter('unactivated')}
-                className="btn btn-outline btn-sm"
+                className="bg-white text-[#1A535C] rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium px-4 py-2 text-sm transition-all hover:scale-[1.02]"
               >
                 View Unactivated ({stats.unactivatedCards.toLocaleString()})
               </button>
               <button
                 onClick={() => setStatusFilter('activated')}
-                className="btn btn-outline btn-sm"
+                className="bg-white text-[#1A535C] rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium px-4 py-2 text-sm transition-all hover:scale-[1.02]"
               >
                 View Activated ({stats.activatedCards.toLocaleString()})
               </button>
               <button
                 onClick={() => setStatusFilter('all')}
-                className="btn btn-outline btn-sm"
+                className="bg-white text-[#1A535C] rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium px-4 py-2 text-sm transition-all hover:scale-[1.02]"
               >
                 View All
               </button>
@@ -801,7 +801,7 @@ export function MOCCardManagement() {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl flex items-center">
           <CheckCircle className="h-5 w-5 mr-2" />
           {successMessage}
         </div>
@@ -809,14 +809,14 @@ export function MOCCardManagement() {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center">
           <AlertCircle className="h-5 w-5 mr-2" />
           {error}
         </div>
       )}
 
       {/* Cards Table */}
-      <div className="card overflow-hidden">
+      <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -1027,26 +1027,26 @@ export function MOCCardManagement() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages}
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="btn btn-outline p-2 disabled:opacity-50"
+                  className="bg-white text-gray-700 rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium p-2 disabled:opacity-50 transition-all hover:scale-[1.02]"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 font-medium px-2">
                   {currentPage} of {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="btn btn-outline p-2 disabled:opacity-50"
+                  className="bg-white text-gray-700 rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium p-2 disabled:opacity-50 transition-all hover:scale-[1.02]"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -1059,18 +1059,20 @@ export function MOCCardManagement() {
       {/* Card Details Modal */}
       {showModal && selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                <CreditCard className="h-6 w-6 mr-3 text-blue-600" />
+              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <div className="p-2 rounded-2xl bg-blue-50 mr-3">
+                  <CreditCard className="h-5 w-5 text-blue-500" />
+                </div>
                 MOC Card Details
               </h3>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
@@ -1164,7 +1166,7 @@ export function MOCCardManagement() {
             <div className="flex justify-end p-6 border-t border-gray-200">
               <button
                 onClick={closeModal}
-                className="btn btn-primary"
+                className="bg-[#1A535C] text-white rounded-xl shadow-md hover:shadow-lg font-bold px-6 py-2 transition-all hover:scale-[1.02]"
               >
                 Close
               </button>
@@ -1176,18 +1178,20 @@ export function MOCCardManagement() {
       {/* Batch Assignment Modal */}
       {showBatchAssignment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-gray-100">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                <Package className="h-6 w-6 mr-3 text-blue-600" />
+              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <div className="p-2 rounded-2xl bg-blue-50 mr-3">
+                  <Package className="h-5 w-5 text-blue-500" />
+                </div>
                 Batch Card Assignment
               </h3>
               <button
                 onClick={() => setShowBatchAssignment(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
@@ -1203,7 +1207,7 @@ export function MOCCardManagement() {
                   placeholder="e.g., 1"
                   value={batchForm.startCardNumber}
                   onChange={(e) => setBatchForm(prev => ({ ...prev, startCardNumber: e.target.value }))}
-                  className="input-field"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent"
                 />
               </div>
 
@@ -1217,7 +1221,7 @@ export function MOCCardManagement() {
                   placeholder="e.g., 100"
                   value={batchForm.endCardNumber}
                   onChange={(e) => setBatchForm(prev => ({ ...prev, endCardNumber: e.target.value }))}
-                  className="input-field"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent"
                 />
               </div>
 
@@ -1228,7 +1232,7 @@ export function MOCCardManagement() {
                 <select
                   value={batchForm.selectedClinicId}
                   onChange={(e) => setBatchForm(prev => ({ ...prev, selectedClinicId: e.target.value }))}
-                  className="input-field"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent"
                 >
                   <option value="">Select a clinic...</option>
                   {clinics.map((clinic) => (
@@ -1253,14 +1257,14 @@ export function MOCCardManagement() {
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
                 onClick={() => setShowBatchAssignment(false)}
-                className="btn btn-outline"
+                className="bg-white text-gray-700 rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-bold px-6 py-2 transition-all hover:scale-[1.02]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBatchAssignment}
                 disabled={batchLoading || !batchForm.startCardNumber || !batchForm.endCardNumber || !batchForm.selectedClinicId}
-                className="btn btn-primary disabled:opacity-50"
+                className="bg-[#1A535C] text-white rounded-xl shadow-md hover:shadow-lg font-bold px-6 py-2 disabled:opacity-50 transition-all hover:scale-[1.02] flex items-center"
               >
                 {batchLoading ? (
                   <>

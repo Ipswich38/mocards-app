@@ -68,54 +68,56 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--md-sys-color-surface)', color: 'var(--md-sys-color-on-surface)' }}>
-      {viewMode === 'landing' && (
-        <LandingPage
-          onClinicView={handleClinicView}
-          onSuperAdminView={handleAdminView}
-          onCardholderView={handleCardholderView}
-          onITAccess={() => {}} // Disabled IT access
-          onPasswordChange={handlePasswordChange}
-        />
-      )}
+    <div className="bg-white min-h-screen lg:p-4">
+      <div className="rounded-[40px] overflow-hidden border border-gray-100 bg-gray-50/50 min-h-[calc(100vh-2rem)]">
+        {viewMode === 'landing' && (
+          <LandingPage
+            onClinicView={handleClinicView}
+            onSuperAdminView={handleAdminView}
+            onCardholderView={handleCardholderView}
+            onITAccess={() => {}} // Disabled IT access
+            onPasswordChange={handlePasswordChange}
+          />
+        )}
 
-      {viewMode === 'patient' && (
-        <PatientCardView
-          cardData={cardData}
-          onBack={handleBackToHome}
-        />
-      )}
+        {viewMode === 'patient' && (
+          <PatientCardView
+            cardData={cardData}
+            onBack={handleBackToHome}
+          />
+        )}
 
-      {viewMode === 'clinic' && (
-        <ClinicDashboard
-          clinicCredentials={clinicCredentials}
-          onBack={handleBackToHome}
-        />
-      )}
+        {viewMode === 'clinic' && (
+          <ClinicDashboard
+            clinicCredentials={clinicCredentials}
+            onBack={handleBackToHome}
+          />
+        )}
 
-      {viewMode === 'superadmin' && (
-        <SuperAdminDashboard
-          token={adminToken}
-          onBack={handleBackToHome}
-        />
-      )}
+        {viewMode === 'superadmin' && (
+          <SuperAdminDashboard
+            token={adminToken}
+            onBack={handleBackToHome}
+          />
+        )}
 
-      {viewMode === 'cardholder' && (
-        <CardholderLookup
-          onBack={handleBackToHome}
-          onCardFound={handlePatientView}
-        />
-      )}
+        {viewMode === 'cardholder' && (
+          <CardholderLookup
+            onBack={handleBackToHome}
+            onCardFound={handlePatientView}
+          />
+        )}
 
-      {viewMode === 'password-change' && passwordChangeData && (
-        <ClinicPasswordChange
-          clinic={passwordChangeData}
-          onPasswordChanged={handlePasswordChanged}
-          onSkipForNow={passwordChangeData.isFirstLogin ? undefined : handleSkipPasswordChange}
-        />
-      )}
+        {viewMode === 'password-change' && passwordChangeData && (
+          <ClinicPasswordChange
+            clinic={passwordChangeData}
+            onPasswordChanged={handlePasswordChanged}
+            onSkipForNow={passwordChangeData.isFirstLogin ? undefined : handleSkipPasswordChange}
+          />
+        )}
 
-      <LegalFooter />
+        <LegalFooter />
+      </div>
     </div>
   );
 }

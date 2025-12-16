@@ -93,7 +93,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         // Cards with proper V2 format
         supabase.from('cards').select('*', { count: 'exact', head: true }).like('control_number_v2', 'MOC-%').gte('card_number', 1).lte('card_number', 10000),
         supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }),
-        supabase.from('default_perk_datalates').select('*', { count: 'exact', head: true })
+        supabase.from('default_perk_templates').select('*', { count: 'exact', head: true })
       ]);
 
       setStats({
@@ -106,9 +106,6 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
       setLastUpdated(new Date());
 
-      // Stats loaded successfully
-      // Production: logging removed
-
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -116,8 +113,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
     }
   };
 
-  // Universal Card Lookup Functions (mirrored from clinic portal)
-
+  // Universal Card Lookup Functions
   const handleUniversalSearch = async (query: string) => {
     if (!query.trim()) return;
 
@@ -204,115 +200,99 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="card-elevated p-8">
-              <div className="flex items-center justify-between">
+          <div className="space-y-8">
+            {/* Curved Header */}
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              {/* Decorative Background Elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full transform -translate-x-8 translate-y-8"></div>
+
+              <div className="flex items-center justify-between relative">
                 <div>
-                  <h2 className="headline-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Card System V2.0</h2>
-                  <p className="body-large" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+                  <h2 className="text-3xl font-bold text-white mb-3">MOC Card System V2.0</h2>
+                  <p className="text-white/80 text-lg">
                     Complete dental loyalty card management with new control number format
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="label-medium" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Last updated</p>
-                  <p className="body-medium font-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+                  <p className="text-white/60 text-sm uppercase tracking-wider">Last updated</p>
+                  <p className="text-white text-lg font-medium">
                     {lastUpdated.toLocaleTimeString()}
                   </p>
                   <div className="flex items-center mt-2">
-                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: 'var(--md-sys-color-success)' }}></div>
-                    <span className="label-small" style={{ color: 'var(--md-sys-color-success)' }}>Live sync enabled</span>
+                    <div className="w-3 h-3 rounded-full mr-2 bg-green-400"></div>
+                    <span className="text-green-400 text-sm">Live sync enabled</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Enhanced Stats Grid - Mobile Optimized */}
-            <div className="grid-responsive">
-              <div className="card-contrast-primary card-hover stats-card">
-                <div className="flex items-center w-full">
-                  <div className="p-3 rounded-lg" style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)',
-                    flexShrink: 0
-                  }}>
-                    <CreditCard className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-yellow)' }} />
+            {/* Enhanced Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-2xl bg-blue-50">
+                    <CreditCard className="h-6 w-6 text-blue-500" />
                   </div>
-                  <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-accent-yellow)', opacity: 0.9 }}>Total Cards</p>
-                    <p className="stats-number number-display">{stats.totalCards.toLocaleString()}</p>
+                  <div className="ml-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Cards</p>
+                    <p className="text-2xl font-bold text-blue-500">{stats.totalCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-airbnb card-hover stats-card">
-                <div className="flex items-center w-full">
-                  <div className="p-3 rounded-lg" style={{
-                    backgroundColor: 'var(--md-sys-color-warning-container)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)',
-                    flexShrink: 0
-                  }}>
-                    <Clock className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-orange)' }} />
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-2xl bg-orange-50">
+                    <Clock className="h-6 w-6 text-orange-500" />
                   </div>
-                  <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Unactivated</p>
-                    <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-orange)' }}>{stats.unactivatedCards.toLocaleString()}</p>
+                  <div className="ml-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Unactivated</p>
+                    <p className="text-2xl font-bold text-orange-500">{stats.unactivatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-contrast-secondary card-hover stats-card">
-                <div className="flex items-center w-full">
-                  <div className="p-3 rounded-lg" style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)',
-                    flexShrink: 0
-                  }}>
-                    <CheckCircle className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-orange)' }} />
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-2xl bg-green-50">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
                   </div>
-                  <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-accent-orange)', opacity: 0.9 }}>Activated</p>
-                    <p className="stats-number number-display">{stats.activatedCards.toLocaleString()}</p>
+                  <div className="ml-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Activated</p>
+                    <p className="text-2xl font-bold text-green-500">{stats.activatedCards.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-airbnb card-hover stats-card">
-                <div className="flex items-center w-full">
-                  <div className="p-3 rounded-lg" style={{
-                    backgroundColor: 'var(--md-sys-color-tertiary-container)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)',
-                    flexShrink: 0
-                  }}>
-                    <Building2 className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-amber)' }} />
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-2xl bg-purple-50">
+                    <Building2 className="h-6 w-6 text-purple-500" />
                   </div>
-                  <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Clinics</p>
-                    <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalClinics.toLocaleString()}</p>
+                  <div className="ml-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Clinics</p>
+                    <p className="text-2xl font-bold text-purple-500">{stats.totalClinics.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-airbnb card-hover stats-card">
-                <div className="flex items-center w-full">
-                  <div className="p-3 rounded-lg" style={{
-                    backgroundColor: 'var(--md-sys-color-tertiary-container)',
-                    borderRadius: 'var(--md-sys-shape-corner-large)',
-                    flexShrink: 0
-                  }}>
-                    <Gift className="h-6 w-6" style={{ color: 'var(--md-sys-color-accent-amber)' }} />
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-2xl bg-amber-50">
+                    <Gift className="h-6 w-6 text-amber-500" />
                   </div>
-                  <div className="ml-4 flex-1 min-w-0">
-                    <p className="label-medium mb-2" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Perks</p>
-                    <p className="stats-number number-display" style={{ color: 'var(--md-sys-color-accent-amber)' }}>{stats.totalPerks.toLocaleString()}</p>
+                  <div className="ml-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Perks</p>
+                    <p className="text-2xl font-bold text-amber-500">{stats.totalPerks.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Universal Card Lookup */}
-            <div className="card-airbnb-elevated p-8">
-              <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Universal Card Lookup</h3>
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold mb-6 text-gray-900">Universal Card Lookup</h3>
               <div className="space-y-4">
                 <SearchComponent
                   placeholder="Search any card by 5-digit number (00001-10000) or full control number"
@@ -327,16 +307,16 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 />
 
                 {searchError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
                     {searchError}
                   </div>
                 )}
 
                 {foundCard && (
-                  <div className="border border-gray-200 rounded-xl p-6 bg-white">
+                  <div className="border border-gray-200 rounded-2xl p-6 bg-white">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                       <div>
-                        <div className="font-mono text-lg break-all font-bold" style={{ color: 'var(--md-sys-color-primary)' }}>
+                        <div className="font-mono text-lg break-all font-bold text-[#1A535C]">
                           {foundCard.control_number_v2 || foundCard.control_number}
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
@@ -365,15 +345,15 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
             </div>
 
             {/* Quick Actions */}
-            <div className="card-airbnb-elevated p-8">
-              <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Quick Actions</h3>
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold mb-6 text-gray-900">Quick Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
                   onClick={() => {
                     setActiveTab('mocards');
                     setMocardsSubTab('generate');
                   }}
-                  className="btn btn-primary p-4 text-left"
+                  className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold p-4 text-left transition-all hover:scale-[1.02]"
                 >
                   <CreditCard className="h-6 w-6 mb-2" />
                   <div className="font-medium">Generate Cards</div>
@@ -382,7 +362,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
                 <button
                   onClick={() => setActiveTab('mocards')}
-                  className="btn btn-secondary p-4 text-left"
+                  className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold p-4 text-left transition-all hover:scale-[1.02]"
                 >
                   <Users className="h-6 w-6 mb-2" />
                   <div className="font-medium">MOCARDS Management</div>
@@ -391,7 +371,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
                 <button
                   onClick={() => setActiveTab('clinics')}
-                  className="btn btn-outline p-4 text-left"
+                  className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold p-4 text-left transition-all hover:scale-[1.02]"
                 >
                   <Building2 className="h-6 w-6 mb-2" />
                   <div className="font-medium">Clinic Management</div>
@@ -400,7 +380,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
                 <button
                   onClick={() => setActiveTab('appointments')}
-                  className="btn btn-outline p-4 text-left"
+                  className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold p-4 text-left transition-all hover:scale-[1.02]"
                 >
                   <Calendar className="h-6 w-6 mb-2" />
                   <div className="font-medium">Appointments</div>
@@ -409,7 +389,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
 
                 <button
                   onClick={() => setActiveTab('export')}
-                  className="btn btn-outline p-4 text-left"
+                  className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold p-4 text-left transition-all hover:scale-[1.02]"
                 >
                   <Download className="h-6 w-6 mb-2" />
                   <div className="font-medium">Data Export</div>
@@ -419,7 +399,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 <button
                   onClick={loadStats}
                   disabled={loading}
-                  className="btn btn-outline p-4 text-left disabled:opacity-50"
+                  className="bg-white text-[#1A535C] rounded-xl shadow-md hover:shadow-lg font-bold p-4 text-left disabled:opacity-50 transition-all hover:scale-[1.02]"
                 >
                   <RefreshCw className={`h-6 w-6 mb-2 ${loading ? 'animate-spin' : ''}`} />
                   <div className="font-medium">Refresh Stats</div>
@@ -428,163 +408,127 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
               </div>
             </div>
 
-            {/* Additional Quick Stats */}
-            <div className="card-airbnb-elevated p-8">
-              <h3 className="title-large mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>System Status</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="status-success p-6">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    <span className="title-medium">10,000 Cards Generated</span>
-                  </div>
-                  <p className="body-medium mt-2 opacity-90">MOC system ready for activation</p>
-                </div>
-
-                <div className="status-info p-6">
-                  <div className="flex items-center">
-                    <BarChart3 className="h-5 w-5 mr-2" />
-                    <span className="title-medium">Blockchain Inspired</span>
-                  </div>
-                  <p className="body-medium mt-2 opacity-90">Control code verification system</p>
-                </div>
-
-                <div className="card-contrast-secondary p-6">
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 mr-2" />
-                    <span className="title-medium">Multi-Portal Access</span>
-                  </div>
-                  <p className="body-medium mt-2 opacity-90">Admin, clinic, and patient views</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Core MOC System Overview */}
-            <div className="card-airbnb-elevated p-8">
-              <h3 className="title-large mb-8 flex items-center" style={{ color: 'var(--md-sys-color-on-surface)' }}>
-                <BarChart3 className="h-6 w-6 mr-3" style={{ color: 'var(--md-sys-color-primary)' }} />
+            {/* System Overview */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold mb-8 flex items-center text-gray-900">
+                <BarChart3 className="h-6 w-6 mr-3 text-[#1A535C]" />
                 MOC Card System V2.0 - Core Functions
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Card Generation & Management */}
-                <div className="card-contrast-primary p-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl p-6 border border-blue-200">
                   <div className="flex items-center mb-4">
-                    <CreditCard className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-primary-container)' }} />
+                    <div className="p-3 rounded-2xl bg-blue-500">
+                      <CreditCard className="h-6 w-6 text-white" />
+                    </div>
                     <div className="ml-3">
-                      <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>Card Generation</h4>
-                      <p className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.8 }}>10,000 MOC Cards</p>
+                      <h4 className="text-lg font-bold text-blue-900">Card Generation</h4>
+                      <p className="text-blue-700 text-sm">10,000 MOC Cards</p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Format:</span>
-                      <span className="body-small font-mono" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>MOC-XX-XXXX-NNNNN</span>
+                      <span className="text-blue-700 text-sm">Format:</span>
+                      <span className="text-blue-900 text-sm font-mono">MOC-XX-XXXX-NNNNN</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Sequential:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>1 to 10,000</span>
+                      <span className="text-blue-700 text-sm">Sequential:</span>
+                      <span className="text-blue-900 text-sm">1 to 10,000</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-primary-container)', opacity: 0.9 }}>Status:</span>
-                      <span className="body-small font-medium" style={{ color: 'var(--md-sys-color-success)' }}>✓ Generated</span>
+                      <span className="text-blue-700 text-sm">Status:</span>
+                      <span className="text-green-600 text-sm font-medium">✓ Generated</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Activation System */}
-                <div className="status-success p-6">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-6 border border-green-200">
                   <div className="flex items-center mb-4">
-                    <CheckCircle className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-success-container)' }} />
+                    <div className="p-3 rounded-2xl bg-green-500">
+                      <CheckCircle className="h-6 w-6 text-white" />
+                    </div>
                     <div className="ml-3">
-                      <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-success-container)' }}>Activation System</h4>
-                      <p className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.8 }}>Clinic Assignment</p>
+                      <h4 className="text-lg font-bold text-green-900">Activation System</h4>
+                      <p className="text-green-700 text-sm">Clinic Assignment</p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Regions:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>01-16 (Philippines)</span>
+                      <span className="text-green-700 text-sm">Regions:</span>
+                      <span className="text-green-900 text-sm">01-16 (Philippines)</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Clinic Codes:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>4-digit regional</span>
+                      <span className="text-green-700 text-sm">Clinic Codes:</span>
+                      <span className="text-green-900 text-sm">4-digit regional</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Method:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>Direct assignment</span>
+                      <span className="text-green-700 text-sm">Method:</span>
+                      <span className="text-green-900 text-sm">Direct assignment</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Perks & Benefits */}
-                <div className="card-contrast-secondary p-6">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-6 border border-purple-200">
                   <div className="flex items-center mb-4">
-                    <Gift className="h-8 w-8" style={{ color: 'var(--md-sys-color-on-secondary-container)' }} />
+                    <div className="p-3 rounded-2xl bg-purple-500">
+                      <Gift className="h-6 w-6 text-white" />
+                    </div>
                     <div className="ml-3">
-                      <h4 className="title-medium" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>Default Perks</h4>
-                      <p className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.8 }}>Auto-Assigned</p>
+                      <h4 className="text-lg font-bold text-purple-900">Default Perks</h4>
+                      <p className="text-purple-700 text-sm">Auto-Assigned</p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Consultation:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>₱500</span>
+                      <span className="text-purple-700 text-sm">Consultation:</span>
+                      <span className="text-purple-900 text-sm">₱500</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Cleaning:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>₱800</span>
+                      <span className="text-purple-700 text-sm">Cleaning:</span>
+                      <span className="text-purple-900 text-sm">₱800</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-secondary-container)', opacity: 0.9 }}>Total Value:</span>
-                      <span className="body-small font-bold" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>₱5,000+</span>
+                      <span className="text-purple-700 text-sm">Total Value:</span>
+                      <span className="text-purple-900 text-sm font-bold">₱5,000+</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* System Workflow */}
-              <div className="mt-8 card p-6">
-                <h4 className="title-medium mb-6" style={{ color: 'var(--md-sys-color-on-surface)' }}>Complete Workflow</h4>
+              <div className="mt-8 bg-gray-50 rounded-2xl p-6">
+                <h4 className="text-lg font-bold mb-6 text-gray-900">Complete Workflow</h4>
                 <div className="flex items-center justify-between overflow-x-auto">
                   <div className="flex items-center space-x-6 min-w-max">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
-                        backgroundColor: 'var(--md-sys-color-primary-container)',
-                        borderRadius: 'var(--md-sys-shape-corner-full)'
-                      }}>
-                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-primary-container)' }}>1</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1A535C] text-white text-lg font-bold">
+                        1
                       </div>
-                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Generate 10K Cards</span>
+                      <span className="ml-3 text-gray-700 font-medium">Generate 10K Cards</span>
                     </div>
-                    <span className="body-large" style={{ color: 'var(--md-sys-color-outline)' }}>→</span>
+                    <span className="text-gray-400 text-lg">→</span>
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
-                        backgroundColor: 'var(--md-sys-color-success-container)',
-                        borderRadius: 'var(--md-sys-shape-corner-full)'
-                      }}>
-                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-success-container)' }}>2</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white text-lg font-bold">
+                        2
                       </div>
-                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Clinic Registration</span>
+                      <span className="ml-3 text-gray-700 font-medium">Clinic Registration</span>
                     </div>
-                    <span className="body-large" style={{ color: 'var(--md-sys-color-outline)' }}>→</span>
+                    <span className="text-gray-400 text-lg">→</span>
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
-                        backgroundColor: 'var(--md-sys-color-secondary-container)',
-                        borderRadius: 'var(--md-sys-shape-corner-full)'
-                      }}>
-                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-secondary-container)' }}>3</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-500 text-white text-lg font-bold">
+                        3
                       </div>
-                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Card Activation</span>
+                      <span className="ml-3 text-gray-700 font-medium">Card Activation</span>
                     </div>
-                    <span className="body-large" style={{ color: 'var(--md-sys-color-outline)' }}>→</span>
+                    <span className="text-gray-400 text-lg">→</span>
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
-                        backgroundColor: 'var(--md-sys-color-warning-container)',
-                        borderRadius: 'var(--md-sys-shape-corner-full)'
-                      }}>
-                        <span className="label-large font-bold" style={{ color: 'var(--md-sys-color-on-warning-container)' }}>4</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500 text-white text-lg font-bold">
+                        4
                       </div>
-                      <span className="ml-3 body-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>Perks Redemption</span>
+                      <span className="ml-3 text-gray-700 font-medium">Perks Redemption</span>
                     </div>
                   </div>
                 </div>
@@ -596,65 +540,35 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
       case 'mocards':
         return (
           <div className="space-y-6">
-            {/* MOCARDS Management Header */}
-            <div className="card-elevated p-6">
-              <h2 className="text-2xl font-bold mb-4">MOCARDS Management</h2>
-              <p className="text-gray-600">Comprehensive card management system</p>
+            {/* Curved Header */}
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <h2 className="text-3xl font-bold text-white mb-3">MOCARDS Management</h2>
+              <p className="text-white/80">Comprehensive card management system</p>
             </div>
 
             {/* Sub-navigation */}
-            <div className="card p-2">
+            <div className="bg-white rounded-3xl p-3 border border-gray-100 shadow-sm">
               <div className="flex space-x-1">
-                <button
-                  onClick={() => setMocardsSubTab('overview')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mocardsSubTab === 'overview'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => setMocardsSubTab('generate')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mocardsSubTab === 'generate'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Generate Cards
-                </button>
-                <button
-                  onClick={() => setMocardsSubTab('perks')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mocardsSubTab === 'perks'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Perks Management
-                </button>
-                <button
-                  onClick={() => setMocardsSubTab('activation')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mocardsSubTab === 'activation'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Card Activation
-                </button>
-                <button
-                  onClick={() => setMocardsSubTab('redemption')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mocardsSubTab === 'redemption'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Redeem Perks
-                </button>
+                {[
+                  { id: 'overview', label: 'Overview' },
+                  { id: 'generate', label: 'Generate Cards' },
+                  { id: 'perks', label: 'Perks Management' },
+                  { id: 'activation', label: 'Card Activation' },
+                  { id: 'redemption', label: 'Redeem Perks' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setMocardsSubTab(tab.id as any)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                      mocardsSubTab === tab.id
+                        ? 'bg-[#1A535C] text-white shadow-md'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -670,34 +584,73 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         );
 
       case 'clinics':
-        return <ClinicManagementCRUD />;
+        return (
+          <div className="space-y-6">
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <h2 className="text-3xl font-bold text-white mb-3">Clinic Management</h2>
+              <p className="text-white/80">Register and manage clinic partners</p>
+            </div>
+            <ClinicManagementCRUD />
+          </div>
+        );
 
       case 'appointments':
-        return <AppointmentCalendar token={token} />;
+        return (
+          <div className="space-y-6">
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <h2 className="text-3xl font-bold text-white mb-3">Appointments</h2>
+              <p className="text-white/80">Manage booking system</p>
+            </div>
+            <AppointmentCalendar token={token} />
+          </div>
+        );
 
       case 'export':
-        return <CardExportSystem />;
+        return (
+          <div className="space-y-6">
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <h2 className="text-3xl font-bold text-white mb-3">Data Export</h2>
+              <p className="text-white/80">Export and backup system data</p>
+            </div>
+            <CardExportSystem />
+          </div>
+        );
 
       case 'settings':
         return (
-          <div className="card-elevated p-8">
-            <h3 className="text-2xl font-bold mb-6">Settings</h3>
-            <div className="text-center py-16">
-              <Settings className="h-20 w-20 mx-auto mb-6 text-gray-400" />
-              <p className="text-lg mb-3 text-gray-600">System settings and configuration</p>
-              <p className="text-gray-500">Settings panel coming soon...</p>
+          <div className="space-y-6">
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <h2 className="text-3xl font-bold text-white mb-3">Settings</h2>
+              <p className="text-white/80">System configuration</p>
+            </div>
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <div className="text-center py-16">
+                <Settings className="h-20 w-20 mx-auto mb-6 text-gray-400" />
+                <p className="text-lg mb-3 text-gray-600">System settings and configuration</p>
+                <p className="text-gray-500">Settings panel coming soon...</p>
+              </div>
             </div>
           </div>
         );
 
       case 'profile':
         return (
-          <div className="card-elevated p-8">
-            <h3 className="text-2xl font-bold mb-6">Profile</h3>
-            <div className="text-center py-16">
-              <UserCheck className="h-20 w-20 mx-auto mb-6 text-gray-400" />
-              <p className="text-lg mb-3 text-gray-600">Profile & account management</p>
-              <p className="text-gray-500">Profile settings coming soon...</p>
+          <div className="space-y-6">
+            <div className="bg-[#1A535C] rounded-b-[40px] px-6 pt-8 pb-8 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 -translate-y-16"></div>
+              <h2 className="text-3xl font-bold text-white mb-3">Profile</h2>
+              <p className="text-white/80">Account management</p>
+            </div>
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+              <div className="text-center py-16">
+                <UserCheck className="h-20 w-20 mx-auto mb-6 text-gray-400" />
+                <p className="text-lg mb-3 text-gray-600">Profile & account management</p>
+                <p className="text-gray-500">Profile settings coming soon...</p>
+              </div>
             </div>
           </div>
         );
@@ -708,161 +661,120 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 p-4 flex items-center justify-between" style={{
-        backgroundColor: 'var(--md-sys-color-surface-container)',
-        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
-        boxShadow: 'var(--md-sys-elevation-level2)'
-      }}>
-        <div className="flex items-center">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold mr-3" style={{
-            backgroundColor: 'var(--md-sys-color-primary)',
-            color: 'var(--md-sys-color-on-primary)',
-            borderRadius: 'var(--md-sys-shape-corner-large)'
-          }}>
-            M
-          </div>
-          <div className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Admin</div>
-        </div>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="btn-text state-layer rounded-lg focus:outline-none"
-          style={{
-            padding: '8px',
-            color: 'var(--md-sys-color-on-surface)',
-            borderRadius: 'var(--md-sys-shape-corner-medium)'
-          }}
-        >
-          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+    <div className="min-h-screen flex bg-gray-50/50 lg:ml-64">
+      {/* Desktop Sidebar */}
       <div className={`
-        w-64 flex flex-col
-        lg:relative lg:translate-x-0
-        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+        w-64 flex flex-col bg-[#1A535C] fixed inset-y-0 left-0 z-50
+        transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `} style={{
-        backgroundColor: 'var(--md-sys-color-surface-container-low)',
-        borderRight: '1px solid var(--md-sys-color-outline-variant)',
-        boxShadow: 'var(--md-sys-elevation-level2)'
-      }}>
-        <div className="p-6 lg:block hidden">
+      `}>
+        {/* Sidebar Header */}
+        <div className="p-6">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold mr-3" style={{
-              backgroundColor: 'var(--md-sys-color-primary)',
-              color: 'var(--md-sys-color-on-primary)',
-              borderRadius: 'var(--md-sys-shape-corner-large)'
-            }}>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl font-bold bg-white text-[#1A535C]">
               M
             </div>
-            <div className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Admin</div>
+            <div className="ml-3 text-white text-lg font-bold">MOC Admin</div>
           </div>
         </div>
 
         {/* Mobile close button inside sidebar */}
-        <div className="lg:hidden p-4 flex items-center justify-between" style={{
-          borderBottom: '1px solid var(--md-sys-color-outline-variant)'
-        }}>
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold mr-3" style={{
-              backgroundColor: 'var(--md-sys-color-primary)',
-              color: 'var(--md-sys-color-on-primary)',
-              borderRadius: 'var(--md-sys-shape-corner-large)'
-            }}>
-              M
-            </div>
-            <div className="title-large" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOC Admin</div>
-          </div>
+        <div className="lg:hidden px-4 pb-4 flex justify-end">
           <button
             onClick={() => setSidebarOpen(false)}
-            className="btn-text state-layer"
-            style={{
-              padding: '8px',
-              borderRadius: 'var(--md-sys-shape-corner-medium)',
-              color: 'var(--md-sys-color-on-surface)'
-            }}
+            className="p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="mt-6 flex-1 flex flex-col">
-          <div className="flex-1">
+        {/* Navigation */}
+        <nav className="flex-1 px-4">
+          <div className="space-y-2">
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
-                className="w-full text-left px-6 py-4 flex items-center transition-all duration-200 state-layer"
-                style={{
-                  backgroundColor: activeTab === item.id ? 'var(--md-sys-color-secondary-container)' : 'transparent',
-                  color: activeTab === item.id ? 'var(--md-sys-color-on-secondary-container)' : 'var(--md-sys-color-on-surface-variant)',
-                  borderRight: activeTab === item.id ? '3px solid var(--md-sys-color-secondary)' : 'none',
-                  borderRadius: activeTab === item.id ? '0 var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0' : '0'
+                onClick={() => {
+                  setActiveTab(item.id as any);
+                  setSidebarOpen(false);
                 }}
+                className={`w-full text-left px-4 py-3 flex items-center rounded-2xl transition-all ${
+                  activeTab === item.id
+                    ? 'bg-white/10 text-white shadow-sm'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
               >
-                <item.icon className="h-6 w-6 mr-4" />
+                <item.icon className="h-5 w-5 mr-3" />
                 <div>
-                  <div className="label-large">{item.label}</div>
-                  <div className="label-small opacity-80">{item.description}</div>
+                  <div className="font-medium">{item.label}</div>
+                  <div className="text-xs opacity-80">{item.description}</div>
                 </div>
               </button>
             ))}
           </div>
-
-          {/* Bottom Admin Section */}
-          <div className="mt-6 pt-4" style={{
-            borderTop: '1px solid var(--md-sys-color-outline-variant)'
-          }}>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className="w-full text-left px-6 py-4 flex items-center transition-all duration-200 state-layer"
-              style={{
-                backgroundColor: activeTab === 'profile' ? 'var(--md-sys-color-secondary-container)' : 'transparent',
-                color: activeTab === 'profile' ? 'var(--md-sys-color-on-secondary-container)' : 'var(--md-sys-color-on-surface-variant)',
-                borderRight: activeTab === 'profile' ? '3px solid var(--md-sys-color-secondary)' : 'none',
-                borderRadius: activeTab === 'profile' ? '0 var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0' : '0'
-              }}
-            >
-              <UserCheck className="h-6 w-6 mr-4" />
-              <div>
-                <div className="label-large">Admin Profile</div>
-                <div className="label-small opacity-80">Account settings</div>
-              </div>
-            </button>
-            <button
-              onClick={onBack}
-              className="w-full text-left px-6 py-4 flex items-center transition-all duration-200 state-layer"
-              style={{
-                color: 'var(--md-sys-color-error)',
-                backgroundColor: 'transparent'
-              }}
-            >
-              <LogOut className="h-6 w-6 mr-4" />
-              <div>
-                <div className="label-large">Logout</div>
-                <div className="label-small opacity-80">Exit admin panel</div>
-              </div>
-            </button>
-          </div>
         </nav>
+
+        {/* Bottom Section */}
+        <div className="mt-6 px-4 pb-6 pt-4 border-t border-white/10">
+          <button
+            onClick={() => {
+              setActiveTab('profile');
+              setSidebarOpen(false);
+            }}
+            className={`w-full text-left px-4 py-3 flex items-center rounded-2xl transition-all mb-2 ${
+              activeTab === 'profile'
+                ? 'bg-white/10 text-white'
+                : 'text-white/60 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <UserCheck className="h-5 w-5 mr-3" />
+            <div>
+              <div className="font-medium">Admin Profile</div>
+              <div className="text-xs opacity-80">Account settings</div>
+            </div>
+          </button>
+          <button
+            onClick={onBack}
+            className="w-full text-left px-4 py-3 flex items-center rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
+          >
+            <LogOut className="h-5 w-5 mr-3" />
+            <div>
+              <div className="font-medium">Logout</div>
+              <div className="text-xs opacity-80">Exit admin panel</div>
+            </div>
+          </button>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto" style={{ backgroundColor: 'var(--md-sys-color-surface)' }}>
-        <div className="p-8">
-          {renderContent()}
+      {/* Mobile Header & Menu Button */}
+      <div className="lg:hidden fixed top-4 left-4 right-4 z-40 bg-white rounded-2xl shadow-lg border border-gray-100 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-xl bg-[#1A535C] text-white flex items-center justify-center font-bold mr-3">
+              M
+            </div>
+            <div className="font-bold text-gray-900">MOC Admin</div>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-xl text-gray-600 hover:bg-gray-100"
+          >
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+      </div>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-30 bg-black bg-opacity-50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 pt-20 lg:pt-8 p-4 lg:p-8">
+        {renderContent()}
       </div>
     </div>
   );
