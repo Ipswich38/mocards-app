@@ -80,13 +80,9 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
       const cardsToGenerate = [];
 
       for (let i = 1; i <= 10000; i++) {
-        // Generate a temporary passcode until assignment
-        const tempPasscode = `TEMP-${Math.random().toString().slice(2, 6).padStart(4, '0')}`;
-
         cardsToGenerate.push({
           batch_id: batch.id, // Link to the batch
           control_number: `MOC-__-____-${i.toString().padStart(5, '0')}`, // New MOC format
-          passcode: tempPasscode, // Required by database schema
           location_code: 'PHL', // Default location code
           card_number: i,
           is_activated: false,
@@ -179,7 +175,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
-                No passcode required (removed for V2.0)
+                Simplified activation process
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -277,7 +273,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
               <ul className="text-blue-700 space-y-1 text-sm">
                 <li>• 10,000 cards with sequential numbers</li>
                 <li>• Format: MOC-__-____-XXXXX</li>
-                <li>• No passcode required</li>
+                <li>• Direct activation system</li>
                 <li>• All cards start as "unactivated"</li>
               </ul>
             </div>

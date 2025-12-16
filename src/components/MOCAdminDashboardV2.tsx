@@ -511,7 +511,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                     </div>
                     <div className="flex justify-between">
                       <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)', opacity: 0.9 }}>Method:</span>
-                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>No passcode</span>
+                      <span className="body-small" style={{ color: 'var(--md-sys-color-on-success-container)' }}>Direct assignment</span>
                     </div>
                   </div>
                 </div>
