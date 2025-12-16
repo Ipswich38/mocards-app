@@ -60,6 +60,8 @@ export function MOCCardManagement() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showBatchAssignment, setShowBatchAssignment] = useState(false);
   const [activationLoading, setActivationLoading] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState<string | null>(null);
+  const [deactivationLoading, setDeactivationLoading] = useState<string | null>(null);
   const [batchForm, setBatchForm] = useState({
     startCardNumber: '',
     endCardNumber: '',
@@ -393,6 +395,95 @@ export function MOCCardManagement() {
       setError('Failed to assign card: ' + err.message);
     } finally {
       setAssignmentLoading(null);
+    }
+  };
+
+  const handleResetCard = async (cardId: string) => {
+    if (!confirm('Are you sure you want to reset this card to a fresh unassigned state? This will remove all assignments, activation status, and perks.')) {
+      return;
+    }
+
+    setResetLoading(cardId);
+    try {
+      // Reset the card to fresh state
+      const { error: updateError } = await supabase
+        .from('cards')
+        .update({
+          is_activated: false,
+          status: 'unassigned',
+          assigned_clinic_id: null,
+          activated_at: null,
+          assigned_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId);
+
+      if (updateError) throw updateError;
+
+      // Remove all perks associated with this card
+      const { error: perksError } = await supabase
+        .from('card_perks')
+        .delete()
+        .eq('card_id', cardId);
+
+      if (perksError) {
+        console.warn('Failed to remove card perks:', perksError);
+      }
+
+      // Show success message
+      setSuccessMessage(`Card successfully reset to fresh state at ${new Date().toLocaleString()}`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+      // Refresh cards
+      loadCards();
+
+    } catch (err: any) {
+      setError('Failed to reset card: ' + err.message);
+    } finally {
+      setResetLoading(null);
+    }
+  };
+
+  const handleDeactivateCard = async (cardId: string) => {
+    if (!confirm('Are you sure you want to deactivate this card? This will keep the clinic assignment but deactivate the card.')) {
+      return;
+    }
+
+    setDeactivationLoading(cardId);
+    try {
+      // Deactivate the card but keep assignment
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          is_activated: false,
+          status: 'assigned', // Keep as assigned since clinic assignment remains
+          activated_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId);
+
+      if (error) throw error;
+
+      // Optionally mark perks as inactive instead of deleting them
+      await supabase
+        .from('card_perks')
+        .update({
+          is_claimed: false, // Reset claim status
+          updated_at: new Date().toISOString()
+        })
+        .eq('card_id', cardId);
+
+      // Show success message
+      setSuccessMessage(`Card successfully deactivated at ${new Date().toLocaleString()}`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+      // Refresh cards
+      loadCards();
+
+    } catch (err: any) {
+      setError('Failed to deactivate card: ' + err.message);
+    } finally {
+      setDeactivationLoading(null);
     }
   };
 
@@ -831,6 +922,42 @@ export function MOCCardManagement() {
                               <CheckCircle className="h-4 w-4 mr-1" />
                             )}
                             Activate
+                          </button>
+                        )}
+
+                        {/* Reset Button - For cards that have been tested */}
+                        {(card.status === 'activated' || card.is_activated || card.status === 'assigned') && (
+                          <button
+                            onClick={() => handleResetCard(card.id)}
+                            disabled={resetLoading === card.id}
+                            className="text-orange-600 hover:text-orange-900 flex items-center disabled:opacity-50"
+                            title="Reset card to fresh unassigned state"
+                          >
+                            {resetLoading === card.id ? (
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                            )}
+                            Reset
+                          </button>
+                        )}
+
+                        {/* Deactivate Button - For activated cards */}
+                        {card.is_activated && (
+                          <button
+                            onClick={() => handleDeactivateCard(card.id)}
+                            disabled={deactivationLoading === card.id}
+                            className="text-red-600 hover:text-red-900 flex items-center disabled:opacity-50"
+                            title="Deactivate card but keep assignment"
+                          >
+                            {deactivationLoading === card.id ? (
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14L5 9l5-5m0 10l9-5-9-5" />
+                              </svg>
+                            )}
+                            Deactivate
                           </button>
                         )}
 

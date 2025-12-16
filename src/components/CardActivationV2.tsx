@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { dbOperations, supabase } from '../lib/supabase';
-import { Search, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
+import { Search, CheckCircle, AlertCircle, CreditCard, MapPin, Building2 } from 'lucide-react';
 
 interface CardActivationV2Props {
   clinicId: string;
@@ -15,9 +15,61 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Activation form data
+  const [activationForm, setActivationForm] = useState({
+    locationCode: '01', // NCR region default
+    clinicCode: ''
+  });
+
+  // Available options
+  const [clinics, setClinics] = useState<any[]>([]);
+  const [loadingClinics, setLoadingClinics] = useState(false);
+
   // Search results
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+
+  // Location codes (Philippines regions)
+  const locationCodes = [
+    { code: '01', name: 'National Capital Region (NCR)' },
+    { code: '02', name: 'Cordillera Administrative Region (CAR)' },
+    { code: '03', name: 'Ilocos Region (Region I)' },
+    { code: '04', name: 'Cagayan Valley (Region II)' },
+    { code: '05', name: 'Central Luzon (Region III)' },
+    { code: '06', name: 'Calabarzon (Region IV-A)' },
+    { code: '07', name: 'Mimaropa (Region IV-B)' },
+    { code: '08', name: 'Bicol Region (Region V)' },
+    { code: '09', name: 'Western Visayas (Region VI)' },
+    { code: '10', name: 'Central Visayas (Region VII)' },
+    { code: '11', name: 'Eastern Visayas (Region VIII)' },
+    { code: '12', name: 'Zamboanga Peninsula (Region IX)' },
+    { code: '13', name: 'Northern Mindanao (Region X)' },
+    { code: '14', name: 'Davao Region (Region XI)' },
+    { code: '15', name: 'Soccsksargen (Region XII)' },
+    { code: '16', name: 'Caraga (Region XIII)' }
+  ];
+
+  useEffect(() => {
+    loadClinics();
+  }, []);
+
+  const loadClinics = async () => {
+    setLoadingClinics(true);
+    try {
+      const { data, error } = await supabase
+        .from('mocards_clinics')
+        .select('*')
+        .eq('is_active', true)
+        .order('clinic_name');
+
+      if (error) throw error;
+      setClinics(data || []);
+    } catch (err: any) {
+      console.error('Error loading clinics:', err);
+    } finally {
+      setLoadingClinics(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -55,19 +107,42 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
       return;
     }
 
+    if (!activationForm.locationCode) {
+      setError('Please select a location code');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      // Use simple activation - just activate the card
+      // Generate the final control number
+      const cardNum = selectedCard.card_number || 0;
+      const displayNum = (cardNum + 9999).toString().padStart(5, '0');
+      const selectedClinic = clinics.find(c => c.id === activationForm.clinicCode);
+      const clinicCode = selectedClinic?.clinic_code || 'UNASSIGNED';
+      const finalControlNumber = `MOC-${displayNum}-${activationForm.locationCode}-${clinicCode}`;
+
+      // Update the card with activation data and new control number
+      const updateData: any = {
+        is_activated: true,
+        status: 'activated',
+        unified_control_number: finalControlNumber,
+        location_code_v2: activationForm.locationCode,
+        clinic_code_v2: clinicCode,
+        activated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // If clinic is selected, also assign it
+      if (activationForm.clinicCode) {
+        updateData.assigned_clinic_id = activationForm.clinicCode;
+        updateData.assigned_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from('cards')
-        .update({
-          is_activated: true,
-          status: 'activated',
-          activated_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', selectedCard.id);
 
       if (error) throw error;
@@ -92,12 +167,20 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
           .insert(perkAssignments);
       }
 
-      setSuccess(`✅ Card ${selectedCard.control_number_v2} activated successfully!`);
+      const locationName = locationCodes.find(l => l.code === activationForm.locationCode)?.name || 'Unknown';
+      const clinicName = selectedClinic?.clinic_name || 'Unassigned';
+
+      setSuccess(`✅ Card activated successfully!
+
+Final Control Number: ${finalControlNumber}
+Location: ${activationForm.locationCode} - ${locationName}
+Clinic: ${clinicName}`);
 
       // Reset form
       setSelectedCard(null);
       setSearchQuery('');
       setSearchResults([]);
+      setActivationForm({ locationCode: '01', clinicCode: '' });
     } catch (err: any) {
       setError('Error activating card: ' + err.message);
     } finally {
@@ -215,12 +298,69 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
 
             {/* Activation Form */}
             <div className="space-y-6">
-              <div className="text-center">
-                <p className="text-gray-600 mb-6">Ready to activate this card?</p>
+              <div className="space-y-4">
+                {/* Location Code Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Location Code (Philippines Region)
+                  </label>
+                  <select
+                    value={activationForm.locationCode}
+                    onChange={(e) => setActivationForm({...activationForm, locationCode: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {locationCodes.map(location => (
+                      <option key={location.code} value={location.code}>
+                        {location.code} - {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Clinic Code Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Assign to Clinic (Optional)
+                  </label>
+                  <select
+                    value={activationForm.clinicCode}
+                    onChange={(e) => setActivationForm({...activationForm, clinicCode: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loadingClinics}
+                  >
+                    <option value="">No clinic assignment</option>
+                    {clinics.map(clinic => (
+                      <option key={clinic.id} value={clinic.id}>
+                        {clinic.clinic_name} ({clinic.clinic_code})
+                      </option>
+                    ))}
+                  </select>
+                  {loadingClinics && (
+                    <p className="text-sm text-gray-500 mt-1">Loading clinics...</p>
+                  )}
+                </div>
+
+                {/* Final Control Number Preview */}
+                <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                  <label className="block text-sm font-medium text-blue-700 mb-2">
+                    Final Control Number Preview:
+                  </label>
+                  <div className="font-mono text-lg font-bold text-blue-800">
+                    {(() => {
+                      const cardNum = selectedCard?.card_number || 0;
+                      const displayNum = (cardNum + 9999).toString().padStart(5, '0');
+                      const selectedClinic = clinics.find(c => c.id === activationForm.clinicCode);
+                      const clinicCode = selectedClinic?.clinic_code || 'UNASSIGNED';
+                      return `MOC-${displayNum}-${activationForm.locationCode}-${clinicCode}`;
+                    })()}
+                  </div>
+                </div>
 
                 <button
                   onClick={handleActivateCard}
-                  disabled={loading}
+                  disabled={loading || !activationForm.locationCode}
                   className="btn w-full px-6 py-4 text-lg font-bold uppercase tracking-wider flex items-center justify-center bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
