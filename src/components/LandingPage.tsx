@@ -8,9 +8,10 @@ interface LandingPageProps {
   onCardholderView: (prefilledData?: { control: string }) => void;
   onITAccess: () => void;
   onPasswordChange?: (clinic: any) => void;
+  onMOCARDSCloud?: () => void;
 }
 
-export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, onITAccess, onPasswordChange }: LandingPageProps) {
+export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, onITAccess, onPasswordChange, onMOCARDSCloud }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'clinic'>('patient');
   const [cardControl, setCardControl] = useState('');
 
@@ -192,12 +193,26 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
           </div>
           <div className="headline-medium" style={{ color: 'var(--md-sys-color-on-surface)' }}>MOCARDS</div>
         </div>
-        <button
-          onClick={() => setShowAdminLogin(true)}
-          className="btn btn-filled-tonal btn-sm"
-        >
-          Admin
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowAdminLogin(true)}
+            className="btn btn-filled-tonal btn-sm"
+          >
+            Admin
+          </button>
+          {onMOCARDSCloud && (
+            <button
+              onClick={onMOCARDSCloud}
+              className="btn btn-filled btn-sm"
+              style={{
+                backgroundColor: 'var(--md-sys-color-primary)',
+                color: 'var(--md-sys-color-on-primary)'
+              }}
+            >
+              MOCARDS CLOUD
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6">

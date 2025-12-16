@@ -5,9 +5,10 @@ import { ClinicDashboard } from './components/ClinicDashboard';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { CardholderLookup } from './components/CardholderLookup';
 import { ClinicPasswordChange } from './components/ClinicPasswordChange';
+import { MOCARDSCloudAdmin } from './components/MOCARDSCloudAdmin';
 import { LegalFooter } from './components/LegalFooter';
 
-export type ViewMode = 'landing' | 'patient' | 'clinic' | 'superadmin' | 'cardholder' | 'password-change';
+export type ViewMode = 'landing' | 'patient' | 'clinic' | 'superadmin' | 'cardholder' | 'password-change' | 'mocards-cloud';
 
 export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('landing');
@@ -67,6 +68,10 @@ export default function App() {
     }
   };
 
+  const handleMOCARDSCloud = () => {
+    setViewMode('mocards-cloud');
+  };
+
   return (
     <div className="bg-white min-h-screen lg:p-4">
       <div className="rounded-[40px] overflow-hidden border border-gray-100 bg-gray-50/50 min-h-[calc(100vh-2rem)]">
@@ -77,6 +82,7 @@ export default function App() {
             onCardholderView={handleCardholderView}
             onITAccess={() => {}} // Disabled IT access
             onPasswordChange={handlePasswordChange}
+            onMOCARDSCloud={handleMOCARDSCloud}
           />
         )}
 
@@ -114,6 +120,10 @@ export default function App() {
             onPasswordChanged={handlePasswordChanged}
             onSkipForNow={passwordChangeData.isFirstLogin ? undefined : handleSkipPasswordChange}
           />
+        )}
+
+        {viewMode === 'mocards-cloud' && (
+          <MOCARDSCloudAdmin onBack={handleBackToHome} />
         )}
 
         <LegalFooter />
