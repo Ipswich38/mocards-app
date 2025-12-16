@@ -32,8 +32,8 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
 
   return (
     <div className="min-h-screen flex">
-      {/* Persistent Sidebar */}
-      <div className="w-64 bg-[#1A535C] text-white flex flex-col">
+      {/* Persistent Sidebar - Deep Teal Theme */}
+      <div className="w-64 bg-[#1A535C] text-white flex flex-col fixed h-full z-10">
         {/* Header */}
         <div className="p-6 border-b border-teal-600">
           <h1 className="text-xl font-bold text-white">MOCARDS CLOUD</h1>
@@ -52,7 +52,7 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
                   <button
                     onClick={() => onViewChange(item.id)}
                     className={`
-                      w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all
+                      w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
                       ${isActive
                         ? 'bg-white text-[#1A535C] shadow-lg'
                         : 'text-teal-100 hover:bg-teal-600 hover:text-white'
@@ -85,8 +85,8 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden">
+      {/* Main Content Area - Default Light Background */}
+      <div className="flex-1 ml-64 bg-gray-50 min-h-screen">
         {children}
       </div>
     </div>
