@@ -8,6 +8,7 @@ import { ClinicManagementCRUD } from './ClinicManagementCRUD';
 import { AppointmentCalendar } from './AppointmentCalendar';
 import { CardExportSystem } from './CardExportSystem';
 import { SearchComponent } from './SearchComponent';
+import { PerkRedemption } from './PerkRedemption';
 import {
   CreditCard,
   Users,
@@ -36,7 +37,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mocardsSubTab, setMocardsSubTab] = useState<'overview' | 'generate' | 'perks' | 'activation'>('overview');
+  const [mocardsSubTab, setMocardsSubTab] = useState<'overview' | 'generate' | 'perks' | 'activation' | 'redemption'>('overview');
   const [stats, setStats] = useState({
     totalCards: 0,
     unactivatedCards: 0,
@@ -644,6 +645,16 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
                 >
                   Card Activation
                 </button>
+                <button
+                  onClick={() => setMocardsSubTab('redemption')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    mocardsSubTab === 'redemption'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Redeem Perks
+                </button>
               </div>
             </div>
 
@@ -653,6 +664,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
               {mocardsSubTab === 'generate' && <CardGenerationSystemV2 token={token} />}
               {mocardsSubTab === 'perks' && <DefaultPerksManagement token={token} />}
               {mocardsSubTab === 'activation' && <CardActivationV2 clinicId="admin" clinicName="Admin Portal" />}
+              {mocardsSubTab === 'redemption' && <PerkRedemption />}
             </div>
           </div>
         );
