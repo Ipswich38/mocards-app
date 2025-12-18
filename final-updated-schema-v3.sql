@@ -1,7 +1,8 @@
 -- =============================================================================
 -- FINAL UPDATED SCHEMA V3.0 - PRODUCTION READY
 -- =============================================================================
--- Complete schema with all recent enhancements and fixes
+-- Complete schema with
+-- all recent enhancements and fixes
 -- Includes: Reset/Deactivate functionality, Enhanced Activation, Redemption System
 
 -- =============================================================================
