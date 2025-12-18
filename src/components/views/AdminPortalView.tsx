@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, Database, Zap, UserCheck, BarChart3, AlertTriangle, CheckCircle, Plus, TrendingUp } from 'lucide-react';
+import { Lock, Database, Zap, UserCheck, BarChart3, AlertTriangle, CheckCircle, Plus, TrendingUp, Brain } from 'lucide-react';
 import {
   adminOperations,
   cardOperations,
@@ -10,6 +10,7 @@ import {
   getStatusColor,
   PLAN_LIMITS
 } from '../../lib/data';
+import { BusinessIntelligenceDashboard } from '../ui/BusinessIntelligenceDashboard';
 
 export function AdminPortalView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -17,7 +18,7 @@ export function AdminPortalView() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'generator' | 'activation' | 'endorsement' | 'master'>('generator');
+  const [activeTab, setActiveTab] = useState<'generator' | 'activation' | 'endorsement' | 'master' | 'analytics'>('generator');
 
   // Generator state
   const [generatorMode, setGeneratorMode] = useState<'single' | 'batch'>('single');
@@ -321,8 +322,8 @@ export function AdminPortalView() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center">
-              <div className="bg-blue-50 p-3 rounded-xl">
-                <Database className="h-6 w-6 text-blue-600" />
+              <div className="bg-gray-100 p-3 rounded-xl">
+                <Database className="h-6 w-6 text-gray-600" />
               </div>
               <div className="ml-4">
                 <p className="text-2xl font-bold text-gray-900">{allCards.length}</p>
@@ -380,7 +381,8 @@ export function AdminPortalView() {
                 { id: 'generator', label: 'Generator', icon: Database },
                 { id: 'activation', label: 'Activation', icon: Zap },
                 { id: 'endorsement', label: 'Endorsement', icon: UserCheck },
-                { id: 'master', label: 'Master List', icon: BarChart3 }
+                { id: 'master', label: 'Master List', icon: BarChart3 },
+                { id: 'analytics', label: 'Analytics', icon: Brain }
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -553,8 +555,8 @@ export function AdminPortalView() {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
-                      <p className="text-sm text-blue-800">
+                    <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-4">
+                      <p className="text-sm text-gray-700">
                         This will generate {Math.max(0, batchGen.endId - batchGen.startId + 1)} cards
                       </p>
                     </div>
@@ -827,7 +829,7 @@ export function AdminPortalView() {
                                 </code>
                               </td>
                               <td className="py-3 px-4">
-                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 uppercase">
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 uppercase">
                                   {clinic.plan}
                                 </span>
                               </td>
@@ -852,6 +854,13 @@ export function AdminPortalView() {
                     </table>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Analytics Tab */}
+            {activeTab === 'analytics' && (
+              <div className="-m-8">
+                <BusinessIntelligenceDashboard />
               </div>
             )}
           </div>

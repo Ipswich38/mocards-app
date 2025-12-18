@@ -235,8 +235,8 @@ export function ClinicPortalView() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center">
-              <div className="bg-blue-50 p-3 rounded-xl">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="bg-gray-100 p-3 rounded-xl">
+                <Users className="h-6 w-6 text-gray-600" />
               </div>
               <div className="ml-4">
                 <p className="text-2xl font-bold text-gray-900">{clinicCards.length}</p>

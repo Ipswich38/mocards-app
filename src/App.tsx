@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { MainLayout, type ViewMode } from './components/layout/MainLayout';
+import { ResponsiveLayout, type ViewMode } from './components/layout/ResponsiveLayout';
 import { CardLookupView } from './components/views/CardLookupView';
 import { ClinicPortalView } from './components/views/ClinicPortalView';
 import { AdminPortalView } from './components/views/AdminPortalView';
+import { ToastProvider } from './hooks/useToast';
+import { ToastContainer } from './components/ui/ToastContainer';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('card-lookup');
@@ -21,8 +23,11 @@ export default function App() {
   };
 
   return (
-    <MainLayout currentView={currentView} onViewChange={setCurrentView}>
-      {renderCurrentView()}
-    </MainLayout>
+    <ToastProvider>
+      <ResponsiveLayout currentView={currentView} onViewChange={setCurrentView}>
+        {renderCurrentView()}
+      </ResponsiveLayout>
+      <ToastContainer />
+    </ToastProvider>
   );
 }

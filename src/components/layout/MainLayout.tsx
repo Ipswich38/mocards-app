@@ -1,4 +1,6 @@
-import { Search, Stethoscope, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Stethoscope, Shield, Activity } from 'lucide-react';
+import { SecurityDashboard } from '../ui/SecurityDashboard';
 
 export type ViewMode = 'card-lookup' | 'clinic-portal' | 'admin-access';
 
@@ -9,6 +11,8 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ currentView, onViewChange, children }: MainLayoutProps) {
+  const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
+
   const navItems = [
     {
       id: 'card-lookup' as ViewMode,
@@ -75,9 +79,23 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
           </ul>
         </nav>
 
-        {/* Footer */}
+        {/* Security Dashboard Toggle */}
         <div className="p-4 border-t border-teal-600">
-          <div className="text-xs text-teal-300 text-center">
+          <button
+            onClick={() => setShowSecurityDashboard(!showSecurityDashboard)}
+            className={`
+              w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200
+              ${showSecurityDashboard
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-teal-100 hover:bg-teal-600 hover:text-white'
+              }
+            `}
+          >
+            <Activity className="h-4 w-4" />
+            <span className="text-sm font-medium">Security Monitor</span>
+          </button>
+
+          <div className="text-xs text-teal-300 text-center mt-3">
             MOCARDS v3.0
             <br />
             © 2024 Healthcare Innovation
@@ -89,6 +107,13 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
       <div className="flex-1 ml-64 bg-gray-50 min-h-screen">
         {children}
       </div>
+
+      {/* Floating Security Dashboard */}
+      {showSecurityDashboard && (
+        <div className="fixed bottom-4 right-4 z-50 w-96 animate-slide-in-right">
+          <SecurityDashboard />
+        </div>
+      )}
     </div>
   );
 }
