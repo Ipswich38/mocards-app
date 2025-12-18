@@ -248,16 +248,16 @@ export const useAnalytics = (initialDimensions: AnalyticsDimensions = { timeRang
   const formatMetric = useCallback((value: number, format: 'number' | 'currency' | 'percentage'): string => {
     switch (format) {
       case 'currency':
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('en-PH', {
           style: 'currency',
-          currency: 'USD',
+          currency: 'PHP',
           minimumFractionDigits: 0,
           maximumFractionDigits: 0
         }).format(value);
       case 'percentage':
         return `${value.toFixed(1)}%`;
       case 'number':
-        return new Intl.NumberFormat('en-US').format(Math.round(value));
+        return new Intl.NumberFormat('en-PH').format(Math.round(value));
       default:
         return value.toString();
     }

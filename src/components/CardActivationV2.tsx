@@ -17,7 +17,7 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
 
   // Activation form data
   const [activationForm, setActivationForm] = useState({
-    locationCode: '01', // NCR region default
+    locationCode: '16', // NCR region default
     clinicCode: ''
   });
 
@@ -31,22 +31,23 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
 
   // Location codes (Philippines regions)
   const locationCodes = [
-    { code: '01', name: 'National Capital Region (NCR)' },
-    { code: '02', name: 'Cordillera Administrative Region (CAR)' },
-    { code: '03', name: 'Ilocos Region (Region I)' },
-    { code: '04', name: 'Cagayan Valley (Region II)' },
-    { code: '05', name: 'Central Luzon (Region III)' },
-    { code: '06', name: 'Calabarzon (Region IV-A)' },
-    { code: '07', name: 'Mimaropa (Region IV-B)' },
-    { code: '08', name: 'Bicol Region (Region V)' },
-    { code: '09', name: 'Western Visayas (Region VI)' },
-    { code: '10', name: 'Central Visayas (Region VII)' },
-    { code: '11', name: 'Eastern Visayas (Region VIII)' },
-    { code: '12', name: 'Zamboanga Peninsula (Region IX)' },
-    { code: '13', name: 'Northern Mindanao (Region X)' },
-    { code: '14', name: 'Davao Region (Region XI)' },
-    { code: '15', name: 'Soccsksargen (Region XII)' },
-    { code: '16', name: 'Caraga (Region XIII)' }
+    { code: '1', name: 'Ilocos Region (Region 1)' },
+    { code: '2', name: 'Cagayan Valley (Region 2)' },
+    { code: '3', name: 'Central Luzon (Region 3)' },
+    { code: '4A', name: 'Calabarzon (Region 4A)' },
+    { code: '4B', name: 'Mimaropa (Region 4B)' },
+    { code: '5', name: 'Bicol Region (Region 5)' },
+    { code: '6', name: 'Western Visayas (Region 6)' },
+    { code: '7', name: 'Central Visayas (Region 7)' },
+    { code: '8', name: 'Eastern Visayas (Region 8)' },
+    { code: '9', name: 'Zamboanga Peninsula (Region 9)' },
+    { code: '10', name: 'Northern Mindanao (Region 10)' },
+    { code: '11', name: 'Davao Region (Region 11)' },
+    { code: '12', name: 'Soccsksargen (Region 12)' },
+    { code: '13', name: 'Caraga (Region 13)' },
+    { code: '14', name: 'Bangsamoro (BARMM)' },
+    { code: '15', name: 'Cordillera Administrative Region (CAR)' },
+    { code: '16', name: 'National Capital Region (NCR)' }
   ];
 
   useEffect(() => {
@@ -116,18 +117,14 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
     setError('');
 
     try {
-      // Generate the final control number
-      const cardNum = selectedCard.card_number || 0;
-      const displayNum = (cardNum + 9999).toString().padStart(5, '0');
+      // Get selected clinic info
       const selectedClinic = clinics.find(c => c.id === activationForm.clinicCode);
-      const clinicCode = selectedClinic?.clinic_code || 'UNASSIGNED';
-      const finalControlNumber = `MOC-${displayNum}-${activationForm.locationCode}-${clinicCode}`;
+      const clinicCode = selectedClinic?.clinic_code || null;
 
-      // Update the card with activation data and new control number
+      // Update the card with activation data - keep original control number
       const updateData: any = {
         is_activated: true,
         status: 'activated',
-        unified_control_number: finalControlNumber,
         location_code_v2: activationForm.locationCode,
         clinic_code_v2: clinicCode,
         activated_at: new Date().toISOString(),
@@ -149,7 +146,7 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
 
       // Auto-assign default perks
       const { data: defaultPerks } = await supabase
-        .from('default_perk_datalates')
+        .from('default_perk_templates')
         .select('*')
         .eq('is_default', true);
 
@@ -172,15 +169,15 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
 
       setSuccess(`✅ Card activated successfully!
 
-Final Control Number: ${finalControlNumber}
-Location: ${activationForm.locationCode} - ${locationName}
-Clinic: ${clinicName}`);
+Control Number: ${selectedCard.control_number || selectedCard.unified_control_number}
+Assigned Region: ${activationForm.locationCode} - ${locationName}
+Assigned Clinic: ${clinicName}`);
 
       // Reset form
       setSelectedCard(null);
       setSearchQuery('');
       setSearchResults([]);
-      setActivationForm({ locationCode: '01', clinicCode: '' });
+      setActivationForm({ locationCode: '16', clinicCode: '' });
     } catch (err: any) {
       setError('Error activating card: ' + err.message);
     } finally {
@@ -209,7 +206,7 @@ Clinic: ${clinicName}`);
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search by control number or card number (e.g., MOC-__-____-00001 or 1)"
+              placeholder="Search by control number or card number (e.g., MOC-000001 or 1)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field text-lg"
@@ -342,19 +339,33 @@ Clinic: ${clinicName}`);
                   )}
                 </div>
 
-                {/* Final Control Number Preview */}
+                {/* Assignment Preview */}
                 <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                   <label className="block text-sm font-medium text-blue-700 mb-2">
-                    Final Control Number Preview:
+                    Assignment Preview:
                   </label>
-                  <div className="font-mono text-lg font-bold text-blue-800">
-                    {(() => {
-                      const cardNum = selectedCard?.card_number || 0;
-                      const displayNum = (cardNum + 9999).toString().padStart(5, '0');
-                      const selectedClinic = clinics.find(c => c.id === activationForm.clinicCode);
-                      const clinicCode = selectedClinic?.clinic_code || 'UNASSIGNED';
-                      return `MOC-${displayNum}-${activationForm.locationCode}-${clinicCode}`;
-                    })()}
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-blue-600">Control Number:</span>
+                      <span className="font-mono text-lg font-bold text-blue-800">
+                        {selectedCard?.control_number || selectedCard?.unified_control_number || 'MOC-000000'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-600">Region:</span>
+                      <span className="font-medium text-blue-800">
+                        {activationForm.locationCode} - {locationCodes.find(l => l.code === activationForm.locationCode)?.name || 'Unknown'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-600">Clinic:</span>
+                      <span className="font-medium text-blue-800">
+                        {(() => {
+                          const selectedClinic = clinics.find(c => c.id === activationForm.clinicCode);
+                          return selectedClinic?.clinic_name || 'Not assigned';
+                        })()}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -408,7 +419,7 @@ Clinic: ${clinicName}`);
           <ul className="text-gray-700 space-y-2 text-base">
             <li className="flex items-start">
               <span className="text-blue-600 mr-3">•</span>
-              Search for unactivated cards using control number or 5-digit number (00001-10000)
+              Search for unactivated cards using control number or 6-digit number (000001-010000)
             </li>
             <li className="flex items-start">
               <span className="text-blue-600 mr-3">•</span>

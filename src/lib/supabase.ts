@@ -393,33 +393,25 @@ export const dbOperations = {
     return card.display_card_number || ((card.card_number || 0) + 9999);
   },
 
-  async activateCard(cardId: string, clinicId: string, regionCode: string = '01') {
-    // Get clinic info for the new unified format
+  async activateCard(cardId: string, clinicId: string, regionCode: string = '16') {
+    // Get clinic info for assignment tracking
     const { data: clinic } = await supabase
       .from('mocards_clinics')
       .select('clinic_code')
       .eq('id', clinicId)
       .single();
 
-    const { data: card } = await supabase
-      .from('cards')
-      .select('card_number')
-      .eq('id', cardId)
-      .single();
+    const clinicCode = clinic?.clinic_code || null;
 
-    const clinicCode = clinic?.clinic_code || 'CVT001';
-    const displayNumber = (card?.card_number || 1) + 9999;
-    const unifiedControlNumber = `MOC-${displayNumber.toString().padStart(5, '0')}-${regionCode}-${clinicCode}`;
-
+    // Update card with activation data - keep original control number
     const { data, error } = await supabase
       .from('cards')
       .update({
+        is_activated: true,
         status: 'activated',
         assigned_clinic_id: clinicId,
         activated_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        unified_control_number: unifiedControlNumber,
-        display_card_number: displayNumber,
         location_code_v2: regionCode,
         clinic_code_v2: clinicCode,
         updated_at: new Date().toISOString()

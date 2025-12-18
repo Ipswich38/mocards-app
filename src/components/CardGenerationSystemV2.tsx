@@ -82,12 +82,14 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
       for (let i = 1; i <= 10000; i++) {
         cardsToGenerate.push({
           batch_id: batch.id, // Link to the batch
-          control_number: `MOC-__-____-${i.toString().padStart(5, '0')}`, // New MOC format
-          location_code: 'PHL', // Default location code
+          control_number: `MOC-${i.toString().padStart(6, '0')}`, // Philippines MOC format: MOC-000001
+          unified_control_number: `MOC-${i.toString().padStart(6, '0')}`, // Same for unified
+          location_code: 'PH', // Philippines country code
           card_number: i,
+          display_card_number: i,
           is_activated: false,
-          status: 'unassigned', // Using proper status from schema
-          migration_version: 2
+          status: 'unassigned',
+          migration_version: 3
         });
       }
 
@@ -126,8 +128,8 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
     const sampleData = [];
 
     for (let i = 1; i <= 100; i++) {
-      const controlNumber = `MOC-__-____-${i.toString().padStart(5, '0')}`;
-      sampleData.push(`${i},${controlNumber},unactivated,v2`);
+      const controlNumber = `MOC-${i.toString().padStart(6, '0')}`;
+      sampleData.push(`${i},${controlNumber},unactivated,v3`);
     }
 
     const csvData = csvHeader + sampleData.join('\n');
@@ -148,7 +150,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
       <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
         <h2 className="text-3xl font-bold mb-2 text-gray-900">MOC Card Generation System V2.0</h2>
         <p className="text-gray-600 text-lg">
-          Generate 10,000 fresh unactivated cards with new control number format
+          Generate 10,000 fresh unactivated cards with Philippines standard MOC-000001 format
         </p>
       </div>
 
@@ -162,16 +164,16 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Generate New Card Batch</h3>
             <p className="text-gray-600 text-lg">
-              This will create 10,000 fresh unactivated cards with the new MOC format
+              This will create 10,000 fresh unactivated cards with Philippines standard MOC-000001 format
             </p>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-left">
-            <h4 className="font-medium text-blue-800 mb-3">New Card Format Features:</h4>
+            <h4 className="font-medium text-blue-800 mb-3">Philippines Card Format Features:</h4>
             <ul className="text-blue-700 space-y-2 text-sm">
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Control Number Format: <span className="font-mono">MOC-__-____-00001</span> to <span className="font-mono">MOC-__-____-10000</span>
+                Control Number Format: <span className="font-mono">MOC-000001</span> to <span className="font-mono">MOC-010000</span> (Philippines Standard)
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -179,7 +181,7 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Location and clinic codes assigned during activation
+                Philippines regions (1-16, including 4A and 4B) and clinic codes (CVT001-CVT010) assigned during activation
               </li>
               <li className="flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -274,17 +276,17 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
               <h5 className="font-medium text-blue-800 mb-2">Card Generation:</h5>
               <ul className="text-blue-700 space-y-1 text-sm">
                 <li>• 10,000 cards with sequential numbers</li>
-                <li>• Format: MOC-__-____-XXXXX</li>
+                <li>• Format: MOC-000001 to MOC-010000</li>
                 <li>• Direct activation system</li>
-                <li>• All cards start as "unactivated"</li>
+                <li>• All cards start as "unassigned"</li>
               </ul>
             </div>
             <div>
               <h5 className="font-medium text-blue-800 mb-2">Card Activation:</h5>
               <ul className="text-blue-700 space-y-1 text-sm">
-                <li>• Clinics manually enter location code (01-16)</li>
-                <li>• Clinics select clinic code by region</li>
-                <li>• Final format: MOC-01-1234-00001</li>
+                <li>• Clinics select Philippines region (1-16, 4A, 4B)</li>
+                <li>• Clinics select clinic code (CVT001-CVT010)</li>
+                <li>• Card keeps original format: MOC-000001</li>
                 <li>• Default perks automatically assigned</li>
               </ul>
             </div>

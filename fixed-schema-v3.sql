@@ -170,7 +170,41 @@ ON CONFLICT (perk_type) DO UPDATE SET
   description = EXCLUDED.description;
 
 -- =============================================================================
--- 10. QUERY FUNCTION
+-- 10. PHILIPPINES CLINIC DATA
+-- =============================================================================
+
+INSERT INTO public.mocards_clinics (clinic_name, clinic_code, location_code, contact_person, email, phone, address, is_active)
+VALUES
+  -- Region 4A (Calabarzon) - Laguna
+  ('MOCARDS Dental Clinic - Sta. Rosa', 'CVT001', '4A', 'Dr. Maria Santos', 'santarosa@mocards.ph', '+63917-123-4567', 'Sta. Rosa, Laguna', true),
+  ('MOCARDS Dental Center - Calamba', 'CVT002', '4A', 'Dr. Juan Dela Cruz', 'calamba@mocards.ph', '+63917-234-5678', 'Calamba, Laguna', true),
+  ('MOCARDS Oral Health - San Pedro', 'CVT003', '4A', 'Dr. Ana Rodriguez', 'sanpedro@mocards.ph', '+63917-345-6789', 'San Pedro, Laguna', true),
+
+  -- Region 4A (Calabarzon) - Batangas
+  ('MOCARDS Dental Clinic - Lipa', 'CVT004', '4A', 'Dr. Roberto Cruz', 'lipa@mocards.ph', '+63917-456-7890', 'Lipa, Batangas', true),
+  ('MOCARDS Dental Center - Batangas City', 'CVT005', '4A', 'Dr. Carmen Flores', 'batangas@mocards.ph', '+63917-567-8901', 'Batangas City, Batangas', true),
+  ('MOCARDS Oral Care - Tanauan', 'CVT006', '4A', 'Dr. Eduardo Ramos', 'tanauan@mocards.ph', '+63917-678-9012', 'Tanauan, Batangas', true),
+
+  -- Region 16 (NCR)
+  ('MOCARDS Dental Hub - Makati', 'CVT007', '16', 'Dr. Sofia Reyes', 'makati@mocards.ph', '+63917-789-0123', 'Makati City, NCR', true),
+  ('MOCARDS Dental Plaza - Quezon City', 'CVT008', '16', 'Dr. Miguel Torres', 'qc@mocards.ph', '+63917-890-1234', 'Quezon City, NCR', true),
+
+  -- Region 7 (Central Visayas)
+  ('MOCARDS Dental Center - Cebu', 'CVT009', '7', 'Dr. Isabella Garcia', 'cebu@mocards.ph', '+63917-901-2345', 'Cebu City, Cebu', true),
+
+  -- Region 11 (Davao)
+  ('MOCARDS Dental Clinic - Davao', 'CVT010', '11', 'Dr. Francisco Morales', 'davao@mocards.ph', '+63917-012-3456', 'Davao City, Davao', true)
+ON CONFLICT (clinic_code) DO UPDATE SET
+  clinic_name = EXCLUDED.clinic_name,
+  location_code = EXCLUDED.location_code,
+  contact_person = EXCLUDED.contact_person,
+  email = EXCLUDED.email,
+  phone = EXCLUDED.phone,
+  address = EXCLUDED.address,
+  is_active = EXCLUDED.is_active;
+
+-- =============================================================================
+-- 11. QUERY FUNCTION
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION get_card_with_redemption_status(search_term TEXT)
