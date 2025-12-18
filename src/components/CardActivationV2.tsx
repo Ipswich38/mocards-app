@@ -186,87 +186,94 @@ Assigned Clinic: ${clinicName}`);
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="card card-hover p-6">
-        <h2 className="text-3xl font-bold mb-2 text-gray-900">Card Activation System V2.0</h2>
-        <p className="text-gray-600 text-lg">
-          Activate unassigned cards and assign location/clinic codes - <span className="text-blue-600 font-medium">{clinicName}</span>
-        </p>
-      </div>
-
-      {/* Search Section */}
-      <div className="card card-hover p-6">
-        <h3 className="text-xl font-medium text-gray-900 mb-6 flex items-center">
-          <Search className="h-6 w-6 mr-3 text-blue-600" />
-          Find Card to Activate
-        </h3>
-
-        <div className="flex space-x-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Search by control number or card number (e.g., MOC-000001 or 1)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field text-lg"
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </div>
-          <button
-            onClick={handleSearch}
-            disabled={searching || !searchQuery.trim()}
-            className="btn btn-primary px-6 py-3 flex items-center disabled:opacity-50"
-          >
-            {searching ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-            ) : (
-              <Search className="h-5 w-5 mr-2" />
+    <div className="min-h-screen bg-background-secondary">
+      <div className="safe-top p-6 space-y-6">
+        {/* Header */}
+        <div className="card-ios-large p-6 animate-ios-fade-in">
+          <h2 className="text-ios-title-2 font-semibold text-text-primary mb-2">Card Activation</h2>
+          <p className="text-ios-body text-text-secondary">
+            Activate unassigned cards and assign location/clinic codes
+            {clinicName && (
+              <span className="text-healthcare-primary font-medium ml-2">• {clinicName}</span>
             )}
-            Search
-          </button>
+          </p>
         </div>
 
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <div className="mt-6">
-            <h4 className="text-sm font-medium text-gray-700 mb-4">Search Results:</h4>
-            <div className="space-y-3">
-              {searchResults.map((card) => (
-                <div
-                  key={card.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                    selectedCard?.id === card.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                  onClick={() => setSelectedCard(card)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <CreditCard className="h-5 w-5 text-blue-600 mr-3" />
-                      <span className="font-mono text-lg text-gray-800">{card.control_number_v2}</span>
-                      <span className="mx-3 text-gray-400">•</span>
-                      <span className="text-gray-600">Card #{card.card_number}</span>
-                    </div>
-                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-                      Unactivated
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Activation Form */}
-      {selectedCard && (
-        <div className="card card-hover p-6">
-          <h3 className="text-xl font-medium text-gray-900 mb-6 flex items-center">
-            <CheckCircle className="h-6 w-6 mr-3 text-green-600" />
-            Activate Selected Card
+        {/* Search Section */}
+        <div className="card-ios-hover p-6 animate-ios-fade-in">
+          <h3 className="text-ios-title-3 font-semibold text-text-primary mb-6 flex items-center">
+            <Search className="h-5 w-5 mr-3 text-healthcare-primary" />
+            Find Card to Activate
           </h3>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-text-quaternary" />
+              <input
+                type="text"
+                placeholder="Search by control number or card number (e.g., MOC-000001 or 1)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-ios-search w-full"
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              disabled={searching || !searchQuery.trim()}
+              className="btn-ios-primary w-full sm:w-auto"
+            >
+              {searching ? (
+                <div className="loading-ios w-5 h-5 mr-2"></div>
+              ) : (
+                <Search className="h-5 w-5 mr-2" />
+              )}
+              Search Cards
+            </button>
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-ios-subheadline font-medium text-text-primary mb-4">Search Results:</h4>
+              <div className="list-ios rounded-ios-lg overflow-hidden">
+                {searchResults.map((card) => (
+                  <div
+                    key={card.id}
+                    className={`list-ios-item cursor-pointer touch-feedback-ios ${
+                      selectedCard?.id === card.id
+                        ? 'bg-ios-blue-50 border-l-4 border-healthcare-primary'
+                        : ''
+                    }`}
+                    onClick={() => setSelectedCard(card)}
+                  >
+                    <CreditCard className="h-5 w-5 text-healthcare-primary mr-3 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-mono text-ios-body text-text-primary">{card.control_number_v2 || card.control_number || card.unified_control_number}</span>
+                          <span className="mx-2 text-text-quaternary">•</span>
+                          <span className="text-ios-callout text-text-secondary">Card #{card.card_number}</span>
+                        </div>
+                        <span className="badge-ios-warning">
+                          Unactivated
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Activation Form */}
+        {selectedCard && (
+          <div className="card-ios-hover p-6 animate-ios-scale-in">
+            <h3 className="text-ios-title-3 font-semibold text-text-primary mb-6 flex items-center">
+              <CheckCircle className="h-5 w-5 mr-3 text-healthcare-success" />
+              Activate Selected Card
+            </h3>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Card Info */}
@@ -439,6 +446,7 @@ Assigned Clinic: ${clinicName}`);
             </li>
           </ul>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -145,28 +145,33 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-        <h2 className="text-3xl font-bold mb-2 text-gray-900">MOC Card Generation System V2.0</h2>
-        <p className="text-gray-600 text-lg">
-          Generate 10,000 fresh unactivated cards with Philippines standard MOC-000001 format
-        </p>
-      </div>
+    <div className="min-h-screen bg-background-secondary">
+      <div className="safe-top p-6 space-y-6">
+        {/* Header */}
+        <div className="card-ios-large p-6 animate-ios-fade-in">
+          <h2 className="text-ios-title-2 font-semibold text-text-primary mb-2">
+            Card Generation System
+          </h2>
+          <p className="text-ios-body text-text-secondary">
+            Generate 10,000 fresh unactivated cards with Philippines standard MOC-000001 format
+          </p>
+        </div>
 
-      {/* Main Generation Card */}
-      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-        <div className="text-center space-y-6">
-          <div className="mx-auto w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center">
-            <CreditCard className="h-10 w-10 text-blue-500" />
-          </div>
+        {/* Main Generation Card */}
+        <div className="card-ios-large p-8 animate-ios-fade-in">
+          <div className="text-center space-y-6">
+            <div className="mx-auto w-20 h-20 bg-ios-blue-50 rounded-ios-lg flex items-center justify-center">
+              <CreditCard className="h-10 w-10 text-healthcare-primary" />
+            </div>
 
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Generate New Card Batch</h3>
-            <p className="text-gray-600 text-lg">
-              This will create 10,000 fresh unactivated cards with Philippines standard MOC-000001 format
-            </p>
-          </div>
+            <div>
+              <h3 className="text-ios-title-3 font-semibold text-text-primary mb-2">
+                Generate New Card Batch
+              </h3>
+              <p className="text-ios-body text-text-secondary">
+                This will create 10,000 fresh unactivated cards with Philippines standard MOC-000001 format
+              </p>
+            </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-left">
             <h4 className="font-medium text-blue-800 mb-3">Philippines Card Format Features:</h4>
@@ -190,105 +195,108 @@ export function CardGenerationSystemV2({ }: CardGenerationSystemV2Props) {
             </ul>
           </div>
 
-          {!showConfirmation ? (
-            <div className="space-y-4">
-              <button
-                onClick={() => setShowConfirmation(true)}
-                className="bg-[#1A535C] text-white rounded-xl shadow-md hover:shadow-lg font-bold px-8 py-4 text-lg flex items-center justify-center transition-all hover:scale-[1.02] mx-auto"
-              >
-                <RefreshCw className="h-6 w-6 mr-3" />
-                Generate 10,000 Fresh Cards
-              </button>
+            {!showConfirmation ? (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setShowConfirmation(true)}
+                  className="btn-ios-primary text-lg px-8 py-4 mx-auto touch-feedback-ios-primary"
+                >
+                  <RefreshCw className="h-5 w-5 mr-3" />
+                  Generate 10,000 Fresh Cards
+                </button>
 
-              <button
-                onClick={downloadSampleCards}
-                className="bg-white text-[#1A535C] rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-medium px-6 py-2 text-sm flex items-center justify-center transition-all hover:scale-[1.02] mx-auto"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download Sample Format (First 100 Cards)
-              </button>
-            </div>
-          ) : (
-            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-2 rounded-2xl bg-orange-100">
-                  <AlertTriangle className="h-6 w-6 text-orange-600" />
+                <button
+                  onClick={downloadSampleCards}
+                  className="btn-ios-secondary text-sm px-6 py-2 mx-auto"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Sample Format (First 100 Cards)
+                </button>
+              </div>
+            ) : (
+              <div className="alert-ios-warning rounded-ios-lg p-6">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-ios-orange-100 rounded-ios flex items-center justify-center">
+                    <AlertTriangle className="h-6 w-6 text-ios-orange-600" />
+                  </div>
+                </div>
+                <h4 className="text-ios-headline text-ios-orange-800 text-center mb-2">
+                  Confirmation Required
+                </h4>
+                <p className="text-ios-body text-ios-orange-700 text-center mb-6">
+                  This will <strong>delete all existing cards</strong> and generate 10,000 fresh unactivated cards with the new MOC format. This action cannot be undone.
+                </p>
+
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 justify-center">
+                  <button
+                    onClick={handleGenerateCards}
+                    disabled={loading}
+                    className="btn-ios-danger px-6 py-3 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="loading-ios w-5 h-5 mr-3"></div>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-5 w-5 mr-2" />
+                        Yes, Delete & Generate
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setShowConfirmation(false)}
+                    className="btn-ios-secondary px-6 py-3"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
-              <h4 className="font-bold text-orange-800 mb-2">⚠️ Confirmation Required</h4>
-              <p className="text-orange-700 mb-6">
-                This will <strong>delete all existing cards</strong> and generate 10,000 fresh unactivated cards with the new MOC format. This action cannot be undone.
-              </p>
-
-              <div className="flex space-x-4 justify-center">
-                <button
-                  onClick={handleGenerateCards}
-                  disabled={loading}
-                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-md hover:shadow-lg font-bold px-6 py-3 flex items-center disabled:opacity-50 transition-all hover:scale-[1.02]"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-5 w-5 mr-2" />
-                      Yes, Delete & Generate
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setShowConfirmation(false)}
-                  className="bg-white text-gray-700 rounded-xl border border-gray-200 shadow-sm hover:shadow-md font-bold px-6 py-3 transition-all hover:scale-[1.02]"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
 
-      {/* Messages */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center">
-          <AlertTriangle className="h-6 w-6 mr-3" />
-          <span className="text-lg">{error}</span>
-        </div>
-      )}
+        {/* Messages */}
+        {error && (
+          <div className="alert-ios-danger animate-ios-fade-in">
+            <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
+            <span className="text-ios-body">{error}</span>
+          </div>
+        )}
 
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl flex items-center">
-          <CheckCircle className="h-6 w-6 mr-3" />
-          <span className="text-lg">{success}</span>
-        </div>
-      )}
+        {success && (
+          <div className="alert-ios-success animate-ios-fade-in">
+            <CheckCircle className="h-5 w-5 mr-3 flex-shrink-0" />
+            <span className="text-ios-body">{success}</span>
+          </div>
+        )}
 
-      {/* Information */}
-      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-        <div className="border border-blue-200 p-6 rounded-2xl bg-blue-50">
-          <h4 className="text-lg font-medium text-blue-700 mb-4">How the New System Works:</h4>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h5 className="font-medium text-blue-800 mb-2">Card Generation:</h5>
-              <ul className="text-blue-700 space-y-1 text-sm">
-                <li>• 10,000 cards with sequential numbers</li>
-                <li>• Format: MOC-000001 to MOC-010000</li>
-                <li>• Direct activation system</li>
-                <li>• All cards start as "unassigned"</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-medium text-blue-800 mb-2">Card Activation:</h5>
-              <ul className="text-blue-700 space-y-1 text-sm">
-                <li>• Clinics select Philippines region (1-16, 4A, 4B)</li>
-                <li>• Clinics select clinic code (CVT001-CVT010)</li>
-                <li>• Card keeps original format: MOC-000001</li>
-                <li>• Default perks automatically assigned</li>
-              </ul>
+        {/* Information */}
+        <div className="card-ios-large p-6 animate-ios-fade-in">
+          <div className="alert-ios-info">
+            <h4 className="text-ios-headline text-ios-blue-800 mb-4">How the Philippines System Works:</h4>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h5 className="text-ios-subheadline font-semibold text-ios-blue-700 mb-2">Card Generation:</h5>
+                <ul className="text-ios-callout text-ios-blue-700 space-y-1">
+                  <li>• 10,000 cards with sequential numbers</li>
+                  <li>• Format: MOC-000001 to MOC-010000</li>
+                  <li>• Direct activation system</li>
+                  <li>• All cards start as "unassigned"</li>
+                </ul>
+              </div>
+              <div>
+                <h5 className="text-ios-subheadline font-semibold text-ios-blue-700 mb-2">Card Activation:</h5>
+                <ul className="text-ios-callout text-ios-blue-700 space-y-1">
+                  <li>• Clinics select Philippines region (1-16, 4A, 4B)</li>
+                  <li>• Clinics select clinic code (CVT001-CVT010)</li>
+                  <li>• Card keeps original format: MOC-000001</li>
+                  <li>• Default perks automatically assigned</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

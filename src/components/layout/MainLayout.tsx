@@ -35,18 +35,25 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
   ];
 
   return (
-    <div className="min-h-screen flex">
-      {/* Persistent Sidebar - Deep Teal Theme */}
-      <div className="w-64 bg-[#1A535C] text-white flex flex-col fixed h-full z-10">
+    <div className="min-h-screen flex bg-background-secondary">
+      {/* iOS-style Sidebar - Light Mode */}
+      <div className="w-72 bg-background-elevated border-r border-border-light flex flex-col fixed h-full z-10 shadow-ios">
         {/* Header */}
-        <div className="p-6 border-b border-teal-600">
-          <h1 className="text-xl font-bold text-white">MOCARDS CLOUD</h1>
-          <p className="text-teal-200 text-sm mt-1">HMO Management Platform</p>
+        <div className="safe-top p-6 border-b border-border-light">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-healthcare-primary rounded-ios flex items-center justify-center">
+              <Activity className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-ios-title-3 font-semibold text-text-primary">MOCARDS</h1>
+              <p className="text-ios-caption-1 text-text-tertiary">Healthcare Platform</p>
+            </div>
+          </div>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
@@ -55,20 +62,18 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
                 <li key={item.id}>
                   <button
                     onClick={() => onViewChange(item.id)}
-                    className={`
-                      w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
-                      ${isActive
-                        ? 'bg-white text-[#1A535C] shadow-lg'
-                        : 'text-teal-100 hover:bg-teal-600 hover:text-white'
-                      }
-                    `}
+                    className={
+                      isActive
+                        ? 'nav-ios-item-active w-full'
+                        : 'nav-ios-item w-full hover:bg-ios-gray-100 hover:text-text-primary'
+                    }
                   >
-                    <Icon className={`h-5 w-5 ${isActive ? 'text-[#1A535C]' : ''}`} />
-                    <div className="text-left">
-                      <div className={`font-medium ${isActive ? 'text-[#1A535C]' : ''}`}>
+                    <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-healthcare-primary' : 'text-text-tertiary'}`} />
+                    <div className="text-left flex-1">
+                      <div className="text-ios-callout font-medium">
                         {item.label}
                       </div>
-                      <div className={`text-xs ${isActive ? 'text-teal-600' : 'text-teal-300'}`}>
+                      <div className="text-ios-caption-1 text-text-tertiary">
                         {item.description}
                       </div>
                     </div>
@@ -80,38 +85,39 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
         </nav>
 
         {/* Security Dashboard Toggle */}
-        <div className="p-4 border-t border-teal-600">
+        <div className="safe-bottom p-4 border-t border-border-light">
           <button
             onClick={() => setShowSecurityDashboard(!showSecurityDashboard)}
-            className={`
-              w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200
-              ${showSecurityDashboard
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'text-teal-100 hover:bg-teal-600 hover:text-white'
-              }
-            `}
+            className={
+              showSecurityDashboard
+                ? 'btn-ios-primary w-full'
+                : 'btn-ios-secondary w-full'
+            }
           >
-            <Activity className="h-4 w-4" />
-            <span className="text-sm font-medium">Security Monitor</span>
+            <Activity className="h-4 w-4 mr-2" />
+            <span className="text-ios-footnote font-medium">Security Monitor</span>
           </button>
 
-          <div className="text-xs text-teal-300 text-center mt-3">
-            MOCARDS v3.0
-            <br />
-            © 2024 Healthcare Innovation
+          <div className="text-ios-caption-2 text-text-quaternary text-center mt-4 space-y-1">
+            <div>MOCARDS v3.0 Philippines</div>
+            <div>© 2024 Healthcare Innovation</div>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area - Default Light Background */}
-      <div className="flex-1 ml-64 bg-gray-50 min-h-screen">
-        {children}
+      {/* Main Content Area - iOS Light Background */}
+      <div className="flex-1 ml-72 bg-background-secondary min-h-screen">
+        <div className="h-full w-full overflow-auto scrollbar-ios">
+          {children}
+        </div>
       </div>
 
       {/* Floating Security Dashboard */}
       {showSecurityDashboard && (
-        <div className="fixed bottom-4 right-4 z-50 w-96 animate-slide-in-right">
-          <SecurityDashboard />
+        <div className="fixed bottom-6 right-6 z-50 w-96 animate-ios-slide-up">
+          <div className="card-ios-large">
+            <SecurityDashboard />
+          </div>
         </div>
       )}
     </div>
