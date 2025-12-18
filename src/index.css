@@ -2,383 +2,124 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* iOS-style base styles */
+/* iOS-inspired Custom Styles with Tailwind Classes Only */
 @layer base {
   * {
     @apply border-border;
   }
 
   html {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
   body {
-    @apply bg-background-primary text-text-primary;
+    @apply bg-white text-gray-900;
     @apply leading-normal;
   }
 }
 
-/* iOS-style component layer */
+/* Custom iOS-style components using Tailwind utilities */
 @layer components {
-  /* iOS Button Styles */
-  .btn-ios {
-    @apply inline-flex items-center justify-center rounded-ios px-4 py-2.5;
-    @apply text-sm font-medium transition-all duration-200 ease-in-out;
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-    @apply touch-target gpu-accelerated;
-    min-height: 44px; /* iOS minimum touch target */
+  .ios-card {
+    @apply bg-white rounded-xl shadow-lg border border-gray-100;
   }
 
-  .btn-ios-primary {
-    @apply btn-ios bg-healthcare-primary text-white shadow-ios;
-    @apply hover:bg-ios-blue-600 active:bg-ios-blue-700;
-    @apply focus:ring-ios-blue-500;
-  }
-
-  .btn-ios-secondary {
-    @apply btn-ios bg-background-elevated text-text-primary border border-border-medium shadow-ios-sm;
-    @apply hover:bg-ios-gray-50 active:bg-ios-gray-100;
-    @apply focus:ring-ios-blue-500;
-  }
-
-  .btn-ios-success {
-    @apply btn-ios bg-healthcare-success text-white shadow-ios;
-    @apply hover:bg-ios-green-600 active:bg-ios-green-700;
-    @apply focus:ring-ios-green-500;
-  }
-
-  .btn-ios-danger {
-    @apply btn-ios bg-healthcare-danger text-white shadow-ios;
-    @apply hover:bg-ios-red-600 active:bg-ios-red-700;
-    @apply focus:ring-ios-red-500;
-  }
-
-  .btn-ios-warning {
-    @apply btn-ios bg-healthcare-warning text-text-primary shadow-ios;
-    @apply hover:bg-ios-yellow-600 hover:text-white active:bg-ios-yellow-700;
-    @apply focus:ring-ios-yellow-500;
-  }
-
-  /* iOS Card Styles */
-  .card-ios {
-    @apply bg-background-elevated rounded-ios-card shadow-ios border border-border-light;
-    @apply transition-all duration-200 ease-in-out;
-  }
-
-  .card-ios-hover {
-    @apply card-ios hover:shadow-ios-md hover:-translate-y-1;
-    @apply active:translate-y-0 active:shadow-ios;
-  }
-
-  .card-ios-large {
-    @apply card-ios rounded-ios-lg shadow-ios-md;
-  }
-
-  /* iOS Input Styles */
-  .input-ios {
-    @apply w-full px-4 py-3 text-base text-text-primary bg-background-elevated;
-    @apply border border-border-medium rounded-ios;
-    @apply focus:outline-none focus:ring-2 focus:ring-healthcare-primary focus:border-transparent;
-    @apply placeholder:text-text-quaternary transition-all duration-200;
-    min-height: 44px; /* iOS minimum touch target */
-  }
-
-  .input-ios-large {
-    @apply input-ios py-4 text-lg rounded-ios-lg;
-    min-height: 52px;
-  }
-
-  .input-ios-search {
-    @apply input-ios pl-10 bg-ios-gray-100 border-transparent;
-    @apply focus:bg-background-elevated focus:border-border-medium;
-  }
-
-  /* iOS Select Styles */
-  .select-ios {
-    @apply input-ios cursor-pointer appearance-none;
-    @apply bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")];
-    @apply bg-[length:1.5em_1.5em] bg-[right_0.75rem_center] bg-no-repeat;
-  }
-
-  /* iOS Navigation Styles */
-  .nav-ios {
-    @apply bg-background-elevated border-b border-border-light backdrop-blur-md;
-    @apply shadow-ios-sm;
-  }
-
-  .nav-ios-item {
-    @apply flex items-center px-4 py-3 text-sm font-medium text-text-secondary;
-    @apply rounded-ios transition-all duration-200 ease-in-out touch-target;
-    @apply hover:bg-ios-gray-100 hover:text-text-primary;
-    @apply focus:outline-none focus:bg-ios-blue-100 focus:text-healthcare-primary;
+  .ios-button-primary {
+    @apply bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg;
     min-height: 44px;
   }
 
-  .nav-ios-item-active {
-    @apply nav-ios-item bg-ios-blue-100 text-healthcare-primary;
-    @apply font-semibold;
-  }
-
-  /* iOS Modal/Sheet Styles */
-  .modal-ios {
-    @apply fixed inset-0 z-50 overflow-hidden;
-  }
-
-  .modal-ios-backdrop {
-    @apply fixed inset-0 bg-black/20 backdrop-blur-sm;
-    @apply transition-opacity duration-200;
-  }
-
-  .modal-ios-content {
-    @apply fixed inset-x-4 bottom-4 top-20 mx-auto max-w-2xl;
-    @apply bg-background-elevated rounded-ios-xl shadow-ios-2xl;
-    @apply overflow-hidden;
-  }
-
-  .sheet-ios {
-    @apply fixed inset-x-0 bottom-0 z-50 mx-auto max-w-2xl;
-    @apply bg-background-elevated rounded-t-ios-xl shadow-ios-2xl;
-    @apply border-t border-border-light;
-  }
-
-  /* iOS List Styles */
-  .list-ios {
-    @apply divide-y divide-border-light;
-  }
-
-  .list-ios-item {
-    @apply flex items-center px-4 py-3 text-text-primary;
-    @apply transition-colors duration-150 ease-in-out touch-target;
-    @apply hover:bg-ios-gray-50 active:bg-ios-gray-100;
+  .ios-button-secondary {
+    @apply bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-200 border border-gray-200;
     min-height: 44px;
   }
 
-  .list-ios-item-disclosure {
-    @apply list-ios-item cursor-pointer;
-    @apply after:content-['›'] after:ml-auto after:text-text-quaternary after:text-lg;
+  .ios-nav-item {
+    @apply flex items-center p-4 rounded-xl transition-all duration-200 cursor-pointer;
   }
 
-  /* iOS Status/Badge Styles */
-  .badge-ios {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-    @apply transition-colors duration-200;
+  .ios-nav-item:hover {
+    @apply bg-gray-50;
   }
 
-  .badge-ios-success {
-    @apply badge-ios bg-ios-green-100 text-ios-green-700;
+  .ios-nav-item-active {
+    @apply flex items-center p-4 rounded-xl bg-blue-50 text-blue-600 border border-blue-200;
   }
 
-  .badge-ios-warning {
-    @apply badge-ios bg-ios-yellow-100 text-ios-yellow-800;
+  .ios-text-title {
+    @apply text-2xl font-bold text-gray-900;
   }
 
-  .badge-ios-danger {
-    @apply badge-ios bg-ios-red-100 text-ios-red-700;
+  .ios-text-subtitle {
+    @apply text-lg font-semibold text-gray-700;
   }
 
-  .badge-ios-info {
-    @apply badge-ios bg-ios-blue-100 text-ios-blue-700;
+  .ios-text-body {
+    @apply text-base text-gray-600;
   }
 
-  .badge-ios-neutral {
-    @apply badge-ios bg-ios-gray-100 text-ios-gray-700;
+  .ios-text-caption {
+    @apply text-sm text-gray-500;
   }
 
-  /* iOS Progress/Loading Styles */
-  .progress-ios {
-    @apply w-full bg-ios-gray-200 rounded-full h-2 overflow-hidden;
+  .ios-input {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white;
+    min-height: 44px;
   }
 
-  .progress-ios-bar {
-    @apply h-full bg-healthcare-primary rounded-full transition-all duration-300 ease-out;
+  .ios-sidebar {
+    @apply w-72 bg-white border-r border-gray-200 flex flex-col fixed h-full z-10 shadow-lg;
   }
 
-  .loading-ios {
-    @apply animate-spin rounded-full border-2 border-border-light border-t-healthcare-primary;
+  .ios-main-content {
+    @apply flex-1 ml-72 bg-gray-50 min-h-screen;
   }
 
-  /* iOS Alert/Toast Styles */
-  .alert-ios {
-    @apply p-4 rounded-ios-lg border shadow-ios;
-    @apply transition-all duration-200 ease-in-out;
+  .ios-header {
+    @apply p-6 border-b border-gray-200 bg-white;
   }
 
-  .alert-ios-success {
-    @apply alert-ios bg-ios-green-50 border-ios-green-200 text-ios-green-800;
+  .ios-section {
+    @apply p-6 bg-white rounded-xl shadow-sm border border-gray-100 mb-6;
   }
+}
 
-  .alert-ios-warning {
-    @apply alert-ios bg-ios-yellow-50 border-ios-yellow-200 text-ios-yellow-800;
-  }
+/* Custom scrollbars for iOS feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  .alert-ios-danger {
-    @apply alert-ios bg-ios-red-50 border-ios-red-200 text-ios-red-800;
-  }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  .alert-ios-info {
-    @apply alert-ios bg-ios-blue-50 border-ios-blue-200 text-ios-blue-800;
-  }
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
 
-  /* iOS Form Styles */
-  .form-group-ios {
-    @apply space-y-2;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 
-  .form-label-ios {
-    @apply block text-sm font-medium text-text-primary;
-  }
+/* Safe area handling for mobile */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
 
-  .form-help-ios {
-    @apply text-xs text-text-tertiary mt-1;
-  }
-
-  .form-error-ios {
-    @apply text-xs text-healthcare-danger mt-1;
-  }
-
-  /* iOS Segmented Control */
-  .segmented-ios {
-    @apply inline-flex bg-ios-gray-200 rounded-ios p-1;
-  }
-
-  .segmented-ios-option {
-    @apply px-4 py-2 text-sm font-medium rounded-ios-sm transition-all duration-200;
-    @apply text-text-secondary hover:text-text-primary;
-    min-height: 32px;
-  }
-
-  .segmented-ios-option-active {
-    @apply segmented-ios-option bg-background-elevated text-text-primary shadow-ios-sm;
-  }
-
-  /* iOS Switch/Toggle */
-  .switch-ios {
-    @apply relative inline-flex h-6 w-11 items-center rounded-full;
-    @apply bg-ios-gray-300 transition-colors duration-200 ease-in-out;
-    @apply focus:outline-none focus:ring-2 focus:ring-healthcare-primary focus:ring-offset-2;
-  }
-
-  .switch-ios-active {
-    @apply switch-ios bg-healthcare-success;
-  }
-
-  .switch-ios-thumb {
-    @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200;
-    @apply translate-x-1 shadow-ios-sm;
-  }
-
-  .switch-ios-thumb-active {
-    @apply switch-ios-thumb translate-x-6;
-  }
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* iOS-style animations */
-@layer utilities {
-  /* iOS Spring Animations */
-  .animate-ios-spring {
-    animation: ios-spring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-
-  .animate-ios-fade-in {
-    animation: ios-fade-in 0.3s ease-out;
-  }
-
-  .animate-ios-slide-up {
-    animation: ios-slide-up 0.3s ease-out;
-  }
-
-  .animate-ios-scale-in {
-    animation: ios-scale-in 0.2s ease-out;
-  }
-
-  .animate-ios-bounce {
-    animation: ios-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  /* Touch feedback */
-  .touch-feedback-ios {
-    @apply transition-all duration-150 ease-out;
-    @apply active:scale-95 active:bg-ios-gray-100;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .touch-feedback-ios-primary {
-    @apply touch-feedback-ios active:bg-ios-blue-600;
-  }
-
-  /* Safe area utilities for iOS devices */
-  .safe-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-
-  .safe-bottom {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-
-  .safe-left {
-    padding-left: max(1rem, env(safe-area-inset-left));
-  }
-
-  .safe-right {
-    padding-right: max(1rem, env(safe-area-inset-right));
-  }
-
-  /* Blur effects for iOS-style backgrounds */
-  .blur-ios {
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-  }
-
-  /* GPU acceleration for smooth animations */
-  .gpu-accelerated {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
-
-  /* iOS-style scrollbars */
-  .scrollbar-ios::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-
-  .scrollbar-ios::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-ios::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 2px;
-  }
-
-  .scrollbar-ios::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
-  }
-}
-
-/* iOS Keyframe Animations */
-@keyframes ios-spring {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  60% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes ios-fade-in {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -386,177 +127,54 @@
   }
 }
 
-@keyframes ios-slide-up {
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateY(100%);
+    transform: translateX(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-@keyframes ios-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.animate-slide-in-right {
+  animation: slideInFromRight 0.2s ease-out;
 }
 
-@keyframes ios-bounce {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* Focus styles */
+.focus-ios {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
 }
 
-/* Loading shimmer effect */
-@keyframes shimmer-ios {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+/* Philippines-specific healthcare colors */
+.healthcare-primary {
+  @apply bg-blue-600 text-white;
 }
 
-.shimmer-ios {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer-ios 1.5s infinite;
+.healthcare-success {
+  @apply bg-green-600 text-white;
 }
 
-/* iOS-style focus rings with proper accessibility */
-.focus-ring-ios:focus {
-  outline: 2px solid #007AFF;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+.healthcare-warning {
+  @apply bg-yellow-500 text-gray-900;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .animate-ios-spring,
-  .animate-ios-fade-in,
-  .animate-ios-slide-up,
-  .animate-ios-scale-in,
-  .animate-ios-bounce {
-    animation: none;
-    transition: none;
+.healthcare-danger {
+  @apply bg-red-600 text-white;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .ios-sidebar {
+    @apply transform -translate-x-full;
   }
 
-  .touch-feedback-ios,
-  .touch-feedback-ios-primary {
-    transition: none;
+  .ios-main-content {
+    @apply ml-0;
   }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .border-border-light {
-    @apply border-border-heavy;
-  }
-
-  .text-text-quaternary {
-    @apply text-text-tertiary;
-  }
-
-  .text-text-tertiary {
-    @apply text-text-secondary;
-  }
-}
-
-/* iOS typography scale */
-.text-ios-large-title {
-  font-size: 34px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0.374px;
-}
-
-.text-ios-title-1 {
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0.364px;
-}
-
-.text-ios-title-2 {
-  font-size: 22px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0.352px;
-}
-
-.text-ios-title-3 {
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0.38px;
-}
-
-.text-ios-headline {
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.408px;
-}
-
-.text-ios-body {
-  font-size: 17px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.408px;
-}
-
-.text-ios-callout {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.32px;
-}
-
-.text-ios-subheadline {
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.24px;
-}
-
-.text-ios-footnote {
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.08px;
-}
-
-.text-ios-caption-1 {
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: 0px;
-}
-
-.text-ios-caption-2 {
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: 0.066px;
 }

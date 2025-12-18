@@ -1,442 +1,282 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Users, BarChart3, Clock, CreditCard, Plus, TrendingUp, Shield } from 'lucide-react';
-import {
-  clinicOperations,
-  cardOperations,
-  appointmentOperations,
-  type Clinic,
-  type CardData,
-  type Appointment,
-  formatDate,
-  getStatusColor,
-  PLAN_LIMITS
-} from '../../lib/data';
+import { useState } from 'react';
+import { Stethoscope, Users, Calendar, BarChart3, Settings, Plus, Eye } from 'lucide-react';
 
 export function ClinicPortalView() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentClinic, setCurrentClinic] = useState<Clinic | null>(null);
-  const [clinicCode, setClinicCode] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'patients' | 'appointments' | 'analytics'>('overview');
 
-  // Dashboard data
-  const [clinicCards, setClinicCards] = useState<CardData[]>([]);
-  const [clinicAppointments, setClinicAppointments] = useState<Appointment[]>([]);
+  const tabs = [
+    { id: 'overview' as const, label: 'Overview', icon: Stethoscope },
+    { id: 'patients' as const, label: 'Patients', icon: Users },
+    { id: 'appointments' as const, label: 'Appointments', icon: Calendar },
+    { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
+  ];
 
-  // Appointment booking
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
-  const [appointmentDate, setAppointmentDate] = useState('');
-  const [appointmentTime, setAppointmentTime] = useState('');
+  const stats = [
+    { label: 'Active Patients', value: '2,847', change: '+12%', color: 'bg-blue-500' },
+    { label: 'Today\'s Appointments', value: '42', change: '+5%', color: 'bg-green-500' },
+    { label: 'Card Verifications', value: '186', change: '+8%', color: 'bg-purple-500' },
+    { label: 'Revenue (PHP)', value: '₱45,600', change: '+15%', color: 'bg-yellow-500' },
+  ];
 
-  useEffect(() => {
-    if (currentClinic) {
-      setClinicCards(cardOperations.getByClinicId(currentClinic.id));
-      setClinicAppointments(appointmentOperations.getByClinicId(currentClinic.id));
-    }
-  }, [currentClinic]);
+  const recentPatients = [
+    { id: 'MOC-000124', name: 'Maria Santos', status: 'Active', lastVisit: '2 hours ago' },
+    { id: 'MOC-000135', name: 'Juan Dela Cruz', status: 'Active', lastVisit: '1 day ago' },
+    { id: 'MOC-000142', name: 'Ana Garcia', status: 'Pending', lastVisit: '3 days ago' },
+    { id: 'MOC-000158', name: 'Carlos Rodriguez', status: 'Active', lastVisit: '1 week ago' },
+  ];
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setLoginError('');
-
-    // Simulate login delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const clinic = clinicOperations.authenticate(clinicCode, password);
-
-    if (clinic) {
-      setCurrentClinic(clinic);
-      setIsAuthenticated(true);
-    } else {
-      setLoginError('Invalid clinic code or password');
-    }
-
-    setLoading(false);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setCurrentClinic(null);
-    setClinicCode('');
-    setPassword('');
-    setLoginError('');
-  };
-
-  const handleBookAppointment = async () => {
-    if (!selectedCard || !appointmentDate || !appointmentTime || !currentClinic) return;
-
-    const newAppointment = appointmentOperations.create({
-      cardControlNumber: selectedCard.controlNumber,
-      clinicId: currentClinic.id,
-      patientName: selectedCard.fullName,
-      date: appointmentDate,
-      time: appointmentTime,
-      status: 'scheduled',
-    });
-
-    setClinicAppointments([...clinicAppointments, newAppointment]);
-    setShowBookingModal(false);
-    setSelectedCard(null);
-    setAppointmentDate('');
-    setAppointmentTime('');
-  };
-
-  // Login Form - LIGHT THEME
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="bg-[#1A535C] w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Shield className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic Portal</h1>
-            <p className="text-gray-600">Access your clinic dashboard</p>
-          </div>
-
-          {loginError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
-              {loginError}
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Clinic Code
-              </label>
-              <input
-                type="text"
-                value={clinicCode}
-                onChange={(e) => setClinicCode(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent bg-white text-gray-900"
-                placeholder="e.g., DEN001"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent bg-white text-gray-900"
-                placeholder="Enter password"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !clinicCode || !password}
-              className="w-full bg-[#1A535C] hover:bg-[#0f3a42] text-white py-3 px-4 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Authenticating...
-                </>
-              ) : (
-                'Access Portal'
-              )}
-            </button>
-          </form>
-
-          {/* Sample Credentials for Testing */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <p className="text-xs text-gray-600 mb-2">Sample credentials for testing:</p>
-            <div className="space-y-1">
-              <p className="text-xs font-mono text-gray-800">DEN001 / dental123</p>
-              <p className="text-xs font-mono text-gray-800">MED002 / health456</p>
-              <p className="text-xs font-mono text-gray-800">CVT003 / premier789</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // CLEAN LIGHT CLINIC DASHBOARD
-  const cardCount = clinicOperations.getCardCount(currentClinic!.id);
-  const cardLimit = clinicOperations.getCardLimit(currentClinic!.id);
-  const usagePercentage = (cardCount / cardLimit) * 100;
+  const upcomingAppointments = [
+    { time: '9:00 AM', patient: 'Maria Santos', type: 'Consultation', id: 'MOC-000124' },
+    { time: '10:30 AM', patient: 'Juan Dela Cruz', type: 'Follow-up', id: 'MOC-000135' },
+    { time: '2:00 PM', patient: 'Ana Garcia', type: 'Check-up', id: 'MOC-000142' },
+    { time: '4:15 PM', patient: 'Carlos Rodriguez', type: 'Consultation', id: 'MOC-000158' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Clean Light Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{currentClinic!.name}</h1>
-            <p className="text-gray-600 mt-1">Clinic Code: <span className="font-mono font-semibold">{currentClinic!.code}</span></p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="bg-gray-100 px-4 py-2 rounded-lg">
-              <span className="text-sm text-gray-600">Plan:</span>
-              <span className="text-sm font-medium text-gray-900 ml-1 uppercase">{currentClinic!.plan}</span>
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="ios-card">
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                <Stethoscope className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="ios-text-title">Clinic Portal</h1>
+                <p className="ios-text-body">Central Valley Clinic - CVT001</p>
+              </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors font-medium"
-            >
-              Logout
+            <button className="ios-button-primary flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Dashboard Content */}
-      <div className="px-8 py-6">
-        {/* Subscription Status Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Subscription Status</h2>
-            <div className="bg-[#1A535C] text-white px-4 py-2 rounded-full text-sm font-medium uppercase">
-              {currentClinic!.plan}
-            </div>
+      {/* Tab Navigation */}
+      <div className="ios-card">
+        <div className="p-2">
+          <div className="flex space-x-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = selectedTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center space-x-2 p-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-blue-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
-
-          <div className="mb-6">
-            <div className="flex justify-between text-gray-600 mb-3">
-              <span className="font-medium">Cards Used</span>
-              <span className="font-semibold">{cardCount} of {cardLimit}</span>
-            </div>
-            <div className="bg-gray-200 rounded-full h-4">
-              <div
-                className={`h-4 rounded-full transition-all duration-500 ${
-                  usagePercentage > 90 ? 'bg-red-500' : usagePercentage > 70 ? 'bg-yellow-500' : 'bg-[#1A535C]'
-                }`}
-                style={{ width: `${usagePercentage}%` }}
-              ></div>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Plan limit: {PLAN_LIMITS[currentClinic!.plan]} cards
-            </p>
-          </div>
-
-          {usagePercentage > 90 && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-xl">
-              <p className="text-sm font-medium flex items-center">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                ⚠️ Approaching Plan Limit
-              </p>
-              <p className="text-sm mt-1">Consider upgrading your plan to avoid service interruption.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="bg-gray-100 p-3 rounded-xl">
-                <Users className="h-6 w-6 text-gray-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{clinicCards.length}</p>
-                <p className="text-gray-600">Active Patients</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="bg-green-50 p-3 rounded-xl">
-                <Calendar className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{clinicAppointments.length}</p>
-                <p className="text-gray-600">Appointments</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="bg-purple-50 p-3 rounded-xl">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">
-                  {clinicCards.reduce((sum, card) => sum + card.perksUsed, 0)}
-                </p>
-                <p className="text-gray-600">Perks Claimed</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* My Patients Table */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">My Patients</h2>
-              <div className="text-sm text-gray-500">
-                {clinicCards.length} patients registered
-              </div>
-            </div>
-          </div>
-
-          {clinicCards.length === 0 ? (
-            <div className="text-center py-12">
-              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">No patients assigned to this clinic yet</p>
-              <p className="text-gray-400 text-sm mt-1">Patients will appear here once cards are assigned</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Patient</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Control Number</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Status</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Perks</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Expires</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {clinicCards.map((card) => (
-                    <tr key={card.controlNumber} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-gray-900">{card.fullName}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono text-gray-800">
-                          {card.controlNumber}
-                        </code>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(card.status)}`}>
-                          {card.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-gray-900 font-medium">
-                          {card.perksUsed} / {card.perksTotal}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-gray-900">{formatDate(card.expiryDate)}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => {
-                            setSelectedCard(card);
-                            setShowBookingModal(true);
-                          }}
-                          className="bg-[#1A535C] hover:bg-[#0f3a42] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center"
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Book
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Appointments */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
-          </div>
-
-          {clinicAppointments.length === 0 ? (
-            <div className="text-center py-12">
-              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">No appointments scheduled</p>
-              <p className="text-gray-400 text-sm mt-1">Book appointments for your patients using the "Book" button</p>
-            </div>
-          ) : (
-            <div className="p-6 space-y-4">
-              {clinicAppointments.map((appointment) => (
-                <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="flex items-center">
-                    <div className="bg-[#1A535C] w-12 h-12 rounded-xl flex items-center justify-center">
-                      <Calendar className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="font-medium text-gray-900">{appointment.patientName}</p>
-                      <p className="text-sm text-gray-600 font-mono">{appointment.cardControlNumber}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">{appointment.date}</p>
-                    <p className="text-sm text-gray-600">{appointment.time}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
-                    {appointment.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Clean Light Booking Modal */}
-      {showBookingModal && selectedCard && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Book Appointment</h3>
+      {/* Overview Tab */}
+      {selectedTab === 'overview' && (
+        <div className="space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {stats.map((stat, index) => (
+              <div key={index} className="ios-card">
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="ios-text-caption">{stat.label}</p>
+                      <p className="ios-text-title text-xl font-bold">{stat.value}</p>
+                      <p className="text-green-600 text-sm font-medium">{stat.change} from last month</p>
+                    </div>
+                    <div className={`w-12 h-12 ${stat.color} rounded-xl opacity-20`}></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-            <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <p className="text-sm text-gray-600">Patient: <span className="font-medium text-gray-900">{selectedCard.fullName}</span></p>
-              <p className="text-sm text-gray-600">Card: <code className="font-mono text-gray-800">{selectedCard.controlNumber}</code></p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Patients */}
+            <div className="ios-card">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="ios-text-subtitle">Recent Patients</h2>
+                  <button className="ios-button-secondary text-sm">
+                    <Eye className="h-4 w-4 mr-1" />
+                    View All
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {recentPatients.map((patient) => (
+                    <div key={patient.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                      <div>
+                        <p className="font-medium">{patient.name}</p>
+                        <p className="ios-text-caption">{patient.id}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          patient.status === 'Active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {patient.status}
+                        </span>
+                        <p className="ios-text-caption mt-1">{patient.lastVisit}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                <input
-                  type="date"
-                  value={appointmentDate}
-                  onChange={(e) => setAppointmentDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent bg-white text-gray-900"
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
+            {/* Upcoming Appointments */}
+            <div className="ios-card">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="ios-text-subtitle">Today's Schedule</h2>
+                  <button className="ios-button-secondary text-sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add New
+                  </button>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                <input
-                  type="time"
-                  value={appointmentTime}
-                  onChange={(e) => setAppointmentTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:border-transparent bg-white text-gray-900"
-                />
+                <div className="space-y-3">
+                  {upcomingAppointments.map((appointment, index) => (
+                    <div key={index} className="flex items-center space-x-4 p-3 bg-blue-50 rounded-xl">
+                      <div className="w-16 text-center">
+                        <p className="font-bold text-blue-600">{appointment.time}</p>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{appointment.patient}</p>
+                        <p className="ios-text-caption">{appointment.type} • {appointment.id}</p>
+                      </div>
+                      <button className="ios-button-secondary text-xs px-3 py-1">
+                        View
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowBookingModal(false)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl transition-colors font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleBookAppointment}
-                disabled={!appointmentDate || !appointmentTime}
-                className="flex-1 bg-[#1A535C] hover:bg-[#0f3a42] text-white py-2 px-4 rounded-xl transition-colors disabled:opacity-50 font-medium"
-              >
-                Book Appointment
-              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Patients Tab */}
+      {selectedTab === 'patients' && (
+        <div className="ios-card">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="ios-text-subtitle">Patient Management</h2>
+              <button className="ios-button-primary">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Patient
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex space-x-4">
+                <input
+                  type="text"
+                  placeholder="Search patients by name or MOC number..."
+                  className="ios-input flex-1"
+                />
+                <button className="ios-button-secondary px-6">
+                  Search
+                </button>
+              </div>
+
+              <div className="ios-section">
+                <div className="text-center py-8">
+                  <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="ios-text-subtitle mb-2">Patient Management System</h3>
+                  <p className="ios-text-body">Search for patients or add new ones to get started.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Appointments Tab */}
+      {selectedTab === 'appointments' && (
+        <div className="ios-card">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="ios-text-subtitle">Appointment Schedule</h2>
+              <button className="ios-button-primary">
+                <Calendar className="h-4 w-4 mr-2" />
+                New Appointment
+              </button>
+            </div>
+
+            <div className="ios-section">
+              <div className="text-center py-8">
+                <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="ios-text-subtitle mb-2">Appointment Calendar</h3>
+                <p className="ios-text-body">Manage your clinic's appointment schedule here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Tab */}
+      {selectedTab === 'analytics' && (
+        <div className="ios-card">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="ios-text-subtitle">Clinic Analytics</h2>
+              <button className="ios-button-secondary">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Export Report
+              </button>
+            </div>
+
+            <div className="ios-section">
+              <div className="text-center py-8">
+                <BarChart3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="ios-text-subtitle mb-2">Analytics Dashboard</h3>
+                <p className="ios-text-body">View comprehensive analytics and reports for your clinic.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="ios-card">
+        <div className="p-6">
+          <h2 className="ios-text-subtitle mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button className="ios-button-secondary p-4 h-auto">
+              <Users className="h-6 w-6 mx-auto mb-2 text-blue-600" />
+              <span className="text-sm">Register Patient</span>
+            </button>
+            <button className="ios-button-secondary p-4 h-auto">
+              <Calendar className="h-6 w-6 mx-auto mb-2 text-green-600" />
+              <span className="text-sm">Schedule Visit</span>
+            </button>
+            <button className="ios-button-secondary p-4 h-auto">
+              <Stethoscope className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+              <span className="text-sm">Verify Card</span>
+            </button>
+            <button className="ios-button-secondary p-4 h-auto">
+              <BarChart3 className="h-6 w-6 mx-auto mb-2 text-yellow-600" />
+              <span className="text-sm">View Reports</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
