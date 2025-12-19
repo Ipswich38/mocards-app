@@ -18,7 +18,8 @@ export function CardLookupView() {
     patientPhone: '',
     preferredDate: '',
     preferredTime: '',
-    perkType: 'dental_cleaning',
+    serviceType: '',
+    perkRequested: '',
     notes: ''
   });
 
@@ -85,15 +86,27 @@ export function CardLookupView() {
   };
 
   const handleSubmitAppointmentRequest = () => {
-    if (!appointmentForm.patientName || !appointmentForm.patientEmail || !appointmentForm.preferredDate || !appointmentForm.preferredTime) {
+    if (!appointmentForm.patientName || !appointmentForm.patientEmail || !appointmentForm.preferredDate || !appointmentForm.preferredTime || !appointmentForm.serviceType) {
       addToast(toastWarning('Missing Information', 'Please fill in all required fields'));
       return;
     }
 
-    // Simulate sending request to admin
+    // Get the clinic information from the found card
+    if (!searchResult || !searchResult.clinicId) {
+      addToast(toastError('No Clinic Assigned', 'This card is not assigned to any clinic yet. Please contact MOCARDS admin.'));
+      return;
+    }
+
+    const clinic = clinicOperations.getById(searchResult.clinicId);
+    if (!clinic) {
+      addToast(toastError('Clinic Not Found', 'The assigned clinic was not found. Please contact MOCARDS admin.'));
+      return;
+    }
+
+    // Send request directly to clinic
     addToast(toastSuccess(
-      'Request Submitted',
-      'Your appointment request has been sent to MOCARDS admin for review. You will be contacted soon!'
+      'Request Sent to Clinic',
+      `Your appointment request has been sent directly to ${clinic.name}. The clinic will contact you within 24 hours to confirm your appointment.`
     ));
 
     // Reset form and hide
@@ -103,7 +116,8 @@ export function CardLookupView() {
       patientPhone: '',
       preferredDate: '',
       preferredTime: '',
-      perkType: 'dental_cleaning',
+      serviceType: '',
+      perkRequested: '',
       notes: ''
     });
     setShowAppointmentForm(false);
@@ -319,7 +333,7 @@ export function CardLookupView() {
                   </div>
 
                   <p className="text-gray-300 text-sm mb-4">
-                    Contact MOCARDS admin to schedule an appointment for claiming your healthcare benefits.
+                    Request an appointment directly with your assigned clinic to claim your healthcare benefits.
                   </p>
 
                   {showAppointmentForm && (
@@ -372,15 +386,29 @@ export function CardLookupView() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Service Type *
+                          </label>
+                          <input
+                            type="text"
+                            value={appointmentForm.serviceType}
+                            onChange={(e) => setAppointmentForm(prev => ({ ...prev, serviceType: e.target.value }))}
+                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            placeholder="e.g., Dental Cleaning, Consultation"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Preferred Benefit
                           </label>
                           <select
-                            value={appointmentForm.perkType}
-                            onChange={(e) => setAppointmentForm(prev => ({ ...prev, perkType: e.target.value }))}
+                            value={appointmentForm.perkRequested}
+                            onChange={(e) => setAppointmentForm(prev => ({ ...prev, perkRequested: e.target.value }))}
                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                           >
+                            <option value="">Select a benefit (optional)</option>
                             {perkOptions.map(option => (
-                              <option key={option.value} value={option.value}>
+                              <option key={option.value} value={option.label}>
                                 {option.label}
                               </option>
                             ))}
@@ -454,9 +482,9 @@ export function CardLookupView() {
                           <div className="text-sm">
                             <p className="text-teal-300 font-medium mb-1">Next Steps:</p>
                             <ol className="text-teal-100 space-y-1">
-                              <li>1. Admin will review your request within 24 hours</li>
-                              <li>2. Request will be forwarded to the assigned clinic</li>
-                              <li>3. Clinic will contact you to confirm the appointment</li>
+                              <li>1. Request sent directly to {searchResult ? getClinicName(searchResult.clinicId) : 'your assigned clinic'}</li>
+                              <li>2. Clinic will review and process your request</li>
+                              <li>3. Clinic will contact you within 24 hours to confirm, decline, or reschedule</li>
                             </ol>
                           </div>
                         </div>

@@ -107,7 +107,7 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">MOCARDS CLOUD</h1>
-                <p className="text-teal-200 text-sm">HMO Management Platform</p>
+                <p className="text-teal-200 text-sm">Loyalty Card Management Platform</p>
               </div>
             </div>
 
@@ -179,7 +179,7 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
         {/* Header */}
         <div className="p-6 border-b border-teal-600">
           <h1 className="text-xl font-bold text-white">MOCARDS CLOUD</h1>
-          <p className="text-teal-200 text-sm mt-1">HMO Management Platform</p>
+          <p className="text-teal-200 text-sm mt-1">Loyalty Card Management Platform</p>
         </div>
 
         {/* Navigation */}

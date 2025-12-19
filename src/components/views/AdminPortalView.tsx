@@ -20,7 +20,8 @@ import {
   Trash2,
   Save,
   X,
-  Filter
+  Filter,
+  Send
 } from 'lucide-react';
 import {
   cardOperations,
@@ -81,40 +82,61 @@ export function AdminPortalView() {
     password: '',
   });
 
-  // Appointment Management State
+  // Admin Appointment Monitoring State (Read-Only + Manual Creation)
   const [appointmentRequests, setAppointmentRequests] = useState([
-    // Mock appointment requests
+    // Mock appointment requests from cardholders (sent directly to clinics)
     {
       id: '1',
-      controlNumber: 'MOC-00001-01-CVT001',
+      cardControlNumber: 'MOC-00001-01-CVT001',
       patientName: 'Juan Dela Cruz',
-      patientEmail: 'juan@email.com',
+      patientEmail: 'juan.delacruz@email.com',
       patientPhone: '+63917123456',
-      requestedDate: '2024-12-20',
-      requestedTime: '10:00',
-      perkType: 'dental_cleaning',
-      status: 'pending_admin_review',
+      preferredDate: '2024-12-25',
+      preferredTime: '10:00',
+      serviceType: 'Dental Cleaning',
+      perkRequested: 'Free Dental Cleaning',
+      status: 'pending',
       requestedAt: '2024-12-19T08:00:00.000Z',
+      forwardedAt: '2024-12-19T08:00:00.000Z',
       clinicId: '1',
       clinicName: 'Central Valley Clinic',
-      notes: 'Requesting free dental cleaning appointment'
+      adminNotes: 'Direct cardholder request'
     },
     {
       id: '2',
-      controlNumber: 'MOC-00002-NCR-CVT002',
+      cardControlNumber: 'MOC-00002-NCR-CVT002',
       patientName: 'Maria Santos',
-      patientEmail: 'maria@email.com',
+      patientEmail: 'maria.santos@email.com',
       patientPhone: '+63917234567',
-      requestedDate: '2024-12-21',
-      requestedTime: '14:00',
-      perkType: 'consultation',
-      status: 'sent_to_clinic',
+      preferredDate: '2024-12-26',
+      preferredTime: '14:00',
+      serviceType: 'Consultation',
+      perkRequested: 'Free Consultation',
+      status: 'accepted',
       requestedAt: '2024-12-18T09:00:00.000Z',
+      forwardedAt: '2024-12-18T09:00:00.000Z',
+      processedAt: '2024-12-18T10:00:00.000Z',
       clinicId: '2',
       clinicName: 'Manila General Hospital',
-      notes: 'Need consultation for dental pain'
+      adminNotes: 'Direct cardholder request',
+      clinicNotes: 'Appointment confirmed for urgent consultation'
     }
   ]);
+
+  // Manual appointment creation form
+  const [showManualAppointmentForm, setShowManualAppointmentForm] = useState(false);
+  const [manualAppointmentForm, setManualAppointmentForm] = useState({
+    cardControlNumber: '',
+    patientName: '',
+    patientEmail: '',
+    patientPhone: '',
+    preferredDate: '',
+    preferredTime: '',
+    serviceType: '',
+    perkRequested: '',
+    clinicId: '',
+    adminNotes: ''
+  });
 
   // CRUD State for Master List
   const [crudView, setCrudView] = useState<'cards' | 'clinics'>('cards');
@@ -330,38 +352,33 @@ export function AdminPortalView() {
     }
   };
 
-  // Appointment Management Handlers - ADMIN ONLY FORWARDS
-  const handleForwardToClinic = (appointmentId: string) => {
-    setAppointmentRequests(prev =>
-      prev.map(apt =>
-        apt.id === appointmentId
-          ? { ...apt, status: 'sent_to_clinic', forwardedAt: new Date().toISOString() }
-          : apt
-      )
-    );
-    addToast(toastSuccess('Request Forwarded', 'Appointment request sent to clinic for processing'));
-  };
+  // Admin Appointment Monitoring & Manual Creation
+  // Note: Admin can only VIEW appointment statuses (read-only) and create manual appointments
+  // All appointment processing (accept/decline/reschedule) is handled by clinics
 
-  const handleRejectRequest = (appointmentId: string, reason: string) => {
-    setAppointmentRequests(prev =>
-      prev.map(apt =>
-        apt.id === appointmentId
-          ? { ...apt, status: 'rejected_by_admin', rejectionReason: reason }
-          : apt
-      )
-    );
-    addToast(toastWarning('Request Rejected', 'Patient will be notified'));
-  };
+  const handleCreateManualAppointment = (appointmentData: {
+    cardControlNumber: string;
+    patientName: string;
+    patientEmail: string;
+    patientPhone: string;
+    preferredDate: string;
+    preferredTime: string;
+    serviceType: string;
+    perkRequested: string;
+    clinicId: string;
+    adminNotes: string;
+  }) => {
+    const newAppointment = {
+      id: (appointmentRequests.length + 1).toString(),
+      ...appointmentData,
+      status: 'pending' as const,
+      forwardedAt: new Date().toISOString(),
+      requestedAt: new Date().toISOString(),
+      clinicName: clinicOperations.getById(appointmentData.clinicId)?.name || 'Unknown Clinic'
+    };
 
-  const handleRequestInfo = (appointmentId: string, infoNeeded: string) => {
-    setAppointmentRequests(prev =>
-      prev.map(apt =>
-        apt.id === appointmentId
-          ? { ...apt, status: 'info_requested', infoRequested: infoNeeded }
-          : apt
-      )
-    );
-    addToast(toastSuccess('Information Requested', 'Patient will be contacted for additional details'));
+    setAppointmentRequests(prev => [...prev, newAppointment]);
+    addToast(toastSuccess('Manual Appointment Created', `Appointment request sent to clinic for processing`));
   };
 
   // CRUD Handlers for Cards
@@ -923,10 +940,22 @@ export function AdminPortalView() {
           {activeTab === 'appointments' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Appointment Requests</h2>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span>{appointmentRequests.length} total requests</span>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Appointment Status Monitor</h2>
+                  <p className="text-sm text-gray-600">View all appointment requests and their processing status</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <span>{appointmentRequests.length} total requests</span>
+                  </div>
+                  <button
+                    onClick={() => setShowManualAppointmentForm(true)}
+                    className="light-button-primary flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Manual Appointment
+                  </button>
                 </div>
               </div>
 
@@ -937,7 +966,7 @@ export function AdminPortalView() {
                     <div>
                       <p className="text-sm text-gray-600">Pending Review</p>
                       <p className="text-2xl font-bold text-orange-600">
-                        {appointmentRequests.filter(apt => apt.status === 'pending_admin_review').length}
+                        {appointmentRequests.filter(apt => apt.status === 'pending').length}
                       </p>
                     </div>
                     <Clock className="h-8 w-8 text-orange-600" />
@@ -947,9 +976,9 @@ export function AdminPortalView() {
                 <div className="light-stat-card">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Sent to Clinic</p>
+                      <p className="text-sm text-gray-600">Pending</p>
                       <p className="text-2xl font-bold text-blue-600">
-                        {appointmentRequests.filter(apt => apt.status === 'sent_to_clinic').length}
+                        {appointmentRequests.filter(apt => apt.status === 'pending').length}
                       </p>
                     </div>
                     <UserCheck className="h-8 w-8 text-blue-600" />
@@ -959,9 +988,9 @@ export function AdminPortalView() {
                 <div className="light-stat-card">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Approved</p>
+                      <p className="text-sm text-gray-600">Accepted</p>
                       <p className="text-2xl font-bold text-emerald-600">
-                        {appointmentRequests.filter(apt => apt.status === 'approved_by_clinic').length}
+                        {appointmentRequests.filter(apt => apt.status === 'accepted').length}
                       </p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-emerald-600" />
@@ -973,13 +1002,183 @@ export function AdminPortalView() {
                     <div>
                       <p className="text-sm text-gray-600">Rejected</p>
                       <p className="text-2xl font-bold text-red-600">
-                        {appointmentRequests.filter(apt => apt.status.includes('rejected')).length}
+                        {appointmentRequests.filter(apt => apt.status === 'rejected').length}
                       </p>
                     </div>
                     <AlertTriangle className="h-8 w-8 text-red-600" />
                   </div>
                 </div>
               </div>
+
+              {/* Manual Appointment Creation Form */}
+              {showManualAppointmentForm && (
+                <div className="light-card p-6 border-l-4 border-blue-500">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <Plus className="h-6 w-6 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Create Manual Appointment</h3>
+                    </div>
+                    <button
+                      onClick={() => setShowManualAppointmentForm(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Card Control Number *</label>
+                      <input
+                        type="text"
+                        value={manualAppointmentForm.cardControlNumber}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, cardControlNumber: e.target.value })}
+                        className="light-input"
+                        placeholder="MOC-00000-XX-XXX000"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Clinic *</label>
+                      <select
+                        value={manualAppointmentForm.clinicId}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, clinicId: e.target.value })}
+                        className="light-select"
+                      >
+                        <option value="">Select Clinic</option>
+                        {clinicOperations.getAll().map(clinic => (
+                          <option key={clinic.id} value={clinic.id}>{clinic.name} ({clinic.code})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Patient Name *</label>
+                      <input
+                        type="text"
+                        value={manualAppointmentForm.patientName}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, patientName: e.target.value })}
+                        className="light-input"
+                        placeholder="Patient's full name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <input
+                        type="email"
+                        value={manualAppointmentForm.patientEmail}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, patientEmail: e.target.value })}
+                        className="light-input"
+                        placeholder="patient@email.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <input
+                        type="tel"
+                        value={manualAppointmentForm.patientPhone}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, patientPhone: e.target.value })}
+                        className="light-input"
+                        placeholder="+63917123456"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Service Type *</label>
+                      <input
+                        type="text"
+                        value={manualAppointmentForm.serviceType}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, serviceType: e.target.value })}
+                        className="light-input"
+                        placeholder="e.g., Dental Cleaning, Consultation"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date *</label>
+                      <input
+                        type="date"
+                        value={manualAppointmentForm.preferredDate}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, preferredDate: e.target.value })}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="light-input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Time *</label>
+                      <input
+                        type="time"
+                        value={manualAppointmentForm.preferredTime}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, preferredTime: e.target.value })}
+                        className="light-input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Perk Requested</label>
+                      <input
+                        type="text"
+                        value={manualAppointmentForm.perkRequested}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, perkRequested: e.target.value })}
+                        className="light-input"
+                        placeholder="e.g., Free Dental Cleaning"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Admin Notes</label>
+                      <textarea
+                        value={manualAppointmentForm.adminNotes}
+                        onChange={(e) => setManualAppointmentForm({ ...manualAppointmentForm, adminNotes: e.target.value })}
+                        rows={3}
+                        className="light-input resize-none"
+                        placeholder="Any additional notes or instructions..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4 border-t border-gray-200 mt-6">
+                    <button
+                      onClick={() => {
+                        if (!manualAppointmentForm.cardControlNumber || !manualAppointmentForm.patientName ||
+                            !manualAppointmentForm.patientEmail || !manualAppointmentForm.preferredDate ||
+                            !manualAppointmentForm.preferredTime || !manualAppointmentForm.serviceType ||
+                            !manualAppointmentForm.clinicId) {
+                          addToast(toastWarning('Missing Fields', 'Please fill in all required fields'));
+                          return;
+                        }
+                        handleCreateManualAppointment(manualAppointmentForm);
+                        setManualAppointmentForm({
+                          cardControlNumber: '',
+                          patientName: '',
+                          patientEmail: '',
+                          patientPhone: '',
+                          preferredDate: '',
+                          preferredTime: '',
+                          serviceType: '',
+                          perkRequested: '',
+                          clinicId: '',
+                          adminNotes: ''
+                        });
+                        setShowManualAppointmentForm(false);
+                      }}
+                      className="light-button-primary flex items-center gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      Send to Clinic
+                    </button>
+                    <button
+                      onClick={() => setShowManualAppointmentForm(false)}
+                      className="light-button-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Appointment Requests List */}
               <div className="space-y-4">
@@ -998,17 +1197,17 @@ export function AdminPortalView() {
                             <div className="flex items-center gap-2">
                               <CreditCard className="h-5 w-5 text-[#1A535C]" />
                               <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                                {appointment.controlNumber}
+                                {appointment.cardControlNumber}
                               </span>
                             </div>
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              appointment.status === 'pending_admin_review'
+                              appointment.status === 'pending'
                                 ? 'bg-orange-100 text-orange-700'
-                                : appointment.status === 'sent_to_clinic'
-                                ? 'bg-blue-100 text-blue-700'
-                                : appointment.status === 'approved_by_clinic'
+                                : appointment.status === 'accepted'
                                 ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-red-100 text-red-700'
+                                : appointment.status === 'rejected'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-blue-100 text-blue-700'
                             }`}>
                               {appointment.status.replace(/_/g, ' ').toUpperCase()}
                             </div>
@@ -1033,13 +1232,18 @@ export function AdminPortalView() {
                               <div className="text-sm text-gray-600 space-y-1">
                                 <div className="flex items-center gap-2">
                                   <Calendar className="h-4 w-4" />
-                                  <span>{new Date(appointment.requestedDate).toLocaleDateString('en-PH')}</span>
+                                  <span>{new Date(appointment.preferredDate).toLocaleDateString('en-PH')}</span>
                                   <Clock className="h-4 w-4 ml-2" />
-                                  <span>{appointment.requestedTime}</span>
+                                  <span>{appointment.preferredTime}</span>
                                 </div>
                                 <div>
-                                  <span className="font-medium text-gray-700">Perk:</span> {appointment.perkType.replace(/_/g, ' ').toUpperCase()}
+                                  <span className="font-medium text-gray-700">Service:</span> {appointment.serviceType}
                                 </div>
+                                {appointment.perkRequested && (
+                                  <div>
+                                    <span className="font-medium text-gray-700">Perk:</span> {appointment.perkRequested}
+                                  </div>
+                                )}
                                 <div>
                                   <span className="font-medium text-gray-700">Clinic:</span> {appointment.clinicName}
                                 </div>
@@ -1047,9 +1251,15 @@ export function AdminPortalView() {
                             </div>
                           </div>
 
-                          {appointment.notes && (
-                            <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                              <p className="text-sm text-gray-700"><strong>Patient Notes:</strong> {appointment.notes}</p>
+                          {appointment.adminNotes && (
+                            <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                              <p className="text-sm text-gray-700"><strong>Admin Notes:</strong> {appointment.adminNotes}</p>
+                            </div>
+                          )}
+
+                          {appointment.clinicNotes && (
+                            <div className="bg-green-50 p-3 rounded-lg mb-4">
+                              <p className="text-sm text-gray-700"><strong>Clinic Response:</strong> {appointment.clinicNotes}</p>
                             </div>
                           )}
 
@@ -1058,36 +1268,15 @@ export function AdminPortalView() {
                           </div>
                         </div>
 
-                        {/* Admin Action Buttons - Only Forward or Reject */}
-                        {appointment.status === 'pending_admin_review' && (
-                          <div className="flex gap-2 ml-4">
-                            <button
-                              onClick={() => handleForwardToClinic(appointment.id)}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                            >
-                              <UserCheck className="h-4 w-4" />
-                              Forward to Clinic
-                            </button>
-                            <button
-                              onClick={() => {
-                                const reason = prompt('Rejection reason:');
-                                if (reason) handleRejectRequest(appointment.id, reason);
-                              }}
-                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                              Reject Request
-                            </button>
-                            <button
-                              onClick={() => {
-                                const infoNeeded = prompt('What information is needed from patient?');
-                                if (infoNeeded) handleRequestInfo(appointment.id, infoNeeded);
-                              }}
-                              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                              Request Info
-                            </button>
+                        {/* Admin View - Read Only Status Monitoring */}
+                        <div className="flex items-center gap-2 ml-4">
+                          <div className="text-xs text-gray-500 text-right">
+                            <div>Sent to Clinic: {new Date(appointment.forwardedAt).toLocaleString('en-PH')}</div>
+                            {appointment.processedAt && (
+                              <div>Processed: {new Date(appointment.processedAt).toLocaleString('en-PH')}</div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   ))

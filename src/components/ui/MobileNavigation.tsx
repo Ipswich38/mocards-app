@@ -132,7 +132,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="text-teal-200 text-sm">HMO Management Platform</p>
+            <p className="text-teal-200 text-sm">Loyalty Card Management Platform</p>
           </div>
 
           {/* Menu Items */}
