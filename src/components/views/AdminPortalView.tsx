@@ -15,7 +15,12 @@ import {
   Calendar,
   Clock,
   Phone,
-  Mail
+  Mail,
+  Edit3,
+  Trash2,
+  Save,
+  X,
+  Filter
 } from 'lucide-react';
 import {
   cardOperations,
@@ -110,6 +115,32 @@ export function AdminPortalView() {
       notes: 'Need consultation for dental pain'
     }
   ]);
+
+  // CRUD State for Master List
+  const [crudView, setCrudView] = useState<'cards' | 'clinics'>('cards');
+  const [editingCard, setEditingCard] = useState<string | null>(null);
+  const [editingClinic, setEditingClinic] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [editCardForm, setEditCardForm] = useState({
+    fullName: '',
+    status: 'inactive' as 'active' | 'inactive',
+    perksTotal: 5,
+    perksUsed: 0,
+    clinicId: '',
+    expiryDate: '',
+    notes: ''
+  });
+  const [editClinicForm, setEditClinicForm] = useState({
+    name: '',
+    region: '',
+    plan: 'starter' as ClinicPlan,
+    address: '',
+    adminClinic: '',
+    email: '',
+    contactNumber: '',
+    password: ''
+  });
 
   const { addToast } = useToast();
 
@@ -299,19 +330,19 @@ export function AdminPortalView() {
     }
   };
 
-  // Appointment Management Handlers
-  const handleApproveAppointment = (appointmentId: string) => {
+  // Appointment Management Handlers - ADMIN ONLY FORWARDS
+  const handleForwardToClinic = (appointmentId: string) => {
     setAppointmentRequests(prev =>
       prev.map(apt =>
         apt.id === appointmentId
-          ? { ...apt, status: 'sent_to_clinic' }
+          ? { ...apt, status: 'sent_to_clinic', forwardedAt: new Date().toISOString() }
           : apt
       )
     );
-    addToast(toastSuccess('Appointment Approved', 'Request forwarded to clinic'));
+    addToast(toastSuccess('Request Forwarded', 'Appointment request sent to clinic for processing'));
   };
 
-  const handleRejectAppointment = (appointmentId: string, reason: string) => {
+  const handleRejectRequest = (appointmentId: string, reason: string) => {
     setAppointmentRequests(prev =>
       prev.map(apt =>
         apt.id === appointmentId
@@ -319,25 +350,125 @@ export function AdminPortalView() {
           : apt
       )
     );
-    addToast(toastWarning('Appointment Rejected', 'Patient will be notified'));
+    addToast(toastWarning('Request Rejected', 'Patient will be notified'));
   };
 
-  const handleRescheduleAppointment = (appointmentId: string, newDate: string, newTime: string) => {
+  const handleRequestInfo = (appointmentId: string, infoNeeded: string) => {
     setAppointmentRequests(prev =>
       prev.map(apt =>
         apt.id === appointmentId
-          ? {
-            ...apt,
-            status: 'rescheduled_by_admin',
-            requestedDate: newDate,
-            requestedTime: newTime,
-            originalDate: apt.requestedDate,
-            originalTime: apt.requestedTime
-          }
+          ? { ...apt, status: 'info_requested', infoRequested: infoNeeded }
           : apt
       )
     );
-    addToast(toastSuccess('Appointment Rescheduled', 'Updated request sent to clinic'));
+    addToast(toastSuccess('Information Requested', 'Patient will be contacted for additional details'));
+  };
+
+  // CRUD Handlers for Cards
+  const handleEditCard = (controlNumber: string) => {
+    const card = cardOperations.getByControlNumber(controlNumber);
+    if (card) {
+      setEditCardForm({
+        fullName: card.fullName,
+        status: card.status,
+        perksTotal: card.perksTotal,
+        perksUsed: card.perksUsed,
+        clinicId: card.clinicId,
+        expiryDate: card.expiryDate,
+        notes: card.notes || ''
+      });
+      setEditingCard(controlNumber);
+    }
+  };
+
+  const handleSaveCard = (controlNumber: string) => {
+    const updatedCard = cardOperations.getByControlNumber(controlNumber);
+    if (updatedCard) {
+      // Update card properties
+      updatedCard.fullName = editCardForm.fullName;
+      updatedCard.status = editCardForm.status;
+      updatedCard.perksTotal = editCardForm.perksTotal;
+      updatedCard.perksUsed = editCardForm.perksUsed;
+      updatedCard.clinicId = editCardForm.clinicId;
+      updatedCard.expiryDate = editCardForm.expiryDate;
+      updatedCard.notes = editCardForm.notes;
+      updatedCard.updatedAt = new Date().toISOString();
+
+      setEditingCard(null);
+      addToast(toastSuccess('Card Updated', `Updated ${controlNumber} successfully`));
+    }
+  };
+
+  const handleDeleteCard = (controlNumber: string) => {
+    if (window.confirm(`Are you sure you want to delete card ${controlNumber}? This action cannot be undone.`)) {
+      const success = cardOperations.delete(controlNumber);
+      if (success) {
+        addToast(toastSuccess('Card Deleted', `Card ${controlNumber} has been deleted`));
+      } else {
+        addToast(toastError('Delete Failed', 'Could not delete card'));
+      }
+    }
+  };
+
+  // CRUD Handlers for Clinics
+  const handleEditClinic = (clinicId: string) => {
+    const clinic = clinicOperations.getById(clinicId);
+    if (clinic) {
+      setEditClinicForm({
+        name: clinic.name,
+        region: clinic.region,
+        plan: clinic.plan,
+        address: clinic.address || '',
+        adminClinic: clinic.adminClinic || '',
+        email: clinic.email || '',
+        contactNumber: clinic.contactNumber || '',
+        password: clinic.password
+      });
+      setEditingClinic(clinicId);
+    }
+  };
+
+  const handleSaveClinic = (clinicId: string) => {
+    const success = clinicOperations.update(clinicId, {
+      name: editClinicForm.name,
+      region: editClinicForm.region,
+      plan: editClinicForm.plan,
+      address: editClinicForm.address,
+      adminClinic: editClinicForm.adminClinic,
+      email: editClinicForm.email,
+      contactNumber: editClinicForm.contactNumber,
+      password: editClinicForm.password,
+      maxCards: PLAN_LIMITS[editClinicForm.plan],
+      subscriptionPrice: PLAN_PRICING[editClinicForm.plan],
+      updatedAt: new Date().toISOString()
+    });
+
+    if (success) {
+      setEditingClinic(null);
+      addToast(toastSuccess('Clinic Updated', 'Clinic information updated successfully'));
+    } else {
+      addToast(toastError('Update Failed', 'Could not update clinic'));
+    }
+  };
+
+  const handleDeleteClinic = (clinicId: string) => {
+    const clinic = clinicOperations.getById(clinicId);
+    if (!clinic) return;
+
+    const assignedCards = cardOperations.getByClinicId(clinicId);
+    if (assignedCards.length > 0) {
+      addToast(toastWarning('Cannot Delete', `Cannot delete clinic with ${assignedCards.length} assigned cards. Unassign cards first.`));
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete clinic "${clinic.name}"? This action cannot be undone.`)) {
+      const success = clinicOperations.delete(clinicId);
+      if (success) {
+        addToast(toastSuccess('Clinic Deleted', `Clinic "${clinic.name}" has been deleted`));
+      } else {
+        addToast(toastError('Delete Failed', 'Could not delete clinic'));
+      }
+    }
   };
 
   const tabs = [
@@ -927,33 +1058,33 @@ export function AdminPortalView() {
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Admin Action Buttons - Only Forward or Reject */}
                         {appointment.status === 'pending_admin_review' && (
                           <div className="flex gap-2 ml-4">
                             <button
-                              onClick={() => handleApproveAppointment(appointment.id)}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                              onClick={() => handleForwardToClinic(appointment.id)}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                             >
-                              Approve & Forward
+                              <UserCheck className="h-4 w-4" />
+                              Forward to Clinic
                             </button>
                             <button
                               onClick={() => {
                                 const reason = prompt('Rejection reason:');
-                                if (reason) handleRejectAppointment(appointment.id, reason);
+                                if (reason) handleRejectRequest(appointment.id, reason);
                               }}
                               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                              Reject
+                              Reject Request
                             </button>
                             <button
                               onClick={() => {
-                                const newDate = prompt('New date (YYYY-MM-DD):');
-                                const newTime = prompt('New time (HH:MM):');
-                                if (newDate && newTime) handleRescheduleAppointment(appointment.id, newDate, newTime);
+                                const infoNeeded = prompt('What information is needed from patient?');
+                                if (infoNeeded) handleRequestInfo(appointment.id, infoNeeded);
                               }}
                               className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
                             >
-                              Reschedule
+                              Request Info
                             </button>
                           </div>
                         )}
@@ -1014,42 +1145,390 @@ export function AdminPortalView() {
             </div>
           )}
 
-          {/* Master List Tab */}
+          {/* Master List Tab - COMPREHENSIVE CRUD */}
           {activeTab === 'master-list' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Master Registry</h2>
-
-              <div className="light-table">
-                <table className="w-full">
-                  <thead className="light-table-header">
-                    <tr>
-                      <th className="text-left p-4">Control Number</th>
-                      <th className="text-left p-4">Name</th>
-                      <th className="text-left p-4">Status</th>
-                      <th className="text-left p-4">Clinic</th>
-                      <th className="text-left p-4">Perks</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cardOperations.getAll().map((card) => {
-                      const clinic = clinicOperations.getById(card.clinicId);
-                      return (
-                        <tr key={card.controlNumber} className="light-table-row">
-                          <td className="p-4 font-mono text-sm">{card.controlNumber}</td>
-                          <td className="p-4">{card.fullName}</td>
-                          <td className="p-4">
-                            <span className={card.status === 'active' ? 'status-active' : 'status-inactive'}>
-                              {card.status}
-                            </span>
-                          </td>
-                          <td className="p-4">{clinic?.name || 'Unassigned'}</td>
-                          <td className="p-4">{card.perksUsed}/{card.perksTotal}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Data Management</h2>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setCrudView('cards')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      crudView === 'cards'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <CreditCard className="h-4 w-4 inline mr-2" />
+                    Cards
+                  </button>
+                  <button
+                    onClick={() => setCrudView('clinics')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      crudView === 'clinics'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Building className="h-4 w-4 inline mr-2" />
+                    Clinics
+                  </button>
+                </div>
               </div>
+
+              {/* Search and Filter Controls */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={crudView === 'cards' ? 'Search cards by name or control number...' : 'Search clinics by name or code...'}
+                    className="light-input pl-10"
+                  />
+                </div>
+                {crudView === 'cards' && (
+                  <div className="flex items-center space-x-2">
+                    <Filter className="h-4 w-4 text-gray-500" />
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                      className="light-select"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Cards CRUD Table */}
+              {crudView === 'cards' && (
+                <div className="light-table">
+                  <table className="w-full">
+                    <thead className="light-table-header">
+                      <tr>
+                        <th className="text-left p-4">Control Number</th>
+                        <th className="text-left p-4">Patient Name</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Clinic</th>
+                        <th className="text-left p-4">Perks</th>
+                        <th className="text-left p-4">Expiry</th>
+                        <th className="text-left p-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cardOperations.getAll()
+                        .filter(card => {
+                          const matchesSearch = !searchTerm ||
+                            card.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            card.controlNumber.toLowerCase().includes(searchTerm.toLowerCase());
+                          const matchesStatus = statusFilter === 'all' || card.status === statusFilter;
+                          return matchesSearch && matchesStatus;
+                        })
+                        .map((card) => {
+                          const clinic = clinicOperations.getById(card.clinicId);
+                          const isEditing = editingCard === card.controlNumber;
+
+                          return (
+                            <tr key={card.controlNumber} className="light-table-row">
+                              <td className="p-4 font-mono text-sm">{card.controlNumber}</td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={editCardForm.fullName}
+                                    onChange={(e) => setEditCardForm({ ...editCardForm, fullName: e.target.value })}
+                                    className="light-input text-sm"
+                                  />
+                                ) : (
+                                  card.fullName
+                                )}
+                              </td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <select
+                                    value={editCardForm.status}
+                                    onChange={(e) => setEditCardForm({ ...editCardForm, status: e.target.value as 'active' | 'inactive' })}
+                                    className="light-select text-sm"
+                                  >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                  </select>
+                                ) : (
+                                  <span className={card.status === 'active' ? 'status-active' : 'status-inactive'}>
+                                    {card.status}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <select
+                                    value={editCardForm.clinicId}
+                                    onChange={(e) => setEditCardForm({ ...editCardForm, clinicId: e.target.value })}
+                                    className="light-select text-sm"
+                                  >
+                                    <option value="">Unassigned</option>
+                                    {clinicOperations.getAll().map(clinic => (
+                                      <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  clinic?.name || 'Unassigned'
+                                )}
+                              </td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <div className="flex space-x-2">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={editCardForm.perksUsed}
+                                      onChange={(e) => setEditCardForm({ ...editCardForm, perksUsed: parseInt(e.target.value) || 0 })}
+                                      className="light-input text-sm w-16"
+                                    />
+                                    <span className="text-gray-500 self-center">/</span>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={editCardForm.perksTotal}
+                                      onChange={(e) => setEditCardForm({ ...editCardForm, perksTotal: parseInt(e.target.value) || 1 })}
+                                      className="light-input text-sm w-16"
+                                    />
+                                  </div>
+                                ) : (
+                                  `${card.perksUsed}/${card.perksTotal}`
+                                )}
+                              </td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <input
+                                    type="date"
+                                    value={editCardForm.expiryDate}
+                                    onChange={(e) => setEditCardForm({ ...editCardForm, expiryDate: e.target.value })}
+                                    className="light-input text-sm"
+                                  />
+                                ) : (
+                                  new Date(card.expiryDate).toLocaleDateString()
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center space-x-2">
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        onClick={() => handleSaveCard(card.controlNumber)}
+                                        className="p-1 text-green-600 hover:text-green-700"
+                                        title="Save changes"
+                                      >
+                                        <Save className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingCard(null)}
+                                        className="p-1 text-gray-600 hover:text-gray-700"
+                                        title="Cancel"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => handleEditCard(card.controlNumber)}
+                                        className="p-1 text-blue-600 hover:text-blue-700"
+                                        title="Edit card"
+                                      >
+                                        <Edit3 className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteCard(card.controlNumber)}
+                                        className="p-1 text-red-600 hover:text-red-700"
+                                        title="Delete card"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Clinics CRUD Table */}
+              {crudView === 'clinics' && (
+                <div className="light-table">
+                  <table className="w-full">
+                    <thead className="light-table-header">
+                      <tr>
+                        <th className="text-left p-4">Name</th>
+                        <th className="text-left p-4">Code</th>
+                        <th className="text-left p-4">Region</th>
+                        <th className="text-left p-4">Plan</th>
+                        <th className="text-left p-4">Cards</th>
+                        <th className="text-left p-4">Contact</th>
+                        <th className="text-left p-4">Status</th>
+                        <th className="text-left p-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clinicOperations.getAll()
+                        .filter(clinic => {
+                          const matchesSearch = !searchTerm ||
+                            clinic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            clinic.code.toLowerCase().includes(searchTerm.toLowerCase());
+                          return matchesSearch;
+                        })
+                        .map((clinic) => {
+                          const isEditing = editingClinic === clinic.id;
+                          const assignedCards = cardOperations.getByClinicId(clinic.id);
+
+                          return (
+                            <tr key={clinic.id} className="light-table-row">
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={editClinicForm.name}
+                                    onChange={(e) => setEditClinicForm({ ...editClinicForm, name: e.target.value })}
+                                    className="light-input text-sm"
+                                  />
+                                ) : (
+                                  <div>
+                                    <div className="font-medium">{clinic.name}</div>
+                                    <div className="text-xs text-gray-500">{clinic.address}</div>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-4 font-mono text-sm">{clinic.code}</td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <select
+                                    value={editClinicForm.region}
+                                    onChange={(e) => setEditClinicForm({ ...editClinicForm, region: e.target.value })}
+                                    className="light-select text-sm"
+                                  >
+                                    <option value="">Select Region</option>
+                                    {PHILIPPINES_REGIONS.map((region) => (
+                                      <option key={region.code} value={region.code}>
+                                        {region.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  PHILIPPINES_REGIONS.find(r => r.code === clinic.region)?.name || clinic.region
+                                )}
+                              </td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <select
+                                    value={editClinicForm.plan}
+                                    onChange={(e) => setEditClinicForm({ ...editClinicForm, plan: e.target.value as ClinicPlan })}
+                                    className="light-select text-sm"
+                                  >
+                                    <option value="starter">Starter</option>
+                                    <option value="growth">Growth</option>
+                                    <option value="pro">Pro</option>
+                                  </select>
+                                ) : (
+                                  <span className={`plan-${clinic.plan} capitalize`}>
+                                    {clinic.plan}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <div className="text-sm">
+                                  <div>{assignedCards.length} / {clinic.maxCards}</div>
+                                  <div className="w-16 bg-gray-200 rounded-full h-1 mt-1">
+                                    <div
+                                      className="bg-blue-500 h-1 rounded-full"
+                                      style={{ width: `${Math.min((assignedCards.length / clinic.maxCards) * 100, 100)}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                {isEditing ? (
+                                  <div className="space-y-1">
+                                    <input
+                                      type="email"
+                                      value={editClinicForm.email}
+                                      onChange={(e) => setEditClinicForm({ ...editClinicForm, email: e.target.value })}
+                                      placeholder="Email"
+                                      className="light-input text-sm"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={editClinicForm.contactNumber}
+                                      onChange={(e) => setEditClinicForm({ ...editClinicForm, contactNumber: e.target.value })}
+                                      placeholder="Phone"
+                                      className="light-input text-sm"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="text-sm">
+                                    <div>{clinic.email}</div>
+                                    <div className="text-gray-500">{clinic.contactNumber}</div>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <span className={clinic.isActive ? 'status-active' : 'status-inactive'}>
+                                  {clinic.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center space-x-2">
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        onClick={() => handleSaveClinic(clinic.id)}
+                                        className="p-1 text-green-600 hover:text-green-700"
+                                        title="Save changes"
+                                      >
+                                        <Save className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingClinic(null)}
+                                        className="p-1 text-gray-600 hover:text-gray-700"
+                                        title="Cancel"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => handleEditClinic(clinic.id)}
+                                        className="p-1 text-blue-600 hover:text-blue-700"
+                                        title="Edit clinic"
+                                      >
+                                        <Edit3 className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteClinic(clinic.id)}
+                                        className="p-1 text-red-600 hover:text-red-700"
+                                        title="Delete clinic"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
