@@ -123,7 +123,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         }`}>
           {/* Menu Header */}
           <div className="p-6 bg-[#1A535C] text-white">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">MOCARDS CLOUD</h2>
               <button
                 onClick={() => setIsOpen(false)}
@@ -132,7 +132,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="text-teal-200 text-sm">Loyalty Card Management Platform</p>
           </div>
 
           {/* Menu Items */}
