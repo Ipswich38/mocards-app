@@ -10,7 +10,8 @@ import {
   Zap,
   UserCheck,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Building
 } from 'lucide-react';
 import {
   cardOperations,
@@ -18,13 +19,17 @@ import {
   PHILIPPINES_REGIONS,
   AREA_CODES,
   PLAN_LIMITS,
+  PLAN_PRICING,
   generateControlNumber,
-  type CardData
+  generateClinicCode,
+  type CardData,
+  type Clinic,
+  type ClinicPlan
 } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 
-type AdminTab = 'generator' | 'activation' | 'endorsement' | 'master-list';
+type AdminTab = 'generator' | 'activation' | 'endorsement' | 'clinic-management' | 'master-list';
 
 export function AdminPortalView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,6 +42,7 @@ export function AdminPortalView() {
     fullName: '',
     region: '',
     areaCode: '',
+    customAreaCode: '',
     startId: '',
     endId: '',
   });
@@ -50,6 +56,20 @@ export function AdminPortalView() {
     clinicId: '',
     startRange: '',
     endRange: '',
+  });
+
+  // Clinic Management State
+  const [clinicForm, setClinicForm] = useState({
+    name: '',
+    region: '',
+    plan: 'starter' as ClinicPlan,
+    areaCode: '',
+    customAreaCode: '',
+    address: '',
+    adminClinic: '',
+    email: '',
+    contactNumber: '',
+    password: '',
   });
 
   const { addToast } = useToast();
@@ -71,8 +91,14 @@ export function AdminPortalView() {
         return;
       }
 
+      // Handle custom area code
+      let finalAreaCode = generatorForm.areaCode;
+      if (generatorForm.areaCode === 'Custom' && generatorForm.customAreaCode) {
+        finalAreaCode = generatorForm.customAreaCode;
+      }
+
       const newId = cardOperations.getAll().length + 1;
-      const controlNumber = generateControlNumber(newId, generatorForm.region, generatorForm.areaCode);
+      const controlNumber = generateControlNumber(newId, generatorForm.region, finalAreaCode);
 
       const newCard: CardData = {
         controlNumber,
@@ -97,7 +123,13 @@ export function AdminPortalView() {
         return;
       }
 
-      const cards = cardOperations.createBatch(start, end, generatorForm.region, generatorForm.areaCode);
+      // Handle custom area code
+      let finalAreaCode = generatorForm.areaCode;
+      if (generatorForm.areaCode === 'Custom' && generatorForm.customAreaCode) {
+        finalAreaCode = generatorForm.customAreaCode;
+      }
+
+      const cards = cardOperations.createBatch(start, end, generatorForm.region, finalAreaCode);
       addToast(toastSuccess('Batch Generated', `Created ${cards.length} cards`));
     }
   };
@@ -174,9 +206,64 @@ export function AdminPortalView() {
     }
   };
 
+  const handleCreateClinic = () => {
+    if (!clinicForm.name || !clinicForm.region || !clinicForm.plan || !clinicForm.areaCode || !clinicForm.password) {
+      addToast(toastWarning('Missing Required Fields', 'Please fill all required fields'));
+      return;
+    }
+
+    // Handle custom area code
+    let finalAreaCode = clinicForm.areaCode;
+    if (clinicForm.areaCode === 'Custom' && clinicForm.customAreaCode) {
+      finalAreaCode = clinicForm.customAreaCode;
+    }
+
+    // Generate clinic code
+    const clinicCode = generateClinicCode(finalAreaCode);
+
+    try {
+      const newClinic: Omit<Clinic, 'id'> = {
+        name: clinicForm.name,
+        region: clinicForm.region,
+        plan: clinicForm.plan,
+        code: clinicCode,
+        address: clinicForm.address || undefined,
+        adminClinic: clinicForm.adminClinic || undefined,
+        email: clinicForm.email || undefined,
+        contactNumber: clinicForm.contactNumber || undefined,
+        password: clinicForm.password,
+        subscriptionPrice: PLAN_PRICING[clinicForm.plan],
+      };
+
+      const createdClinic = clinicOperations.create(newClinic);
+
+      addToast(toastSuccess(
+        'Clinic Created',
+        `${createdClinic.name} created successfully with code ${createdClinic.code}`
+      ));
+
+      // Reset form
+      setClinicForm({
+        name: '',
+        region: '',
+        plan: 'starter' as ClinicPlan,
+        areaCode: '',
+        customAreaCode: '',
+        address: '',
+        adminClinic: '',
+        email: '',
+        contactNumber: '',
+        password: '',
+      });
+    } catch (error) {
+      addToast(toastError('Creation Failed', 'Failed to create clinic'));
+    }
+  };
+
   const tabs = [
     { id: 'generator' as const, label: 'Generator', icon: Plus, color: 'emerald' },
     { id: 'activation' as const, label: 'Activation', icon: Zap, color: 'blue' },
+    { id: 'clinic-management' as const, label: 'Add Clinic', icon: Building, color: 'indigo' },
     { id: 'endorsement' as const, label: 'Endorsement', icon: UserCheck, color: 'orange' },
     { id: 'master-list' as const, label: 'Master List', icon: Database, color: 'purple' },
   ];
@@ -363,6 +450,19 @@ export function AdminPortalView() {
                   </select>
                 </div>
 
+                {generatorForm.areaCode === 'Custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Custom Area Code</label>
+                    <input
+                      type="text"
+                      value={generatorForm.customAreaCode}
+                      onChange={(e) => setGeneratorForm({ ...generatorForm, customAreaCode: e.target.value })}
+                      className="light-input"
+                      placeholder="Enter custom area code (e.g., XYZ001)"
+                    />
+                  </div>
+                )}
+
                 {generatorForm.mode === 'single' && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -445,6 +545,165 @@ export function AdminPortalView() {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Clinic Management Tab */}
+          {activeTab === 'clinic-management' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900">Add Clinic</h2>
+              <p className="text-gray-600">Create a new clinic profile and assign subscription plan</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Required Fields */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Clinic Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={clinicForm.name}
+                    onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })}
+                    className="light-input"
+                    placeholder="Enter clinic name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Region <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={clinicForm.region}
+                    onChange={(e) => setClinicForm({ ...clinicForm, region: e.target.value })}
+                    className="light-select"
+                  >
+                    <option value="">Select Region</option>
+                    {PHILIPPINES_REGIONS.map((region) => (
+                      <option key={region.code} value={region.code}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subscription Plan <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={clinicForm.plan}
+                    onChange={(e) => setClinicForm({ ...clinicForm, plan: e.target.value as ClinicPlan })}
+                    className="light-select"
+                  >
+                    <option value="starter">Starter Plan - ₱{PLAN_PRICING.starter}/month (up to {PLAN_LIMITS.starter} cards)</option>
+                    <option value="growth">Growth Plan - ₱{PLAN_PRICING.growth}/month (up to {PLAN_LIMITS.growth} cards)</option>
+                    <option value="pro">Pro Plan - ₱{PLAN_PRICING.pro}/month (up to {PLAN_LIMITS.pro} cards)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Area Code <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={clinicForm.areaCode}
+                    onChange={(e) => setClinicForm({ ...clinicForm, areaCode: e.target.value })}
+                    className="light-select"
+                  >
+                    <option value="">Select Area Code</option>
+                    {AREA_CODES.map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {clinicForm.areaCode === 'Custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Custom Area Code</label>
+                    <input
+                      type="text"
+                      value={clinicForm.customAreaCode}
+                      onChange={(e) => setClinicForm({ ...clinicForm, customAreaCode: e.target.value })}
+                      className="light-input"
+                      placeholder="Enter custom area code (e.g., XYZ001)"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Clinic Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={clinicForm.password}
+                    onChange={(e) => setClinicForm({ ...clinicForm, password: e.target.value })}
+                    className="light-input"
+                    placeholder="Enter clinic login password"
+                  />
+                </div>
+
+                {/* Optional Fields */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
+                  <input
+                    type="text"
+                    value={clinicForm.address}
+                    onChange={(e) => setClinicForm({ ...clinicForm, address: e.target.value })}
+                    className="light-input"
+                    placeholder="Enter clinic address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Admin Contact (Optional)</label>
+                  <input
+                    type="text"
+                    value={clinicForm.adminClinic}
+                    onChange={(e) => setClinicForm({ ...clinicForm, adminClinic: e.target.value })}
+                    className="light-input"
+                    placeholder="Enter admin contact name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={clinicForm.email}
+                    onChange={(e) => setClinicForm({ ...clinicForm, email: e.target.value })}
+                    className="light-input"
+                    placeholder="Enter clinic email"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number (Optional)</label>
+                  <input
+                    type="tel"
+                    value={clinicForm.contactNumber}
+                    onChange={(e) => setClinicForm({ ...clinicForm, contactNumber: e.target.value })}
+                    className="light-input"
+                    placeholder="+63917123456"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-xl">
+                <h3 className="font-medium text-blue-900 mb-2">Subscription Summary</h3>
+                <div className="text-sm text-blue-800">
+                  <p><strong>{clinicForm.plan.charAt(0).toUpperCase() + clinicForm.plan.slice(1)} Plan:</strong> ₱{PLAN_PRICING[clinicForm.plan] || 0}/month</p>
+                  <p><strong>Card Limit:</strong> Up to {PLAN_LIMITS[clinicForm.plan] || 0} cards</p>
+                  <p className="text-blue-600 mt-2">* Required fields must be filled. Optional fields can be updated later.</p>
+                </div>
+              </div>
+
+              <button onClick={handleCreateClinic} className="light-button-primary">
+                Create Clinic Profile
+              </button>
             </div>
           )}
 

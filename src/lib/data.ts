@@ -17,8 +17,12 @@ export interface Clinic {
   region: string;
   plan: ClinicPlan;
   code: string;
-  address: string;
+  address?: string; // Optional
+  adminClinic?: string; // Optional
+  email?: string; // Optional
+  contactNumber?: string; // Optional
   password: string; // For clinic login
+  subscriptionPrice: number; // Monthly price in PHP
 }
 
 export interface Appointment {
@@ -31,11 +35,17 @@ export interface Appointment {
   status: 'scheduled' | 'completed' | 'cancelled';
 }
 
-// Plan Limits
+// Plan Limits and Pricing (Monthly PHP)
 export const PLAN_LIMITS = {
   starter: 500,
   growth: 1000,
   pro: 2000,
+} as const;
+
+export const PLAN_PRICING = {
+  starter: 299, // ₱299 for up to 500 cards
+  growth: 499,  // ₱499 for up to 1000 cards
+  pro: 799,     // ₱799 for up to 2000 cards
 } as const;
 
 // Philippines Regions for MOC Cards
@@ -58,10 +68,16 @@ export const PHILIPPINES_REGIONS = [
   { code: 'CAR', name: 'Cordillera Administrative Region (CAR)' },
 ] as const;
 
-// Area Codes for Major Cities
+// Area Codes for Major Cities and Provinces
 export const AREA_CODES = [
   'CVT001', 'CVT002', 'CVT003', 'CVT004', 'CVT005',
-  'CVT006', 'CVT007', 'CVT008', 'CVT009', 'CVT010'
+  'CVT006', 'CVT007', 'CVT008', 'CVT009', 'CVT010',
+  'BTG001', 'BTG002', 'BTG003', 'BTG004', 'BTG005',
+  'BTG006', 'BTG007', 'BTG008', 'BTG009', 'BTG010',
+  'LGN001', 'LGN002', 'LGN003', 'LGN004', 'LGN005',
+  'LGN006', 'LGN007', 'LGN008', 'LGN009', 'LGN010',
+  'Others',
+  'Custom'
 ] as const;
 
 // Mock Database
@@ -103,7 +119,10 @@ let clinics: Clinic[] = [
     plan: 'growth',
     code: 'CVT001',
     address: 'Makati City, Metro Manila',
+    email: 'admin@centralvalley.com',
+    contactNumber: '+63917123456',
     password: 'cvt001pass',
+    subscriptionPrice: PLAN_PRICING.growth,
   },
   {
     id: '2',
@@ -112,7 +131,10 @@ let clinics: Clinic[] = [
     plan: 'pro',
     code: 'CVT002',
     address: 'Manila City, Metro Manila',
+    email: 'contact@mgh.ph',
+    contactNumber: '+63917234567',
     password: 'cvt002pass',
+    subscriptionPrice: PLAN_PRICING.pro,
   },
   {
     id: '3',
@@ -121,7 +143,10 @@ let clinics: Clinic[] = [
     plan: 'starter',
     code: 'CVT003',
     address: 'Santa Rosa, Laguna',
+    email: 'info@lmc.ph',
+    contactNumber: '+63917345678',
     password: 'cvt003pass',
+    subscriptionPrice: PLAN_PRICING.starter,
   },
 ];
 
@@ -135,6 +160,22 @@ export const formatDate = (dateString: string): string => {
 export const generateControlNumber = (id: number, region: string, areaCode: string): string => {
   const paddedId = id.toString().padStart(5, '0');
   return `MOC-${paddedId}-${region}-${areaCode}`;
+};
+
+export const generateClinicCode = (areaCode: string): string => {
+  const existingCodes = clinics.map(c => c.code);
+  let counter = 1;
+
+  // If custom or others, use CVT prefix
+  if (areaCode === 'Custom' || areaCode === 'Others') {
+    while (existingCodes.includes(`CVT${counter.toString().padStart(3, '0')}`)) {
+      counter++;
+    }
+    return `CVT${counter.toString().padStart(3, '0')}`;
+  }
+
+  // Use the selected area code
+  return areaCode;
 };
 
 // Card Operations
