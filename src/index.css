@@ -2,14 +2,14 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* MOCARDS CLOUD - Hybrid Theme System */
+/* MOCARDS CLOUD - Apple iOS Design System */
 @layer base {
   * {
     @apply border-border;
   }
 
   html {
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -21,33 +21,29 @@
   }
 }
 
-/* Hybrid Theme System Components */
+/* Apple iOS Design System Components */
 @layer components {
-  /* Deep Teal Sidebar Components */
+  /* Deep Teal Sidebar - Only Component That Stays Dark */
   .teal-sidebar {
     background-color: #1A535C; /* Deep Teal - Brand Color */
     @apply text-white shadow-xl;
   }
 
   .teal-nav-item {
-    @apply flex items-center p-3 rounded-lg transition-all duration-200 cursor-pointer text-white/80;
-  }
-
-  .teal-nav-item:hover {
-    @apply bg-white/10 text-white;
+    @apply flex items-center p-3 rounded-xl transition-all duration-200 cursor-pointer text-white/80 hover:bg-white/10 hover:text-white;
   }
 
   .teal-nav-item-active {
-    @apply flex items-center p-3 rounded-lg bg-white/20 text-white font-medium;
+    @apply flex items-center p-3 rounded-xl bg-white/20 text-white font-medium;
   }
 
-  /* Light Mode Admin/Clinic Components */
+  /* Apple iOS Light Mode Components - Everything Else */
   .light-card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-200;
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100;
   }
 
   .light-stat-card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow;
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200;
   }
 
   .light-button-primary {
@@ -58,38 +54,43 @@
 
   .light-button-primary:hover {
     background-color: #144148; /* Darker Teal */
+    @apply shadow-lg;
   }
 
   .light-button-secondary {
-    @apply bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-200 border border-gray-300;
+    @apply bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300;
     min-height: 44px;
   }
 
   .light-input {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900;
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm;
     min-height: 44px;
+  }
+
+  .light-input:focus {
+    @apply shadow-md;
   }
 
   .light-select {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900;
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm;
     min-height: 44px;
   }
 
-  .light-tab {
-    @apply px-4 py-2 rounded-lg text-gray-600 font-medium transition-all duration-200 cursor-pointer;
+  .light-select:focus {
+    @apply shadow-md;
   }
 
-  .light-tab:hover {
-    @apply text-gray-900 bg-gray-100;
+  .light-tab {
+    @apply px-4 py-2 rounded-xl text-gray-600 font-medium transition-all duration-200 cursor-pointer hover:text-gray-900 hover:bg-gray-50;
   }
 
   .light-tab-active {
     background-color: #1A535C;
-    @apply text-white px-4 py-2 rounded-lg font-medium;
+    @apply text-white px-4 py-2 rounded-xl font-medium shadow-sm;
   }
 
   .light-table {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden;
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden;
   }
 
   .light-table-header {
@@ -97,10 +98,10 @@
   }
 
   .light-table-row {
-    @apply border-b border-gray-200 hover:bg-gray-50 transition-colors;
+    @apply border-b border-gray-100 hover:bg-gray-50 transition-colors;
   }
 
-  /* Dark Mode Card Lookup Components */
+  /* Dark Mode Card Lookup Components - Only for Card Search */
   .dark-search-container {
     background-color: #202124; /* Google Dark Background */
     @apply text-gray-300;
@@ -117,28 +118,28 @@
     @apply rounded-2xl border border-gray-600 shadow-lg;
   }
 
-  /* Philippines Healthcare Colors */
+  /* Status and Plan Indicators */
   .status-active {
-    @apply bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium;
+    @apply bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium;
   }
 
   .status-inactive {
-    @apply bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium;
+    @apply bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm font-medium;
   }
 
   .plan-starter {
-    @apply bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium;
+    @apply bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium;
   }
 
   .plan-growth {
-    @apply bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium;
+    @apply bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm font-medium;
   }
 
   .plan-pro {
-    @apply bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium;
+    @apply bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-medium;
   }
 
-  /* Responsive Layout */
+  /* Apple iOS Layout System */
   .main-layout {
     @apply min-h-screen flex bg-gray-50;
   }
@@ -148,7 +149,7 @@
   }
 
   .content-layout {
-    @apply flex-1 ml-64 min-h-screen;
+    @apply flex-1 ml-64 min-h-screen bg-gray-50;
   }
 
   /* Mobile Responsive */
@@ -163,10 +164,10 @@
   }
 }
 
-/* Custom scrollbars */
+/* Apple iOS Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -174,15 +175,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: #d1d5db;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #9ca3af;
 }
 
-/* Animations */
+/* Apple iOS Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -195,7 +196,7 @@
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInUp 0.4s ease-out;
 }
 
 @keyframes slideInFromRight {
@@ -210,10 +211,10 @@
 }
 
 .animate-slide-in-right {
-  animation: slideInFromRight 0.2s ease-out;
+  animation: slideInFromRight 0.3s ease-out;
 }
 
-/* Focus styles */
+/* Apple iOS Focus and Interaction States */
 .focus-teal {
   @apply focus:outline-none focus:ring-2 focus:ring-[#1A535C] focus:ring-offset-2;
 }
@@ -225,4 +226,17 @@
 
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Apple-style shadows and depth */
+.apple-shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.apple-shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.apple-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
