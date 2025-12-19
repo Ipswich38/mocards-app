@@ -44,56 +44,10 @@ export function ClinicPortalView() {
   const [currentClinic, setCurrentClinic] = useState<Clinic | null>(null);
   const [loginForm, setLoginForm] = useState({ code: '', password: '' });
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([
-    {
-      id: '1',
-      cardControlNumber: 'MOC-00001-01-CVT001',
-      patientName: 'Juan Dela Cruz',
-      patientEmail: 'juan.delacruz@email.com',
-      patientPhone: '+639171234567',
-      preferredDate: '2024-12-25',
-      preferredTime: '10:00',
-      serviceType: 'Dental Cleaning',
-      perkRequested: 'Free Dental Cleaning',
-      status: 'pending',
-      adminNotes: 'Patient prefers morning appointment',
-      forwardedAt: '2024-12-19T08:00:00.000Z'
-    },
-    {
-      id: '2',
-      cardControlNumber: 'MOC-00002-NCR-CVT002',
-      patientName: 'Maria Santos',
-      patientEmail: 'maria.santos@email.com',
-      patientPhone: '+639171234568',
-      preferredDate: '2024-12-26',
-      preferredTime: '14:00',
-      serviceType: 'Consultation',
-      perkRequested: 'Free Consultation',
-      status: 'pending',
-      adminNotes: 'Urgent case - patient experiencing pain',
-      forwardedAt: '2024-12-19T09:00:00.000Z'
-    }
-  ]);
-  const [perkRedemptions, setPerkRedemptions] = useState<PerkRedemption[]>([
-    {
-      id: '1',
-      cardControlNumber: 'MOC-00001-01-CVT001',
-      patientName: 'Juan Dela Cruz',
-      perkType: 'dental_cleaning',
-      perkDescription: 'Free Dental Cleaning Service',
-      requestedAt: '2024-12-19T10:00:00.000Z',
-      status: 'pending'
-    },
-    {
-      id: '2',
-      cardControlNumber: 'MOC-00003-4A-CVT003',
-      patientName: 'Jose Rodriguez',
-      perkType: 'consultation',
-      perkDescription: 'Free Consultation',
-      requestedAt: '2024-12-19T11:00:00.000Z',
-      status: 'pending'
-    }
-  ]);
+  // Production Ready - Empty appointment state
+  const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([]);
+  // Production Ready - Empty perk redemptions state
+  const [perkRedemptions, setPerkRedemptions] = useState<PerkRedemption[]>([]);
 
   // Edit state for limited CRUD functionality
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null);
@@ -109,6 +63,21 @@ export function ClinicPortalView() {
   const [editPerkForm, setEditPerkForm] = useState({
     perkDescription: '',
     clinicNotes: ''
+  });
+
+  // Password Management State
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordChangeForm, setPasswordChangeForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  // Forgot Password State
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({
+    clinicCode: '',
+    clinicName: ''
   });
 
   const { addToast } = useToast();
@@ -293,6 +262,65 @@ export function ClinicPortalView() {
     setLoginForm({ code: '', password: '' });
   };
 
+  // Password Change Handler
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!currentClinic) return;
+
+    if (passwordChangeForm.currentPassword !== currentClinic.password) {
+      addToast(toastError('Invalid Password', 'Current password is incorrect'));
+      return;
+    }
+
+    if (passwordChangeForm.newPassword.length < 8) {
+      addToast(toastError('Password Too Short', 'New password must be at least 8 characters long'));
+      return;
+    }
+
+    if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
+      addToast(toastError('Passwords Do Not Match', 'Please confirm your new password correctly'));
+      return;
+    }
+
+    // Update clinic password
+    const updatedClinic = { ...currentClinic, password: passwordChangeForm.newPassword };
+    clinicOperations.update(currentClinic.id, { password: passwordChangeForm.newPassword });
+    setCurrentClinic(updatedClinic);
+
+    setPasswordChangeForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShowPasswordChange(false);
+    addToast(toastSuccess('Password Changed', 'Your clinic password has been updated successfully'));
+  };
+
+  // Forgot Password Handler
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Find clinic by code and verify name
+    const clinic = clinicOperations.getByCode(forgotPasswordForm.clinicCode);
+
+    if (!clinic || clinic.name.toLowerCase() !== forgotPasswordForm.clinicName.toLowerCase()) {
+      addToast(toastError('Verification Failed', 'Clinic code and name do not match our records'));
+      return;
+    }
+
+    // Generate temporary password
+    const tempPassword = 'TEMP' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // Update clinic with temporary password
+    clinicOperations.update(clinic.id, { password: tempPassword });
+
+    // In production, this would send an email instead of showing the password
+    addToast(toastSuccess(
+      'Temporary Password Generated',
+      `Your temporary password is: ${tempPassword}. Please login and change it immediately. Contact MOCARDS support at admin@mocards.cloud for assistance.`
+    ));
+
+    setForgotPasswordForm({ clinicCode: '', clinicName: '' });
+    setShowForgotPassword(false);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -334,14 +362,85 @@ export function ClinicPortalView() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-            <h3 className="font-medium text-gray-900 mb-2">Demo Credentials:</h3>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p>CVT001 / cvt001pass - Central Valley Clinic</p>
-              <p>CVT002 / cvt002pass - Manila General Hospital</p>
-              <p>CVT003 / cvt003pass - Laguna Medical Center</p>
-            </div>
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-blue-600 hover:text-blue-700 text-sm"
+            >
+              Forgot your password?
+            </button>
           </div>
+
+          {/* Forgot Password Modal */}
+          {showForgotPassword && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="light-card p-6 w-full max-w-md mx-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Reset Password</h3>
+                  <button
+                    onClick={() => setShowForgotPassword(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Clinic Code
+                    </label>
+                    <input
+                      type="text"
+                      value={forgotPasswordForm.clinicCode}
+                      onChange={(e) => setForgotPasswordForm({
+                        ...forgotPasswordForm,
+                        clinicCode: e.target.value
+                      })}
+                      className="light-input"
+                      placeholder="Enter your clinic code"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Clinic Name
+                    </label>
+                    <input
+                      type="text"
+                      value={forgotPasswordForm.clinicName}
+                      onChange={(e) => setForgotPasswordForm({
+                        ...forgotPasswordForm,
+                        clinicName: e.target.value
+                      })}
+                      className="light-input"
+                      placeholder="Enter your clinic name exactly"
+                      required
+                    />
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    A temporary password will be generated. Please change it immediately after login.
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button type="submit" className="light-button-primary">
+                      Generate Temporary Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(false)}
+                      className="light-button-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -361,6 +460,7 @@ export function ClinicPortalView() {
     { id: 'appointments', name: `Appointments (${pendingAppointments.length})`, icon: Calendar },
     { id: 'perks', name: `Perks (${pendingPerks.length})`, icon: Gift },
     { id: 'cards', name: 'Assigned Cards', icon: Users },
+    { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
   return (
@@ -995,6 +1095,160 @@ export function ClinicPortalView() {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Settings Tab */}
+      {activeTab === 'settings' && (
+        <div className="light-card">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">Clinic Settings</h2>
+
+            {/* Password Change Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Password Management</h3>
+                  <p className="text-sm text-gray-600">Change your clinic password for security</p>
+                </div>
+                <button
+                  onClick={() => setShowPasswordChange(!showPasswordChange)}
+                  className="light-button-primary"
+                >
+                  Change Password
+                </button>
+              </div>
+
+              {showPasswordChange && (
+                <div className="border-t border-gray-200 pt-4">
+                  <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordChangeForm.currentPassword}
+                        onChange={(e) => setPasswordChangeForm({
+                          ...passwordChangeForm,
+                          currentPassword: e.target.value
+                        })}
+                        className="light-input"
+                        placeholder="Enter current password"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordChangeForm.newPassword}
+                        onChange={(e) => setPasswordChangeForm({
+                          ...passwordChangeForm,
+                          newPassword: e.target.value
+                        })}
+                        className="light-input"
+                        placeholder="Enter new password (min 8 characters)"
+                        minLength={8}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordChangeForm.confirmPassword}
+                        onChange={(e) => setPasswordChangeForm({
+                          ...passwordChangeForm,
+                          confirmPassword: e.target.value
+                        })}
+                        className="light-input"
+                        placeholder="Confirm new password"
+                        required
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button type="submit" className="light-button-primary">
+                        Update Password
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPasswordChange(false);
+                          setPasswordChangeForm({
+                            currentPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                          });
+                        }}
+                        className="light-button-secondary"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+
+            {/* Clinic Information */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Clinic Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700">Clinic Name:</span>
+                  <span className="ml-2 text-gray-600">{currentClinic.name}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Clinic Code:</span>
+                  <span className="ml-2 text-gray-600">{currentClinic.code}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Plan:</span>
+                  <span className="ml-2 text-gray-600 capitalize">{currentClinic.plan}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Region:</span>
+                  <span className="ml-2 text-gray-600">{currentClinic.region}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Email:</span>
+                  <span className="ml-2 text-gray-600">{currentClinic.email}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Contact:</span>
+                  <span className="ml-2 text-gray-600">{currentClinic.contactNumber}</span>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="font-medium text-gray-700">Address:</span>
+                  <span className="ml-2 text-gray-600">{currentClinic.address}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Support Information */}
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Support</h3>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  <strong>Need Help?</strong> Contact MOCARDS support at{' '}
+                  <a href="mailto:admin@mocards.cloud" className="text-blue-600 hover:text-blue-700">
+                    admin@mocards.cloud
+                  </a>
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  For password reset assistance, please include your clinic code and name in your message.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -39,7 +39,7 @@ import {
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 
-type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list';
+type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'settings';
 
 export function AdminPortalView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -82,46 +82,8 @@ export function AdminPortalView() {
     password: '',
   });
 
-  // Admin Appointment Monitoring State (Read-Only + Manual Creation)
-  const [appointmentRequests, setAppointmentRequests] = useState([
-    // Mock appointment requests from cardholders (sent directly to clinics)
-    {
-      id: '1',
-      cardControlNumber: 'MOC-00001-01-CVT001',
-      patientName: 'Juan Dela Cruz',
-      patientEmail: 'juan.delacruz@email.com',
-      patientPhone: '+63917123456',
-      preferredDate: '2024-12-25',
-      preferredTime: '10:00',
-      serviceType: 'Dental Cleaning',
-      perkRequested: 'Free Dental Cleaning',
-      status: 'pending',
-      requestedAt: '2024-12-19T08:00:00.000Z',
-      forwardedAt: '2024-12-19T08:00:00.000Z',
-      clinicId: '1',
-      clinicName: 'Central Valley Clinic',
-      adminNotes: 'Direct cardholder request'
-    },
-    {
-      id: '2',
-      cardControlNumber: 'MOC-00002-NCR-CVT002',
-      patientName: 'Maria Santos',
-      patientEmail: 'maria.santos@email.com',
-      patientPhone: '+63917234567',
-      preferredDate: '2024-12-26',
-      preferredTime: '14:00',
-      serviceType: 'Consultation',
-      perkRequested: 'Free Consultation',
-      status: 'accepted',
-      requestedAt: '2024-12-18T09:00:00.000Z',
-      forwardedAt: '2024-12-18T09:00:00.000Z',
-      processedAt: '2024-12-18T10:00:00.000Z',
-      clinicId: '2',
-      clinicName: 'Manila General Hospital',
-      adminNotes: 'Direct cardholder request',
-      clinicNotes: 'Appointment confirmed for urgent consultation'
-    }
-  ]);
+  // Admin Appointment Monitoring State (Read-Only + Manual Creation) - Production Ready
+  const [appointmentRequests, setAppointmentRequests] = useState<any[]>([]);
 
   // Manual appointment creation form
   const [showManualAppointmentForm, setShowManualAppointmentForm] = useState(false);
@@ -136,6 +98,20 @@ export function AdminPortalView() {
     perkRequested: '',
     clinicId: '',
     adminNotes: ''
+  });
+
+  // Admin Settings State
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordChangeForm, setPasswordChangeForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  // Secure admin credentials (in production, this should be in a secure backend)
+  const [adminCredentials, setAdminCredentials] = useState({
+    username: 'admin',
+    password: 'MOCARDS2024!'
   });
 
   // CRUD State for Master List
@@ -168,12 +144,36 @@ export function AdminPortalView() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
+    if (loginForm.username === adminCredentials.username && loginForm.password === adminCredentials.password) {
       setIsAuthenticated(true);
       addToast(toastSuccess('Welcome', 'Admin access granted'));
     } else {
       addToast(toastError('Login Failed', 'Invalid credentials'));
     }
+  };
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordChangeForm.currentPassword !== adminCredentials.password) {
+      addToast(toastError('Invalid Password', 'Current password is incorrect'));
+      return;
+    }
+
+    if (passwordChangeForm.newPassword.length < 8) {
+      addToast(toastError('Password Too Short', 'New password must be at least 8 characters long'));
+      return;
+    }
+
+    if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
+      addToast(toastError('Passwords Do Not Match', 'Please confirm your new password correctly'));
+      return;
+    }
+
+    setAdminCredentials({ ...adminCredentials, password: passwordChangeForm.newPassword });
+    setPasswordChangeForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShowPasswordChange(false);
+    addToast(toastSuccess('Password Changed', 'Admin password has been updated successfully'));
   };
 
   const handleGenerateCards = () => {
@@ -495,6 +495,7 @@ export function AdminPortalView() {
     { id: 'clinic-management' as const, label: 'Add Clinic', icon: Building, color: 'indigo' },
     { id: 'endorsement' as const, label: 'Endorsement', icon: UserCheck, color: 'orange' },
     { id: 'master-list' as const, label: 'Master List', icon: Database, color: 'purple' },
+    { id: 'settings' as const, label: 'Settings', icon: Settings, color: 'gray' },
   ];
 
   if (!isAuthenticated) {
@@ -1718,6 +1719,134 @@ export function AdminPortalView() {
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Settings Tab */}
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900">Admin Settings</h2>
+
+              {/* Password Change Section */}
+              <div className="light-card">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Password Management</h3>
+                      <p className="text-sm text-gray-600">Change your admin password for security</p>
+                    </div>
+                    <button
+                      onClick={() => setShowPasswordChange(!showPasswordChange)}
+                      className="light-button-primary"
+                    >
+                      Change Password
+                    </button>
+                  </div>
+
+                  {showPasswordChange && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Current Password
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordChangeForm.currentPassword}
+                            onChange={(e) => setPasswordChangeForm({
+                              ...passwordChangeForm,
+                              currentPassword: e.target.value
+                            })}
+                            className="light-input"
+                            placeholder="Enter current password"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            New Password
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordChangeForm.newPassword}
+                            onChange={(e) => setPasswordChangeForm({
+                              ...passwordChangeForm,
+                              newPassword: e.target.value
+                            })}
+                            className="light-input"
+                            placeholder="Enter new password (min 8 characters)"
+                            minLength={8}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Confirm New Password
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordChangeForm.confirmPassword}
+                            onChange={(e) => setPasswordChangeForm({
+                              ...passwordChangeForm,
+                              confirmPassword: e.target.value
+                            })}
+                            className="light-input"
+                            placeholder="Confirm new password"
+                            required
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button type="submit" className="light-button-primary">
+                            Update Password
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPasswordChange(false);
+                              setPasswordChangeForm({
+                                currentPassword: '',
+                                newPassword: '',
+                                confirmPassword: ''
+                              });
+                            }}
+                            className="light-button-secondary"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* System Information */}
+              <div className="light-card">
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">System Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Version:</span>
+                      <span className="ml-2 text-gray-600">MOCARDS v3.0</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Environment:</span>
+                      <span className="ml-2 text-gray-600">Production</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Last Login:</span>
+                      <span className="ml-2 text-gray-600">{new Date().toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Admin Username:</span>
+                      <span className="ml-2 text-gray-600">{adminCredentials.username}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
