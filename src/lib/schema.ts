@@ -340,8 +340,8 @@ export interface DashboardStats {
 
 // Export legacy types for backward compatibility
 export type CardData = Card;
-export { Clinic as ClinicData };
-export { Appointment as AppointmentData };
+export type { Clinic as ClinicData };
+export type { Appointment as AppointmentData };
 
 // Schema Version for migrations
 export const SCHEMA_VERSION = '1.0.0';

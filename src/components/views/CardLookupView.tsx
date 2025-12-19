@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Search, Camera, Sparkles, Calendar, User, Gift, Shield } from 'lucide-react';
-import { cardOperations, clinicOperations, type CardData, formatDate } from '../../lib/data';
+import { cardOperations, clinicOperations, type Card, formatDate } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 
 export function CardLookupView() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<CardData | null>(null);
+  const [searchResult, setSearchResult] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
 

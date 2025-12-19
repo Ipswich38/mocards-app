@@ -22,7 +22,7 @@ import {
   PLAN_PRICING,
   generateControlNumber,
   generateClinicCode,
-  type CardData,
+  type Card,
   type Clinic,
   type ClinicPlan
 } from '../../lib/data';
@@ -49,7 +49,7 @@ export function AdminPortalView() {
 
   // Activation State
   const [activationQuery, setActivationQuery] = useState('');
-  const [activationResult, setActivationResult] = useState<CardData | null>(null);
+  const [activationResult, setActivationResult] = useState<Card | null>(null);
 
   // Endorsement State
   const [endorsementForm, setEndorsementForm] = useState({
@@ -100,7 +100,7 @@ export function AdminPortalView() {
       const newId = cardOperations.getAll().length + 1;
       const controlNumber = generateControlNumber(newId, generatorForm.region, finalAreaCode);
 
-      const newCard: CardData = {
+      const newCard: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
         controlNumber,
         fullName: generatorForm.fullName,
         status: 'inactive',
@@ -222,7 +222,7 @@ export function AdminPortalView() {
     const clinicCode = generateClinicCode(finalAreaCode);
 
     try {
-      const newClinic: Omit<Clinic, 'id'> = {
+      const newClinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'> = {
         name: clinicForm.name,
         region: clinicForm.region,
         plan: clinicForm.plan,

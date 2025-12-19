@@ -9,21 +9,19 @@ import {
   PLAN_PRICING,
   PHILIPPINES_REGIONS,
   AREA_CODES,
-  CardData,
-  ClinicData,
-  AppointmentData
+  type CardData,
+  type ClinicData,
+  type AppointmentData
 } from './schema';
 
 // Re-export types for backward compatibility
-export type { ClinicPlan, Card, Clinic, Appointment };
+export type { ClinicPlan, Card, Clinic, Appointment, CardData, ClinicData, AppointmentData };
 export { PLAN_LIMITS, PLAN_PRICING, PHILIPPINES_REGIONS, AREA_CODES };
 
-// Legacy type aliases for backward compatibility
-export type CardData = Card;
-export type { ClinicData, AppointmentData };
+// Legacy type aliases for backward compatibility - removed to avoid conflicts
 
 // Mock Database
-let cards: CardData[] = [
+let cards: Card[] = [
   {
     id: '1',
     controlNumber: 'MOC-00001-01-CVT001',
@@ -158,18 +156,18 @@ export const generateClinicCode = (areaCode: string): string => {
 
 // Card Operations
 export const cardOperations = {
-  getAll: (): CardData[] => cards,
+  getAll: (): Card[] => cards,
 
-  getByControlNumber: (controlNumber: string): CardData | null => {
+  getByControlNumber: (controlNumber: string): Card | null => {
     return cards.find(card => card.controlNumber === controlNumber) || null;
   },
 
-  getByClinicId: (clinicId: string): CardData[] => {
+  getByClinicId: (clinicId: string): Card[] => {
     return cards.filter(card => card.clinicId === clinicId);
   },
 
-  create: (card: Omit<CardData, 'id' | 'createdAt' | 'updatedAt'>): CardData => {
-    const newCard: CardData = {
+  create: (card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>): Card => {
+    const newCard: Card = {
       ...card,
       id: (cards.length + 1).toString(),
       createdAt: new Date().toISOString(),
@@ -184,12 +182,12 @@ export const cardOperations = {
     endId: number,
     region: string,
     areaCode: string
-  ): CardData[] => {
-    const newCards: CardData[] = [];
+  ): Card[] => {
+    const newCards: Card[] = [];
     const now = new Date().toISOString();
 
     for (let i = startId; i <= endId; i++) {
-      const card: CardData = {
+      const card: Card = {
         id: `card_${Date.now()}_${i}`,
         controlNumber: generateControlNumber(i, region, areaCode),
         fullName: `Patient ${i}`,
