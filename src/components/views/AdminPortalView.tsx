@@ -537,6 +537,14 @@ export function AdminPortalView() {
               Access Admin Portal
             </button>
           </form>
+
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <h3 className="font-medium text-gray-900 mb-2">Production Credentials:</h3>
+            <div className="space-y-1 text-sm text-gray-600">
+              <p><strong>Username:</strong> admin</p>
+              <p><strong>Password:</strong> MOCARDS2024!</p>
+            </div>
+          </div>
         </div>
       </div>
     );
