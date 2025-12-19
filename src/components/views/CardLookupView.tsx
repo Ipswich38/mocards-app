@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Camera, Sparkles, Calendar, User, Gift, Shield } from 'lucide-react';
+import { Search, Camera, Sparkles, Calendar, User, Gift, Shield, Clock, Send, Phone, Mail } from 'lucide-react';
 import { cardOperations, clinicOperations, type Card, formatDate } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
@@ -9,6 +9,18 @@ export function CardLookupView() {
   const [searchResult, setSearchResult] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
+
+  // Appointment Request State
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [appointmentForm, setAppointmentForm] = useState({
+    patientName: '',
+    patientEmail: '',
+    patientPhone: '',
+    preferredDate: '',
+    preferredTime: '',
+    perkType: 'dental_cleaning',
+    notes: ''
+  });
 
   const { addToast } = useToast();
 
@@ -62,6 +74,48 @@ export function CardLookupView() {
     const clinic = clinicOperations.getById(clinicId);
     return clinic?.name || 'No clinic assigned';
   };
+
+  // Appointment Request Handlers
+  const handleAppointmentRequest = () => {
+    if (!searchResult) {
+      addToast(toastWarning('No Card Selected', 'Please search for a valid MOC card first'));
+      return;
+    }
+    setShowAppointmentForm(true);
+  };
+
+  const handleSubmitAppointmentRequest = () => {
+    if (!appointmentForm.patientName || !appointmentForm.patientEmail || !appointmentForm.preferredDate || !appointmentForm.preferredTime) {
+      addToast(toastWarning('Missing Information', 'Please fill in all required fields'));
+      return;
+    }
+
+    // Simulate sending request to admin
+    addToast(toastSuccess(
+      'Request Submitted',
+      'Your appointment request has been sent to MOCARDS admin for review. You will be contacted soon!'
+    ));
+
+    // Reset form and hide
+    setAppointmentForm({
+      patientName: '',
+      patientEmail: '',
+      patientPhone: '',
+      preferredDate: '',
+      preferredTime: '',
+      perkType: 'dental_cleaning',
+      notes: ''
+    });
+    setShowAppointmentForm(false);
+  };
+
+  const perkOptions = [
+    { value: 'dental_cleaning', label: 'Free Dental Cleaning' },
+    { value: 'consultation', label: 'Free Consultation' },
+    { value: 'xray', label: 'X-Ray (50% discount)' },
+    { value: 'treatment', label: 'Treatment (20% discount)' },
+    { value: 'general_discount', label: 'General Discount (10%)' }
+  ];
 
   return (
     <div className="dark-search-container min-h-screen">
@@ -244,6 +298,173 @@ export function CardLookupView() {
                   </div>
                 </div>
               </div>
+
+              {/* Appointment Request Section */}
+              {searchResult.status === 'active' && (
+                <div className="dark-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-6 w-6 text-teal-400" />
+                      <h3 className="text-lg font-semibold text-white">Schedule Appointment</h3>
+                    </div>
+                    {!showAppointmentForm && (
+                      <button
+                        onClick={handleAppointmentRequest}
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Request Appointment
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="text-gray-300 text-sm mb-4">
+                    Contact MOCARDS admin to schedule an appointment for claiming your healthcare benefits.
+                  </p>
+
+                  {showAppointmentForm && (
+                    <div className="space-y-4 border-t border-gray-600 pt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Full Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={appointmentForm.patientName}
+                            onChange={(e) => setAppointmentForm(prev => ({ ...prev, patientName: e.target.value }))}
+                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            placeholder="Enter your full name"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Email Address *
+                          </label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                              type="email"
+                              value={appointmentForm.patientEmail}
+                              onChange={(e) => setAppointmentForm(prev => ({ ...prev, patientEmail: e.target.value }))}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              placeholder="your.email@example.com"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Phone Number
+                          </label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                              type="tel"
+                              value={appointmentForm.patientPhone}
+                              onChange={(e) => setAppointmentForm(prev => ({ ...prev, patientPhone: e.target.value }))}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              placeholder="+63917123456"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Preferred Benefit
+                          </label>
+                          <select
+                            value={appointmentForm.perkType}
+                            onChange={(e) => setAppointmentForm(prev => ({ ...prev, perkType: e.target.value }))}
+                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          >
+                            {perkOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Preferred Date *
+                          </label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                              type="date"
+                              value={appointmentForm.preferredDate}
+                              onChange={(e) => setAppointmentForm(prev => ({ ...prev, preferredDate: e.target.value }))}
+                              min={new Date().toISOString().split('T')[0]}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Preferred Time *
+                          </label>
+                          <div className="relative">
+                            <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                              type="time"
+                              value={appointmentForm.preferredTime}
+                              onChange={(e) => setAppointmentForm(prev => ({ ...prev, preferredTime: e.target.value }))}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Additional Notes
+                        </label>
+                        <textarea
+                          value={appointmentForm.notes}
+                          onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
+                          rows={3}
+                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          placeholder="Any specific requests or health concerns..."
+                        />
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <button
+                          onClick={handleSubmitAppointmentRequest}
+                          className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                        >
+                          <Send className="h-4 w-4" />
+                          Submit Request
+                        </button>
+                        <button
+                          onClick={() => setShowAppointmentForm(false)}
+                          className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      <div className="bg-teal-900/30 border border-teal-600/50 rounded-lg p-4 mt-4">
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-5 w-5 text-teal-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <p className="text-teal-300 font-medium mb-1">Next Steps:</p>
+                            <ol className="text-teal-100 space-y-1">
+                              <li>1. Admin will review your request within 24 hours</li>
+                              <li>2. Request will be forwarded to the assigned clinic</li>
+                              <li>3. Clinic will contact you to confirm the appointment</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

@@ -11,7 +11,11 @@ import {
   UserCheck,
   AlertTriangle,
   CheckCircle,
-  Building
+  Building,
+  Calendar,
+  Clock,
+  Phone,
+  Mail
 } from 'lucide-react';
 import {
   cardOperations,
@@ -29,7 +33,7 @@ import {
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 
-type AdminTab = 'generator' | 'activation' | 'endorsement' | 'clinic-management' | 'master-list';
+type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list';
 
 export function AdminPortalView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -71,6 +75,41 @@ export function AdminPortalView() {
     contactNumber: '',
     password: '',
   });
+
+  // Appointment Management State
+  const [appointmentRequests, setAppointmentRequests] = useState([
+    // Mock appointment requests
+    {
+      id: '1',
+      controlNumber: 'MOC-00001-01-CVT001',
+      patientName: 'Juan Dela Cruz',
+      patientEmail: 'juan@email.com',
+      patientPhone: '+63917123456',
+      requestedDate: '2024-12-20',
+      requestedTime: '10:00',
+      perkType: 'dental_cleaning',
+      status: 'pending_admin_review',
+      requestedAt: '2024-12-19T08:00:00.000Z',
+      clinicId: '1',
+      clinicName: 'Central Valley Clinic',
+      notes: 'Requesting free dental cleaning appointment'
+    },
+    {
+      id: '2',
+      controlNumber: 'MOC-00002-NCR-CVT002',
+      patientName: 'Maria Santos',
+      patientEmail: 'maria@email.com',
+      patientPhone: '+63917234567',
+      requestedDate: '2024-12-21',
+      requestedTime: '14:00',
+      perkType: 'consultation',
+      status: 'sent_to_clinic',
+      requestedAt: '2024-12-18T09:00:00.000Z',
+      clinicId: '2',
+      clinicName: 'Manila General Hospital',
+      notes: 'Need consultation for dental pain'
+    }
+  ]);
 
   const { addToast } = useToast();
 
@@ -260,9 +299,51 @@ export function AdminPortalView() {
     }
   };
 
+  // Appointment Management Handlers
+  const handleApproveAppointment = (appointmentId: string) => {
+    setAppointmentRequests(prev =>
+      prev.map(apt =>
+        apt.id === appointmentId
+          ? { ...apt, status: 'sent_to_clinic' }
+          : apt
+      )
+    );
+    addToast(toastSuccess('Appointment Approved', 'Request forwarded to clinic'));
+  };
+
+  const handleRejectAppointment = (appointmentId: string, reason: string) => {
+    setAppointmentRequests(prev =>
+      prev.map(apt =>
+        apt.id === appointmentId
+          ? { ...apt, status: 'rejected_by_admin', rejectionReason: reason }
+          : apt
+      )
+    );
+    addToast(toastWarning('Appointment Rejected', 'Patient will be notified'));
+  };
+
+  const handleRescheduleAppointment = (appointmentId: string, newDate: string, newTime: string) => {
+    setAppointmentRequests(prev =>
+      prev.map(apt =>
+        apt.id === appointmentId
+          ? {
+            ...apt,
+            status: 'rescheduled_by_admin',
+            requestedDate: newDate,
+            requestedTime: newTime,
+            originalDate: apt.requestedDate,
+            originalTime: apt.requestedTime
+          }
+          : apt
+      )
+    );
+    addToast(toastSuccess('Appointment Rescheduled', 'Updated request sent to clinic'));
+  };
+
   const tabs = [
     { id: 'generator' as const, label: 'Generator', icon: Plus, color: 'emerald' },
     { id: 'activation' as const, label: 'Activation', icon: Zap, color: 'blue' },
+    { id: 'appointments' as const, label: 'Appointments', icon: Calendar, color: 'rose' },
     { id: 'clinic-management' as const, label: 'Add Clinic', icon: Building, color: 'indigo' },
     { id: 'endorsement' as const, label: 'Endorsement', icon: UserCheck, color: 'orange' },
     { id: 'master-list' as const, label: 'Master List', icon: Database, color: 'purple' },
@@ -704,6 +785,183 @@ export function AdminPortalView() {
               <button onClick={handleCreateClinic} className="light-button-primary">
                 Create Clinic Profile
               </button>
+            </div>
+          )}
+
+          {/* Appointments Tab */}
+          {activeTab === 'appointments' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Appointment Requests</h2>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="h-4 w-4" />
+                  <span>{appointmentRequests.length} total requests</span>
+                </div>
+              </div>
+
+              {/* Filter/Status Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="light-stat-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Pending Review</p>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {appointmentRequests.filter(apt => apt.status === 'pending_admin_review').length}
+                      </p>
+                    </div>
+                    <Clock className="h-8 w-8 text-orange-600" />
+                  </div>
+                </div>
+
+                <div className="light-stat-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Sent to Clinic</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {appointmentRequests.filter(apt => apt.status === 'sent_to_clinic').length}
+                      </p>
+                    </div>
+                    <UserCheck className="h-8 w-8 text-blue-600" />
+                  </div>
+                </div>
+
+                <div className="light-stat-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Approved</p>
+                      <p className="text-2xl font-bold text-emerald-600">
+                        {appointmentRequests.filter(apt => apt.status === 'approved_by_clinic').length}
+                      </p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-emerald-600" />
+                  </div>
+                </div>
+
+                <div className="light-stat-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Rejected</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {appointmentRequests.filter(apt => apt.status.includes('rejected')).length}
+                      </p>
+                    </div>
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Requests List */}
+              <div className="space-y-4">
+                {appointmentRequests.length === 0 ? (
+                  <div className="light-card p-8 text-center">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Appointment Requests</h3>
+                    <p className="text-gray-600">When cardholders request appointments, they will appear here.</p>
+                  </div>
+                ) : (
+                  appointmentRequests.map((appointment) => (
+                    <div key={appointment.id} className="light-card p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="h-5 w-5 text-[#1A535C]" />
+                              <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                                {appointment.controlNumber}
+                              </span>
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              appointment.status === 'pending_admin_review'
+                                ? 'bg-orange-100 text-orange-700'
+                                : appointment.status === 'sent_to_clinic'
+                                ? 'bg-blue-100 text-blue-700'
+                                : appointment.status === 'approved_by_clinic'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {appointment.status.replace(/_/g, ' ').toUpperCase()}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{appointment.patientName}</h4>
+                              <div className="text-sm text-gray-600 space-y-1 mt-1">
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4" />
+                                  <span>{appointment.patientEmail}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-4 w-4" />
+                                  <span>{appointment.patientPhone}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="text-sm text-gray-600 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>{new Date(appointment.requestedDate).toLocaleDateString('en-PH')}</span>
+                                  <Clock className="h-4 w-4 ml-2" />
+                                  <span>{appointment.requestedTime}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700">Perk:</span> {appointment.perkType.replace(/_/g, ' ').toUpperCase()}
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700">Clinic:</span> {appointment.clinicName}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {appointment.notes && (
+                            <div className="bg-gray-50 p-3 rounded-lg mb-4">
+                              <p className="text-sm text-gray-700"><strong>Patient Notes:</strong> {appointment.notes}</p>
+                            </div>
+                          )}
+
+                          <div className="text-xs text-gray-500">
+                            Requested: {new Date(appointment.requestedAt).toLocaleString('en-PH')}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        {appointment.status === 'pending_admin_review' && (
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => handleApproveAppointment(appointment.id)}
+                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                              Approve & Forward
+                            </button>
+                            <button
+                              onClick={() => {
+                                const reason = prompt('Rejection reason:');
+                                if (reason) handleRejectAppointment(appointment.id, reason);
+                              }}
+                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => {
+                                const newDate = prompt('New date (YYYY-MM-DD):');
+                                const newTime = prompt('New time (HH:MM):');
+                                if (newDate && newTime) handleRescheduleAppointment(appointment.id, newDate, newTime);
+                              }}
+                              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                              Reschedule
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 
