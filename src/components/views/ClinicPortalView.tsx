@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import {
   Stethoscope, Users, Calendar, BarChart3, Settings, LogIn, User,
-  Clock, CheckCircle, XCircle, Phone, Edit, Gift, Star, Award,
-  ChevronRight, ExternalLink, Mail, Calendar as CalendarIcon,
+  Clock, CheckCircle, XCircle, Phone, Gift, Calendar as CalendarIcon,
   Edit3, Save, X, Trash2
 } from 'lucide-react';
 import { clinicOperations, cardOperations, type Clinic } from '../../lib/data';
