@@ -108,10 +108,10 @@ export function AdminPortalView() {
     confirmPassword: ''
   });
 
-  // Secure admin credentials (in production, this should be in a secure backend)
+  // Simple admin credentials
   const [adminCredentials, setAdminCredentials] = useState({
     username: 'admin',
-    password: 'MOCARDS2024!'
+    password: 'admin123'
   });
 
   // CRUD State for Master List
@@ -539,10 +539,10 @@ export function AdminPortalView() {
           </form>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <h3 className="font-medium text-gray-900 mb-2">Production Credentials:</h3>
+            <h3 className="font-medium text-gray-900 mb-2">Admin Credentials:</h3>
             <div className="space-y-1 text-sm text-gray-600">
               <p><strong>Username:</strong> admin</p>
-              <p><strong>Password:</strong> MOCARDS2024!</p>
+              <p><strong>Password:</strong> admin123</p>
             </div>
           </div>
         </div>
