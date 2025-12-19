@@ -1,4 +1,6 @@
 // MOCARDS CLOUD - Clean Data Layer
+export type ClinicPlan = 'starter' | 'growth' | 'pro';
+
 export interface CardData {
   controlNumber: string; // Format: MOC-{ID}-{REGION}-{CODE}
   fullName: string;
@@ -13,8 +15,9 @@ export interface Clinic {
   id: string;
   name: string;
   region: string;
-  plan: 'starter' | 'growth' | 'pro';
+  plan: ClinicPlan;
   code: string;
+  address: string;
   password: string; // For clinic login
 }
 
@@ -35,10 +38,36 @@ export const PLAN_LIMITS = {
   pro: 2000,
 } as const;
 
+// Philippines Regions for MOC Cards
+export const PHILIPPINES_REGIONS = [
+  { code: '01', name: 'Ilocos Region (Region 1)' },
+  { code: '02', name: 'Cagayan Valley (Region 2)' },
+  { code: '03', name: 'Central Luzon (Region 3)' },
+  { code: '4A', name: 'Calabarzon (Region 4A)' },
+  { code: '4B', name: 'Mimaropa (Region 4B)' },
+  { code: '05', name: 'Bicol Region (Region 5)' },
+  { code: '06', name: 'Western Visayas (Region 6)' },
+  { code: '07', name: 'Central Visayas (Region 7)' },
+  { code: '08', name: 'Eastern Visayas (Region 8)' },
+  { code: '09', name: 'Zamboanga Peninsula (Region 9)' },
+  { code: '10', name: 'Northern Mindanao (Region 10)' },
+  { code: '11', name: 'Davao Region (Region 11)' },
+  { code: '12', name: 'Soccsksargen (Region 12)' },
+  { code: '13', name: 'Caraga Region (Region 13)' },
+  { code: 'NCR', name: 'National Capital Region (NCR)' },
+  { code: 'CAR', name: 'Cordillera Administrative Region (CAR)' },
+] as const;
+
+// Area Codes for Major Cities
+export const AREA_CODES = [
+  'CVT001', 'CVT002', 'CVT003', 'CVT004', 'CVT005',
+  'CVT006', 'CVT007', 'CVT008', 'CVT009', 'CVT010'
+] as const;
+
 // Mock Database
 let cards: CardData[] = [
   {
-    controlNumber: 'MOC-00001-01-DEN001',
+    controlNumber: 'MOC-00001-01-CVT001',
     fullName: 'Juan Dela Cruz',
     status: 'active',
     perksTotal: 5,
@@ -47,81 +76,66 @@ let cards: CardData[] = [
     expiryDate: '2025-12-31',
   },
   {
-    controlNumber: 'MOC-00002-01-DEN001',
+    controlNumber: 'MOC-00002-NCR-CVT002',
     fullName: 'Maria Santos',
     status: 'active',
-    perksTotal: 5,
+    perksTotal: 3,
     perksUsed: 1,
-    clinicId: '1',
-    expiryDate: '2025-12-31',
-  },
-  {
-    controlNumber: 'MOC-00003-05-MED002',
-    fullName: 'Jose Garcia',
-    status: 'inactive',
-    perksTotal: 8,
-    perksUsed: 0,
     clinicId: '2',
-    expiryDate: '2025-12-31',
+    expiryDate: '2025-11-30',
   },
   {
-    controlNumber: 'MOC-00004-08-CVT003',
-    fullName: 'Ana Rodriguez',
-    status: 'active',
-    perksTotal: 10,
-    perksUsed: 3,
-    clinicId: '3',
-    expiryDate: '2025-12-31',
+    controlNumber: 'MOC-00003-4A-CVT003',
+    fullName: 'Jose Rodriguez',
+    status: 'inactive',
+    perksTotal: 4,
+    perksUsed: 0,
+    clinicId: '1',
+    expiryDate: '2025-10-15',
   },
 ];
 
 let clinics: Clinic[] = [
   {
     id: '1',
-    name: 'Smile Dental Clinic',
-    region: '01',
-    plan: 'starter',
-    code: 'DEN001',
-    password: 'dental123',
+    name: 'Central Valley Clinic',
+    region: 'NCR',
+    plan: 'growth',
+    code: 'CVT001',
+    address: 'Makati City, Metro Manila',
+    password: 'cvt001pass',
   },
   {
     id: '2',
-    name: 'Health Plus Medical',
-    region: '05',
-    plan: 'growth',
-    code: 'MED002',
-    password: 'health456',
+    name: 'Manila General Hospital',
+    region: 'NCR',
+    plan: 'pro',
+    code: 'CVT002',
+    address: 'Manila City, Metro Manila',
+    password: 'cvt002pass',
   },
   {
     id: '3',
-    name: 'Premier Care',
-    region: '08',
-    plan: 'pro',
+    name: 'Laguna Medical Center',
+    region: '4A',
+    plan: 'starter',
     code: 'CVT003',
-    password: 'premier789',
+    address: 'Santa Rosa, Laguna',
+    password: 'cvt003pass',
   },
 ];
 
-let appointments: Appointment[] = [
-  {
-    id: '1',
-    cardControlNumber: 'MOC-00001-01-DEN001',
-    clinicId: '1',
-    patientName: 'Juan Dela Cruz',
-    date: '2024-12-20',
-    time: '10:00',
-    status: 'scheduled',
-  },
-  {
-    id: '2',
-    cardControlNumber: 'MOC-00002-01-DEN001',
-    clinicId: '1',
-    patientName: 'Maria Santos',
-    date: '2024-12-21',
-    time: '14:30',
-    status: 'scheduled',
-  },
-];
+let appointments: Appointment[] = [];
+
+// Utility Functions
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('en-PH');
+};
+
+export const generateControlNumber = (id: number, region: string, areaCode: string): string => {
+  const paddedId = id.toString().padStart(5, '0');
+  return `MOC-${paddedId}-${region}-${areaCode}`;
+};
 
 // Card Operations
 export const cardOperations = {
@@ -140,6 +154,29 @@ export const cardOperations = {
     return card;
   },
 
+  createBatch: (
+    startId: number,
+    endId: number,
+    region: string,
+    areaCode: string
+  ): CardData[] => {
+    const newCards: CardData[] = [];
+    for (let i = startId; i <= endId; i++) {
+      const card: CardData = {
+        controlNumber: generateControlNumber(i, region, areaCode),
+        fullName: `Patient ${i}`,
+        status: 'inactive',
+        perksTotal: 5,
+        perksUsed: 0,
+        clinicId: '',
+        expiryDate: '2025-12-31',
+      };
+      cards.push(card);
+      newCards.push(card);
+    }
+    return newCards;
+  },
+
   updateStatus: (controlNumber: string, status: 'active' | 'inactive'): boolean => {
     const card = cards.find(c => c.controlNumber === controlNumber);
     if (card) {
@@ -149,20 +186,19 @@ export const cardOperations = {
     return false;
   },
 
-  assignToClinic: (controlNumbers: string[], clinicId: string): { success: boolean; error?: string } => {
+  assignToClinic: (controlNumbers: string[], clinicId: string): boolean => {
     const clinic = clinics.find(c => c.id === clinicId);
-    if (!clinic) return { success: false, error: 'Clinic not found' };
+    if (!clinic) return false;
 
-    const currentCount = cards.filter(c => c.clinicId === clinicId).length;
+    // Check plan limits
+    const currentAssigned = cards.filter(c => c.clinicId === clinicId).length;
     const limit = PLAN_LIMITS[clinic.plan];
 
-    if (currentCount + controlNumbers.length > limit) {
-      return {
-        success: false,
-        error: `Assignment blocked: Clinic plan limit (${limit}) would be exceeded. Current: ${currentCount}, Adding: ${controlNumbers.length}`
-      };
+    if (currentAssigned + controlNumbers.length > limit) {
+      return false; // Exceeds plan limit
     }
 
+    // Assign cards
     controlNumbers.forEach(controlNumber => {
       const card = cards.find(c => c.controlNumber === controlNumber);
       if (card) {
@@ -170,28 +206,25 @@ export const cardOperations = {
       }
     });
 
-    return { success: true };
+    return true;
   },
 
-  generateBatch: (startId: number, endId: number, region: string, areaCode: string): CardData[] => {
-    const newCards: CardData[] = [];
-
-    for (let i = startId; i <= endId; i++) {
-      const controlNumber = `MOC-${i.toString().padStart(5, '0')}-${region.padStart(2, '0')}-${areaCode}`;
-      const newCard: CardData = {
-        controlNumber,
-        fullName: `Generated User ${i}`,
-        status: 'inactive',
-        perksTotal: 5,
-        perksUsed: 0,
-        clinicId: '',
-        expiryDate: '2025-12-31',
-      };
-      newCards.push(newCard);
-      cards.push(newCard);
+  updatePerks: (controlNumber: string, perksUsed: number): boolean => {
+    const card = cards.find(c => c.controlNumber === controlNumber);
+    if (card) {
+      card.perksUsed = Math.min(perksUsed, card.perksTotal);
+      return true;
     }
+    return false;
+  },
 
-    return newCards;
+  delete: (controlNumber: string): boolean => {
+    const index = cards.findIndex(c => c.controlNumber === controlNumber);
+    if (index !== -1) {
+      cards.splice(index, 1);
+      return true;
+    }
+    return false;
   },
 };
 
@@ -203,15 +236,48 @@ export const clinicOperations = {
     return clinics.find(clinic => clinic.id === id) || null;
   },
 
-  authenticate: (code: string, password: string): Clinic | null => {
-    return clinics.find(clinic => clinic.code === code && clinic.password === password) || null;
+  getByCode: (code: string): Clinic | null => {
+    return clinics.find(clinic => clinic.code === code) || null;
   },
 
-  getCardCount: (clinicId: string): number => {
+  authenticate: (code: string, password: string): Clinic | null => {
+    return clinics.find(clinic =>
+      clinic.code === code && clinic.password === password
+    ) || null;
+  },
+
+  create: (clinic: Omit<Clinic, 'id'>): Clinic => {
+    const newClinic: Clinic = {
+      ...clinic,
+      id: (clinics.length + 1).toString(),
+    };
+    clinics.push(newClinic);
+    return newClinic;
+  },
+
+  update: (id: string, updates: Partial<Clinic>): boolean => {
+    const index = clinics.findIndex(c => c.id === id);
+    if (index !== -1) {
+      clinics[index] = { ...clinics[index], ...updates };
+      return true;
+    }
+    return false;
+  },
+
+  delete: (id: string): boolean => {
+    const index = clinics.findIndex(c => c.id === id);
+    if (index !== -1) {
+      clinics.splice(index, 1);
+      return true;
+    }
+    return false;
+  },
+
+  getAssignedCardsCount: (clinicId: string): number => {
     return cards.filter(card => card.clinicId === clinicId).length;
   },
 
-  getCardLimit: (clinicId: string): number => {
+  getPlanLimit: (clinicId: string): number => {
     const clinic = clinics.find(c => c.id === clinicId);
     return clinic ? PLAN_LIMITS[clinic.plan] : 0;
   },
@@ -228,36 +294,18 @@ export const appointmentOperations = {
   create: (appointment: Omit<Appointment, 'id'>): Appointment => {
     const newAppointment: Appointment = {
       ...appointment,
-      id: Date.now().toString(),
+      id: (appointments.length + 1).toString(),
     };
     appointments.push(newAppointment);
     return newAppointment;
   },
-};
 
-// Admin Operations
-export const adminOperations = {
-  authenticate: (username: string, password: string): boolean => {
-    return username === 'admin' && password === 'admin123';
+  updateStatus: (id: string, status: Appointment['status']): boolean => {
+    const appointment = appointments.find(a => a.id === id);
+    if (appointment) {
+      appointment.status = status;
+      return true;
+    }
+    return false;
   },
-};
-
-// Utility Functions
-export const generateControlNumber = (id: number, region: string, areaCode: string): string => {
-  return `MOC-${id.toString().padStart(5, '0')}-${region.padStart(2, '0')}-${areaCode}`;
-};
-
-export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString();
-};
-
-export const getStatusColor = (status: string): string => {
-  switch (status) {
-    case 'active': return 'text-green-600 bg-green-50 border-green-200';
-    case 'inactive': return 'text-gray-600 bg-gray-50 border-gray-200';
-    case 'scheduled': return 'text-blue-600 bg-blue-50 border-blue-200';
-    case 'completed': return 'text-green-600 bg-green-50 border-green-200';
-    case 'cancelled': return 'text-red-600 bg-red-50 border-red-200';
-    default: return 'text-gray-600 bg-gray-50 border-gray-200';
-  }
 };
