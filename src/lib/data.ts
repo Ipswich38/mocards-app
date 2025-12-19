@@ -1,88 +1,31 @@
-// MOCARDS CLOUD - Clean Data Layer
-export type ClinicPlan = 'starter' | 'growth' | 'pro';
+// MOCARDS CLOUD - Data Layer (Legacy Compatible)
+// Import unified schema for type definitions and constants
+import {
+  Card,
+  Clinic,
+  Appointment,
+  ClinicPlan,
+  PLAN_LIMITS,
+  PLAN_PRICING,
+  PHILIPPINES_REGIONS,
+  AREA_CODES,
+  CardData,
+  ClinicData,
+  AppointmentData
+} from './schema';
 
-export interface CardData {
-  controlNumber: string; // Format: MOC-{ID}-{REGION}-{CODE}
-  fullName: string;
-  status: 'active' | 'inactive';
-  perksTotal: number;
-  perksUsed: number;
-  clinicId: string;
-  expiryDate: string; // ISO Date
-}
+// Re-export types for backward compatibility
+export type { ClinicPlan, Card, Clinic, Appointment };
+export { PLAN_LIMITS, PLAN_PRICING, PHILIPPINES_REGIONS, AREA_CODES };
 
-export interface Clinic {
-  id: string;
-  name: string;
-  region: string;
-  plan: ClinicPlan;
-  code: string;
-  address?: string; // Optional
-  adminClinic?: string; // Optional
-  email?: string; // Optional
-  contactNumber?: string; // Optional
-  password: string; // For clinic login
-  subscriptionPrice: number; // Monthly price in PHP
-}
-
-export interface Appointment {
-  id: string;
-  cardControlNumber: string;
-  clinicId: string;
-  patientName: string;
-  date: string;
-  time: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-}
-
-// Plan Limits and Pricing (Monthly PHP)
-export const PLAN_LIMITS = {
-  starter: 500,
-  growth: 1000,
-  pro: 2000,
-} as const;
-
-export const PLAN_PRICING = {
-  starter: 299, // ₱299 for up to 500 cards
-  growth: 499,  // ₱499 for up to 1000 cards
-  pro: 799,     // ₱799 for up to 2000 cards
-} as const;
-
-// Philippines Regions for MOC Cards
-export const PHILIPPINES_REGIONS = [
-  { code: '01', name: 'Ilocos Region (Region 1)' },
-  { code: '02', name: 'Cagayan Valley (Region 2)' },
-  { code: '03', name: 'Central Luzon (Region 3)' },
-  { code: '4A', name: 'Calabarzon (Region 4A)' },
-  { code: '4B', name: 'Mimaropa (Region 4B)' },
-  { code: '05', name: 'Bicol Region (Region 5)' },
-  { code: '06', name: 'Western Visayas (Region 6)' },
-  { code: '07', name: 'Central Visayas (Region 7)' },
-  { code: '08', name: 'Eastern Visayas (Region 8)' },
-  { code: '09', name: 'Zamboanga Peninsula (Region 9)' },
-  { code: '10', name: 'Northern Mindanao (Region 10)' },
-  { code: '11', name: 'Davao Region (Region 11)' },
-  { code: '12', name: 'Soccsksargen (Region 12)' },
-  { code: '13', name: 'Caraga Region (Region 13)' },
-  { code: 'NCR', name: 'National Capital Region (NCR)' },
-  { code: 'CAR', name: 'Cordillera Administrative Region (CAR)' },
-] as const;
-
-// Area Codes for Major Cities and Provinces
-export const AREA_CODES = [
-  'CVT001', 'CVT002', 'CVT003', 'CVT004', 'CVT005',
-  'CVT006', 'CVT007', 'CVT008', 'CVT009', 'CVT010',
-  'BTG001', 'BTG002', 'BTG003', 'BTG004', 'BTG005',
-  'BTG006', 'BTG007', 'BTG008', 'BTG009', 'BTG010',
-  'LGN001', 'LGN002', 'LGN003', 'LGN004', 'LGN005',
-  'LGN006', 'LGN007', 'LGN008', 'LGN009', 'LGN010',
-  'Others',
-  'Custom'
-] as const;
+// Legacy type aliases for backward compatibility
+export type CardData = Card;
+export type { ClinicData, AppointmentData };
 
 // Mock Database
 let cards: CardData[] = [
   {
+    id: '1',
     controlNumber: 'MOC-00001-01-CVT001',
     fullName: 'Juan Dela Cruz',
     status: 'active',
@@ -90,8 +33,12 @@ let cards: CardData[] = [
     perksUsed: 2,
     clinicId: '1',
     expiryDate: '2025-12-31',
+    createdAt: '2024-01-15T08:00:00.000Z',
+    updatedAt: '2024-12-19T08:00:00.000Z',
+    activatedAt: '2024-01-20T10:00:00.000Z',
   },
   {
+    id: '2',
     controlNumber: 'MOC-00002-NCR-CVT002',
     fullName: 'Maria Santos',
     status: 'active',
@@ -99,8 +46,12 @@ let cards: CardData[] = [
     perksUsed: 1,
     clinicId: '2',
     expiryDate: '2025-11-30',
+    createdAt: '2024-02-10T08:00:00.000Z',
+    updatedAt: '2024-12-19T08:00:00.000Z',
+    activatedAt: '2024-02-15T09:00:00.000Z',
   },
   {
+    id: '3',
     controlNumber: 'MOC-00003-4A-CVT003',
     fullName: 'Jose Rodriguez',
     status: 'inactive',
@@ -108,6 +59,9 @@ let cards: CardData[] = [
     perksUsed: 0,
     clinicId: '1',
     expiryDate: '2025-10-15',
+    createdAt: '2024-03-05T08:00:00.000Z',
+    updatedAt: '2024-12-19T08:00:00.000Z',
+    notes: 'Temporarily deactivated pending verification',
   },
 ];
 
@@ -123,6 +77,14 @@ let clinics: Clinic[] = [
     contactNumber: '+63917123456',
     password: 'cvt001pass',
     subscriptionPrice: PLAN_PRICING.growth,
+    subscriptionStatus: 'active',
+    subscriptionStartDate: '2024-01-01T00:00:00.000Z',
+    maxCards: PLAN_LIMITS.growth,
+    createdAt: '2024-01-01T08:00:00.000Z',
+    updatedAt: '2024-12-19T08:00:00.000Z',
+    lastPaymentDate: '2024-12-01T08:00:00.000Z',
+    nextBillingDate: '2025-01-01T08:00:00.000Z',
+    isActive: true,
   },
   {
     id: '2',
@@ -135,6 +97,14 @@ let clinics: Clinic[] = [
     contactNumber: '+63917234567',
     password: 'cvt002pass',
     subscriptionPrice: PLAN_PRICING.pro,
+    subscriptionStatus: 'active',
+    subscriptionStartDate: '2024-02-01T00:00:00.000Z',
+    maxCards: PLAN_LIMITS.pro,
+    createdAt: '2024-02-01T08:00:00.000Z',
+    updatedAt: '2024-12-19T08:00:00.000Z',
+    lastPaymentDate: '2024-12-01T08:00:00.000Z',
+    nextBillingDate: '2025-01-01T08:00:00.000Z',
+    isActive: true,
   },
   {
     id: '3',
@@ -147,6 +117,14 @@ let clinics: Clinic[] = [
     contactNumber: '+63917345678',
     password: 'cvt003pass',
     subscriptionPrice: PLAN_PRICING.starter,
+    subscriptionStatus: 'active',
+    subscriptionStartDate: '2024-03-01T00:00:00.000Z',
+    maxCards: PLAN_LIMITS.starter,
+    createdAt: '2024-03-01T08:00:00.000Z',
+    updatedAt: '2024-12-19T08:00:00.000Z',
+    lastPaymentDate: '2024-12-01T08:00:00.000Z',
+    nextBillingDate: '2025-01-01T08:00:00.000Z',
+    isActive: true,
   },
 ];
 
@@ -190,9 +168,15 @@ export const cardOperations = {
     return cards.filter(card => card.clinicId === clinicId);
   },
 
-  create: (card: CardData): CardData => {
-    cards.push(card);
-    return card;
+  create: (card: Omit<CardData, 'id' | 'createdAt' | 'updatedAt'>): CardData => {
+    const newCard: CardData = {
+      ...card,
+      id: (cards.length + 1).toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    cards.push(newCard);
+    return newCard;
   },
 
   createBatch: (
@@ -202,8 +186,11 @@ export const cardOperations = {
     areaCode: string
   ): CardData[] => {
     const newCards: CardData[] = [];
+    const now = new Date().toISOString();
+
     for (let i = startId; i <= endId; i++) {
       const card: CardData = {
+        id: `card_${Date.now()}_${i}`,
         controlNumber: generateControlNumber(i, region, areaCode),
         fullName: `Patient ${i}`,
         status: 'inactive',
@@ -211,6 +198,8 @@ export const cardOperations = {
         perksUsed: 0,
         clinicId: '',
         expiryDate: '2025-12-31',
+        createdAt: now,
+        updatedAt: now,
       };
       cards.push(card);
       newCards.push(card);
@@ -287,10 +276,16 @@ export const clinicOperations = {
     ) || null;
   },
 
-  create: (clinic: Omit<Clinic, 'id'>): Clinic => {
+  create: (clinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'>): Clinic => {
     const newClinic: Clinic = {
       ...clinic,
       id: (clinics.length + 1).toString(),
+      subscriptionStatus: 'active',
+      subscriptionStartDate: new Date().toISOString(),
+      maxCards: PLAN_LIMITS[clinic.plan],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isActive: true,
     };
     clinics.push(newClinic);
     return newClinic;
