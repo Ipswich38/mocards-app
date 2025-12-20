@@ -144,7 +144,9 @@ export function AdminPortalView() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginForm.username === adminCredentials.username && loginForm.password === adminCredentials.password) {
+    // Simple authentication check - in production this would connect to Supabase
+    // For now, check against hardcoded credentials matching the database
+    if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
       setIsAuthenticated(true);
       addToast(toastSuccess('Welcome', 'Admin access granted'));
     } else {
