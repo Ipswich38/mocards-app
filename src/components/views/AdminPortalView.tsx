@@ -147,7 +147,6 @@ export function AdminPortalView() {
   // CRUD State for Master List
   const [crudView, setCrudView] = useState<'cards' | 'clinics'>('cards');
   const [editingCard, setEditingCard] = useState<string | null>(null);
-  const [editingClinic, setEditingClinic] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showingCredentials, setShowingCredentials] = useState<string | null>(null);
@@ -619,66 +618,6 @@ export function AdminPortalView() {
     }
   };
 
-  // CRUD Handlers for Clinics
-  const handleEditClinic = (clinicId: string) => {
-    const clinic = clinicOperations.getById(clinicId);
-    if (clinic) {
-      setEditClinicForm({
-        name: clinic.name,
-        region: clinic.region,
-        plan: clinic.plan,
-        address: clinic.address || '',
-        adminClinic: clinic.adminClinic || '',
-        email: clinic.email || '',
-        contactNumber: clinic.contactNumber || '',
-        password: clinic.password
-      });
-      setEditingClinic(clinicId);
-    }
-  };
-
-  const handleSaveClinic = (clinicId: string) => {
-    const success = clinicOperations.update(clinicId, {
-      name: editClinicForm.name,
-      region: editClinicForm.region,
-      plan: editClinicForm.plan,
-      address: editClinicForm.address,
-      adminClinic: editClinicForm.adminClinic,
-      email: editClinicForm.email,
-      contactNumber: editClinicForm.contactNumber,
-      password: editClinicForm.password,
-      maxCards: PLAN_LIMITS[editClinicForm.plan],
-      subscriptionPrice: PLAN_PRICING[editClinicForm.plan],
-      updatedAt: new Date().toISOString()
-    });
-
-    if (success) {
-      setEditingClinic(null);
-      addToast(toastSuccess('Clinic Updated', 'Clinic information updated successfully'));
-    } else {
-      addToast(toastError('Update Failed', 'Could not update clinic'));
-    }
-  };
-
-  const handleDeleteClinic = (clinicId: string) => {
-    const clinic = clinicOperations.getById(clinicId);
-    if (!clinic) return;
-
-    const assignedCards = cardOperations.getByClinicId(clinicId);
-    if (assignedCards.length > 0) {
-      addToast(toastWarning('Cannot Delete', `Cannot delete clinic with ${assignedCards.length} assigned cards. Unassign cards first.`));
-      return;
-    }
-
-    if (window.confirm(`Are you sure you want to delete clinic "${clinic.name}"? This action cannot be undone.`)) {
-      const success = clinicOperations.delete(clinicId);
-      if (success) {
-        addToast(toastSuccess('Clinic Deleted', `Clinic "${clinic.name}" has been deleted`));
-      } else {
-        addToast(toastError('Delete Failed', 'Could not delete clinic'));
-      }
-    }
-  };
 
   const tabs = [
     { id: 'generator' as const, label: 'Generator', icon: Plus, color: 'emerald' },
@@ -1997,7 +1936,7 @@ export function AdminPortalView() {
                           return matchesSearch;
                         })
                         .map((clinic) => {
-                          const isEditing = editingClinic === clinic.id;
+                          const isEditing = editingClinic?.id === clinic.id;
                           const assignedCards = cardOperations.getByClinicId(clinic.id);
 
                           return (
@@ -2099,7 +2038,7 @@ export function AdminPortalView() {
                                   {isEditing ? (
                                     <>
                                       <button
-                                        onClick={() => handleSaveClinic(clinic.id)}
+                                        onClick={() => handleUpdateClinic()}
                                         className="p-1 text-green-600 hover:text-green-700"
                                         title="Save changes"
                                       >
@@ -2116,7 +2055,7 @@ export function AdminPortalView() {
                                   ) : (
                                     <>
                                       <button
-                                        onClick={() => handleEditClinic(clinic.id)}
+                                        onClick={() => handleEditClinic(clinic)}
                                         className="p-1 text-blue-600 hover:text-blue-700"
                                         title="Edit clinic"
                                       >
