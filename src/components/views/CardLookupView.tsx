@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Camera, Sparkles, Calendar, User, Gift, Shield, Clock, Send, Phone, Mail } from 'lucide-react';
+import { Search, Calendar, User, Gift, Shield, Clock, Send, Phone, Mail } from 'lucide-react';
 import { cardOperations, clinicOperations, type Card, formatDate } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
@@ -145,8 +145,13 @@ export function CardLookupView() {
               disabled={isLoading}
             />
             <div className="flex items-center space-x-2 ml-4">
-              <Camera className="h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-300" />
-              <Sparkles className="h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-300" />
+              <button
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="p-1 rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                <Send className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+              </button>
             </div>
           </div>
         </div>

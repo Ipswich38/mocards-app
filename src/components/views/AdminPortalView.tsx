@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Building,
+  Building2,
   Calendar,
   Clock,
   Phone,
@@ -25,7 +26,8 @@ import {
   Filter,
   Send,
   Eye,
-  EyeOff
+  EyeOff,
+  User
 } from 'lucide-react';
 import {
   cardOperations,
@@ -105,6 +107,10 @@ export function AdminPortalView() {
     contactNumber: '',
     password: '',
   });
+
+  // Additional Clinic CRUD State
+  const [showClinicForm, setShowClinicForm] = useState(false);
+  const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
 
   // Admin Appointment Monitoring State (Read-Only + Manual Creation) - Production Ready
   const [appointmentRequests, setAppointmentRequests] = useState<any[]>([]);
@@ -442,6 +448,90 @@ export function AdminPortalView() {
       });
     } catch (error) {
       addToast(toastError('Creation Failed', 'Failed to create clinic'));
+    }
+  };
+
+  // Additional Clinic CRUD Handlers
+  const handleEditClinic = (clinic: Clinic) => {
+    setEditingClinic(clinic);
+    setClinicForm({
+      name: clinic.name,
+      region: clinic.region,
+      plan: clinic.plan,
+      areaCode: clinic.code.substring(0, 3), // Extract from clinic code
+      customAreaCode: '',
+      address: clinic.address || '',
+      adminClinic: clinic.adminClinic || '',
+      email: clinic.email || '',
+      contactNumber: clinic.contactNumber || '',
+      password: '', // Don't populate password for security
+    });
+    setShowClinicForm(true);
+  };
+
+  const handleUpdateClinic = () => {
+    if (!editingClinic) return;
+
+    if (!clinicForm.name || !clinicForm.region || !clinicForm.plan) {
+      addToast(toastWarning('Missing Required Fields', 'Please fill all required fields'));
+      return;
+    }
+
+    try {
+      const updates: Partial<Clinic> = {
+        name: clinicForm.name,
+        region: clinicForm.region,
+        plan: clinicForm.plan,
+        address: clinicForm.address || undefined,
+        adminClinic: clinicForm.adminClinic || undefined,
+        email: clinicForm.email || undefined,
+        contactNumber: clinicForm.contactNumber || undefined,
+        maxCards: PLAN_LIMITS[clinicForm.plan],
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Only update password if provided
+      if (clinicForm.password.trim()) {
+        updates.password = clinicForm.password;
+      }
+
+      const success = clinicOperations.update(editingClinic.id, updates);
+
+      if (success) {
+        addToast(toastSuccess('Clinic Updated', `${clinicForm.name} has been updated successfully`));
+        setShowClinicForm(false);
+        setEditingClinic(null);
+        setClinicForm({
+          name: '', region: '', plan: 'starter', areaCode: '', customAreaCode: '',
+          password: '', address: '', adminClinic: '', email: '', contactNumber: ''
+        });
+      } else {
+        addToast(toastError('Update Failed', 'Could not update clinic'));
+      }
+    } catch (error) {
+      addToast(toastError('Update Failed', 'Failed to update clinic'));
+    }
+  };
+
+  const handleDeleteClinic = async (clinicId: string) => {
+    const clinic = clinicOperations.getById(clinicId);
+    if (!clinic) return;
+
+    const assignedCards = clinicOperations.getAssignedCardsCount(clinicId);
+    if (assignedCards > 0) {
+      addToast(toastWarning('Cannot Delete', `This clinic has ${assignedCards} assigned cards. Please reassign them first.`));
+      return;
+    }
+
+    // In production, you'd want a confirmation dialog
+    if (confirm(`Are you sure you want to delete "${clinic.name}"? This action cannot be undone.`)) {
+      const success = clinicOperations.delete(clinicId);
+
+      if (success) {
+        addToast(toastSuccess('Clinic Deleted', `${clinic.name} has been deleted`));
+      } else {
+        addToast(toastError('Delete Failed', 'Could not delete clinic'));
+      }
     }
   };
 
@@ -908,159 +998,363 @@ export function AdminPortalView() {
           {/* Clinic Management Tab */}
           {activeTab === 'clinic-management' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Add Clinic</h2>
-              <p className="text-gray-600">Create a new clinic profile and assign subscription plan</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Required Fields */}
+              {/* Header with title and add button */}
+              <div className="flex items-center justify-between">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Clinic Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={clinicForm.name}
-                    onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })}
-                    className="light-input"
-                    placeholder="Enter clinic name"
-                  />
+                  <h2 className="text-xl font-bold text-gray-900">Manage Clinics</h2>
+                  <p className="text-gray-600">Comprehensive clinic management with subscription plans and monitoring</p>
                 </div>
+                <button
+                  onClick={() => {
+                    setShowClinicForm(!showClinicForm);
+                    setEditingClinic(null);
+                    setClinicForm({
+                      name: '',
+                      region: '',
+                      plan: 'starter',
+                      areaCode: '',
+                      customAreaCode: '',
+                      address: '',
+                      adminClinic: '',
+                      email: '',
+                      contactNumber: '',
+                      password: '',
+                    });
+                  }}
+                  className="light-button-primary flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Clinic
+                </button>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Region <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={clinicForm.region}
-                    onChange={(e) => setClinicForm({ ...clinicForm, region: e.target.value })}
-                    className="light-select"
-                  >
-                    <option value="">Select Region</option>
-                    {PHILIPPINES_REGIONS.map((region) => (
-                      <option key={region.code} value={region.code}>
-                        {region.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Collapsible form for adding/editing clinics */}
+              {showClinicForm && (
+                <div className="light-card">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {editingClinic ? `Edit Clinic: ${editingClinic.name}` : 'Add New Clinic'}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setShowClinicForm(false);
+                          setEditingClinic(null);
+                        }}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subscription Plan <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={clinicForm.plan}
-                    onChange={(e) => setClinicForm({ ...clinicForm, plan: e.target.value as ClinicPlan })}
-                    className="light-select"
-                  >
-                    <option value="starter">Starter Plan - ₱{PLAN_PRICING.starter}/month (up to {PLAN_LIMITS.starter} cards)</option>
-                    <option value="growth">Growth Plan - ₱{PLAN_PRICING.growth}/month (up to {PLAN_LIMITS.growth} cards)</option>
-                    <option value="pro">Pro Plan - ₱{PLAN_PRICING.pro}/month (up to {PLAN_LIMITS.pro} cards)</option>
-                  </select>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Required Fields */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Clinic Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={clinicForm.name}
+                          onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })}
+                          className="light-input"
+                          placeholder="Enter clinic name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Region <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={clinicForm.region}
+                          onChange={(e) => setClinicForm({ ...clinicForm, region: e.target.value })}
+                          className="light-select"
+                        >
+                          <option value="">Select Region</option>
+                          {PHILIPPINES_REGIONS.map((region) => (
+                            <option key={region.code} value={region.code}>
+                              {region.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Subscription Plan <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={clinicForm.plan}
+                          onChange={(e) => setClinicForm({ ...clinicForm, plan: e.target.value as ClinicPlan })}
+                          className="light-select"
+                        >
+                          <option value="starter">Starter Plan - ₱{PLAN_PRICING.starter}/month (up to {PLAN_LIMITS.starter} cards)</option>
+                          <option value="growth">Growth Plan - ₱{PLAN_PRICING.growth}/month (up to {PLAN_LIMITS.growth} cards)</option>
+                          <option value="pro">Pro Plan - ₱{PLAN_PRICING.pro}/month (up to {PLAN_LIMITS.pro} cards)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Area Code <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={clinicForm.areaCode}
+                          onChange={(e) => setClinicForm({ ...clinicForm, areaCode: e.target.value })}
+                          className="light-select"
+                        >
+                          <option value="">Select Area Code</option>
+                          {AREA_CODES.map((code) => (
+                            <option key={code} value={code}>
+                              {code}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {clinicForm.areaCode === 'Custom' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Custom Area Code</label>
+                          <input
+                            type="text"
+                            value={clinicForm.customAreaCode}
+                            onChange={(e) => setClinicForm({ ...clinicForm, customAreaCode: e.target.value })}
+                            className="light-input"
+                            placeholder="Enter custom area code (e.g., XYZ001)"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Clinic Password <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="password"
+                          value={clinicForm.password}
+                          onChange={(e) => setClinicForm({ ...clinicForm, password: e.target.value })}
+                          className="light-input"
+                          placeholder="Enter clinic login password"
+                        />
+                      </div>
+                      {/* Optional Fields */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
+                        <input
+                          type="text"
+                          value={clinicForm.address}
+                          onChange={(e) => setClinicForm({ ...clinicForm, address: e.target.value })}
+                          className="light-input"
+                          placeholder="Enter clinic address"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Admin Contact (Optional)</label>
+                        <input
+                          type="text"
+                          value={clinicForm.adminClinic}
+                          onChange={(e) => setClinicForm({ ...clinicForm, adminClinic: e.target.value })}
+                          className="light-input"
+                          placeholder="Enter admin contact name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                        <input
+                          type="email"
+                          value={clinicForm.email}
+                          onChange={(e) => setClinicForm({ ...clinicForm, email: e.target.value })}
+                          className="light-input"
+                          placeholder="Enter clinic email"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number (Optional)</label>
+                        <input
+                          type="tel"
+                          value={clinicForm.contactNumber}
+                          onChange={(e) => setClinicForm({ ...clinicForm, contactNumber: e.target.value })}
+                          className="light-input"
+                          placeholder="+63917123456"
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Area Code <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={clinicForm.areaCode}
-                    onChange={(e) => setClinicForm({ ...clinicForm, areaCode: e.target.value })}
-                    className="light-select"
-                  >
-                    <option value="">Select Area Code</option>
-                    {AREA_CODES.map((code) => (
-                      <option key={code} value={code}>
-                        {code}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {/* Subscription Summary */}
+                    <div className="bg-blue-50 p-4 rounded-xl mt-6">
+                      <h3 className="font-medium text-blue-900 mb-2">Subscription Summary</h3>
+                      <div className="text-sm text-blue-800">
+                        <p><strong>{clinicForm.plan.charAt(0).toUpperCase() + clinicForm.plan.slice(1)} Plan:</strong> ₱{PLAN_PRICING[clinicForm.plan] || 0}/month</p>
+                        <p><strong>Card Limit:</strong> Up to {PLAN_LIMITS[clinicForm.plan] || 0} cards</p>
+                        <p className="text-blue-600 mt-2">* Required fields must be filled. Optional fields can be updated later.</p>
+                      </div>
+                    </div>
 
-                {clinicForm.areaCode === 'Custom' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Custom Area Code</label>
-                    <input
-                      type="text"
-                      value={clinicForm.customAreaCode}
-                      onChange={(e) => setClinicForm({ ...clinicForm, customAreaCode: e.target.value })}
-                      className="light-input"
-                      placeholder="Enter custom area code (e.g., XYZ001)"
-                    />
+                    {/* Action buttons */}
+                    <div className="flex justify-end gap-3 mt-6">
+                      <button
+                        onClick={() => {
+                          setShowClinicForm(false);
+                          setEditingClinic(null);
+                        }}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={editingClinic ? handleUpdateClinic : handleCreateClinic}
+                        className="light-button-primary"
+                      >
+                        {editingClinic ? 'Update Clinic' : 'Create Clinic Profile'}
+                      </button>
+                    </div>
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Clinic Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={clinicForm.password}
-                    onChange={(e) => setClinicForm({ ...clinicForm, password: e.target.value })}
-                    className="light-input"
-                    placeholder="Enter clinic login password"
-                  />
                 </div>
+              )}
 
-                {/* Optional Fields */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
-                  <input
-                    type="text"
-                    value={clinicForm.address}
-                    onChange={(e) => setClinicForm({ ...clinicForm, address: e.target.value })}
-                    className="light-input"
-                    placeholder="Enter clinic address"
-                  />
-                </div>
+              {/* Professional clinics table */}
+              <div className="light-card">
+                <div className="p-6">
+                  {clinicOperations.getAll().length === 0 ? (
+                    /* Empty state */
+                    <div className="text-center py-12">
+                      <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Clinics Found</h3>
+                      <p className="text-gray-600 mb-6">Get started by adding your first clinic to the system</p>
+                      <button
+                        onClick={() => setShowClinicForm(true)}
+                        className="light-button-primary flex items-center gap-2 mx-auto"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add First Clinic
+                      </button>
+                    </div>
+                  ) : (
+                    /* Table with real data */
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="border-b border-gray-200">
+                          <tr>
+                            <th className="text-left p-4 font-medium text-gray-900">Clinic Details</th>
+                            <th className="text-left p-4 font-medium text-gray-900">Plan & Usage</th>
+                            <th className="text-left p-4 font-medium text-gray-900">Contact Info</th>
+                            <th className="text-left p-4 font-medium text-gray-900">Status</th>
+                            <th className="text-left p-4 font-medium text-gray-900">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {clinicOperations.getAll().map((clinic) => {
+                            const assignedCards = cardOperations.getByClinicId(clinic.id);
+                            const usedCards = assignedCards.length;
+                            const maxCards = PLAN_LIMITS[clinic.plan];
+                            const usagePercentage = (usedCards / maxCards) * 100;
+                            const regionName = PHILIPPINES_REGIONS.find(r => r.code === clinic.region)?.name || clinic.region;
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Admin Contact (Optional)</label>
-                  <input
-                    type="text"
-                    value={clinicForm.adminClinic}
-                    onChange={(e) => setClinicForm({ ...clinicForm, adminClinic: e.target.value })}
-                    className="light-input"
-                    placeholder="Enter admin contact name"
-                  />
-                </div>
+                            return (
+                              <tr key={clinic.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                {/* Clinic Details */}
+                                <td className="p-4">
+                                  <div className="space-y-1">
+                                    <div className="font-medium text-gray-900">{clinic.name}</div>
+                                    <div className="text-sm text-gray-600 font-mono">{clinic.code}</div>
+                                    <div className="text-sm text-gray-500">{regionName}</div>
+                                  </div>
+                                </td>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
-                  <input
-                    type="email"
-                    value={clinicForm.email}
-                    onChange={(e) => setClinicForm({ ...clinicForm, email: e.target.value })}
-                    className="light-input"
-                    placeholder="Enter clinic email"
-                  />
-                </div>
+                                {/* Plan & Usage */}
+                                <td className="p-4">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        clinic.plan === 'starter' ? 'bg-blue-100 text-blue-700' :
+                                        clinic.plan === 'growth' ? 'bg-green-100 text-green-700' :
+                                        'bg-purple-100 text-purple-700'
+                                      }`}>
+                                        {clinic.plan.toUpperCase()}
+                                      </span>
+                                      <span className="text-sm text-gray-600">₱{PLAN_PRICING[clinic.plan]}/mo</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between text-sm">
+                                        <span>Card Usage</span>
+                                        <span className="font-medium">{usedCards}/{maxCards}</span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className={`h-2 rounded-full transition-all ${
+                                            usagePercentage >= 90 ? 'bg-red-500' :
+                                            usagePercentage >= 70 ? 'bg-yellow-500' :
+                                            'bg-green-500'
+                                          }`}
+                                          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number (Optional)</label>
-                  <input
-                    type="tel"
-                    value={clinicForm.contactNumber}
-                    onChange={(e) => setClinicForm({ ...clinicForm, contactNumber: e.target.value })}
-                    className="light-input"
-                    placeholder="+63917123456"
-                  />
+                                {/* Contact Info */}
+                                <td className="p-4">
+                                  <div className="space-y-1 text-sm">
+                                    {clinic.email && (
+                                      <div className="flex items-center gap-2 text-gray-600">
+                                        <Mail className="h-3 w-3" />
+                                        <span>{clinic.email}</span>
+                                      </div>
+                                    )}
+                                    {clinic.contactNumber && (
+                                      <div className="flex items-center gap-2 text-gray-600">
+                                        <Phone className="h-3 w-3" />
+                                        <span>{clinic.contactNumber}</span>
+                                      </div>
+                                    )}
+                                    {clinic.adminClinic && (
+                                      <div className="flex items-center gap-2 text-gray-600">
+                                        <User className="h-3 w-3" />
+                                        <span>{clinic.adminClinic}</span>
+                                      </div>
+                                    )}
+                                    {!clinic.email && !clinic.contactNumber && !clinic.adminClinic && (
+                                      <span className="text-gray-400 italic">No contact info</span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                {/* Status */}
+                                <td className="p-4">
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    Active
+                                  </span>
+                                </td>
+
+                                {/* Actions */}
+                                <td className="p-4">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => {
+                                        handleEditClinic(clinic);
+                                        setShowClinicForm(true);
+                                      }}
+                                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                                      title="Edit clinic"
+                                    >
+                                      <Edit3 className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteClinic(clinic.id)}
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                                      title="Delete clinic"
+                                      disabled={assignedCards.length > 0}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div className="bg-blue-50 p-4 rounded-xl">
-                <h3 className="font-medium text-blue-900 mb-2">Subscription Summary</h3>
-                <div className="text-sm text-blue-800">
-                  <p><strong>{clinicForm.plan.charAt(0).toUpperCase() + clinicForm.plan.slice(1)} Plan:</strong> ₱{PLAN_PRICING[clinicForm.plan] || 0}/month</p>
-                  <p><strong>Card Limit:</strong> Up to {PLAN_LIMITS[clinicForm.plan] || 0} cards</p>
-                  <p className="text-blue-600 mt-2">* Required fields must be filled. Optional fields can be updated later.</p>
-                </div>
-              </div>
-
-              <button onClick={handleCreateClinic} className="light-button-primary">
-                Create Clinic Profile
-              </button>
             </div>
           )}
 
