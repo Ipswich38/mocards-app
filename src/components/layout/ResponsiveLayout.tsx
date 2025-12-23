@@ -228,9 +228,9 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
           </button>
 
           <div className="text-xs text-teal-300 text-center mt-3">
-            MOCARDS v3.0
+            MOCARDS v4.0
             <br />
-            © 2024 Healthcare Innovation
+            © 2025 Dental Group
           </div>
         </div>
       </div>
