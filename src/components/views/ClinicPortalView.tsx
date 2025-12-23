@@ -520,7 +520,9 @@ export function ClinicPortalView() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Today's Patients</p>
-                  <p className="text-2xl font-bold text-gray-900">12</p>
+                  <p className="text-2xl font-bold text-gray-900">{appointmentRequests.filter(apt =>
+                    new Date(apt.preferredDate).toDateString() === new Date().toDateString()
+                  ).length}</p>
                 </div>
               </div>
             </div>
