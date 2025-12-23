@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import {
   Stethoscope, Users, Calendar, BarChart3, Settings, LogIn, User,
   Clock, CheckCircle, XCircle, Phone, Gift, Calendar as CalendarIcon,
-  Edit3, Save, X, Trash2
+  Edit3, Save, X, Trash2, Award
 } from 'lucide-react';
-import { clinicOperations, cardOperations, type Clinic } from '../../lib/data';
+import { clinicOperations, cardOperations, perkOperations, type Clinic } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastError, toastWarning } from '../../lib/toast';
 
@@ -40,9 +42,13 @@ interface PerkRedemption {
 }
 
 export function ClinicPortalView() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, user, login, logout } = useAuth();
+  useAutoRefresh({ enabled: true, showNotifications: true });
   const [currentClinic, setCurrentClinic] = useState<Clinic | null>(null);
   const [loginForm, setLoginForm] = useState({ code: '', password: '' });
+  const [showPerkRedemptionModal, setShowPerkRedemptionModal] = useState(false);
+  const [selectedCardForPerk, setSelectedCardForPerk] = useState<string | null>(null);
+  const [selectedPerkId, setSelectedPerkId] = useState<string>('');
   const [activeTab, setActiveTab] = useState('dashboard');
   // Production Ready - Empty appointment state
   const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([]);
@@ -73,14 +79,18 @@ export function ClinicPortalView() {
     confirmPassword: ''
   });
 
-  // Forgot Password State
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [forgotPasswordForm, setForgotPasswordForm] = useState({
-    clinicCode: '',
-    clinicName: ''
-  });
 
   const { addToast } = useToast();
+
+  // Restore clinic session on mount
+  useEffect(() => {
+    if (isAuthenticated && user && user.type === 'clinic' && user.clinicId && !currentClinic) {
+      const clinic = clinicOperations.getById(user.clinicId);
+      if (clinic) {
+        setCurrentClinic(clinic);
+      }
+    }
+  }, [isAuthenticated, user, currentClinic]);
 
   // Appointment Processing Handlers
   const handleAcceptAppointment = (appointmentId: string, notes?: string) => {
@@ -249,7 +259,7 @@ export function ClinicPortalView() {
 
     if (clinic) {
       setCurrentClinic(clinic);
-      setIsAuthenticated(true);
+      login('clinic', clinic);
       addToast(toastSuccess('Welcome', `Logged in to ${clinic.name}`));
     } else {
       addToast(toastError('Login Failed', 'Invalid clinic code or password'));
@@ -257,7 +267,7 @@ export function ClinicPortalView() {
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    logout();
     setCurrentClinic(null);
     setLoginForm({ code: '', password: '' });
   };
@@ -293,33 +303,36 @@ export function ClinicPortalView() {
     addToast(toastSuccess('Password Changed', 'Your clinic password has been updated successfully'));
   };
 
-  // Forgot Password Handler
-  const handleForgotPassword = (e: React.FormEvent) => {
+  // Perk Redemption Handler
+  const handlePerkRedemption = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Find clinic by code and verify name
-    const clinic = clinicOperations.getByCode(forgotPasswordForm.clinicCode);
+    if (!selectedCardForPerk || !selectedPerkId) return;
 
-    if (!clinic || clinic.name.toLowerCase() !== forgotPasswordForm.clinicName.toLowerCase()) {
-      addToast(toastError('Verification Failed', 'Clinic code and name do not match our records'));
+    const card = cardOperations.getByControlNumber(selectedCardForPerk);
+    const perk = perkOperations.getById(selectedPerkId);
+
+    if (!card || !perk) {
+      addToast(toastError('Error', 'Card or perk not found'));
       return;
     }
 
-    // Generate temporary password
-    const tempPassword = 'TEMP' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    if (card.perksUsed >= card.perksTotal) {
+      addToast(toastError('No Perks Available', 'This card has no available perks to redeem'));
+      return;
+    }
 
-    // Update clinic with temporary password
-    clinicOperations.update(clinic.id, { password: tempPassword });
+    // Update card perks count
+    cardOperations.updatePerks(selectedCardForPerk, card.perksUsed + 1);
 
-    // In production, this would send an email instead of showing the password
-    addToast(toastSuccess(
-      'Temporary Password Generated',
-      `Your temporary password is: ${tempPassword}. Please login and change it immediately. Contact MOCARDS support at admin@mocards.cloud for assistance.`
-    ));
+    // Close modal and reset form
+    setShowPerkRedemptionModal(false);
+    setSelectedCardForPerk(null);
+    setSelectedPerkId('');
 
-    setForgotPasswordForm({ clinicCode: '', clinicName: '' });
-    setShowForgotPassword(false);
+    addToast(toastSuccess('Perk Redeemed', `${perk.name} has been successfully redeemed for card ${selectedCardForPerk}`));
   };
+
 
   if (!isAuthenticated) {
     return (
@@ -362,85 +375,7 @@ export function ClinicPortalView() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setShowForgotPassword(true)}
-              className="text-blue-600 hover:text-blue-700 text-sm"
-            >
-              Forgot your password?
-            </button>
-          </div>
 
-          {/* Forgot Password Modal */}
-          {showForgotPassword && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="light-card p-6 w-full max-w-md mx-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Reset Password</h3>
-                  <button
-                    onClick={() => setShowForgotPassword(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Clinic Code
-                    </label>
-                    <input
-                      type="text"
-                      value={forgotPasswordForm.clinicCode}
-                      onChange={(e) => setForgotPasswordForm({
-                        ...forgotPasswordForm,
-                        clinicCode: e.target.value
-                      })}
-                      className="light-input"
-                      placeholder="Enter your clinic code"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Clinic Name
-                    </label>
-                    <input
-                      type="text"
-                      value={forgotPasswordForm.clinicName}
-                      onChange={(e) => setForgotPasswordForm({
-                        ...forgotPasswordForm,
-                        clinicName: e.target.value
-                      })}
-                      className="light-input"
-                      placeholder="Enter your clinic name exactly"
-                      required
-                    />
-                  </div>
-
-                  <p className="text-xs text-gray-500">
-                    A temporary password will be generated. Please change it immediately after login.
-                  </p>
-
-                  <div className="flex gap-2">
-                    <button type="submit" className="light-button-primary">
-                      Generate Temporary Password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotPassword(false)}
-                      className="light-button-secondary"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -599,17 +534,6 @@ export function ClinicPortalView() {
               </div>
             </div>
 
-            <div className="light-stat-card">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Revenue (PHP)</p>
-                  <p className="text-2xl font-bold text-gray-900">₱15,600</p>
-                </div>
-              </div>
-            </div>
           </div>
         </>
       )}
@@ -1054,6 +978,7 @@ export function ClinicPortalView() {
                       <th className="text-left p-4">Status</th>
                       <th className="text-left p-4">Perks Available</th>
                       <th className="text-left p-4">Expiry</th>
+                      <th className="text-left p-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1089,6 +1014,19 @@ export function ClinicPortalView() {
                           </div>
                         </td>
                         <td className="p-4 text-gray-600">{new Date(card.expiryDate).toLocaleDateString()}</td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => {
+                              setSelectedCardForPerk(card.controlNumber);
+                              setShowPerkRedemptionModal(true);
+                            }}
+                            disabled={card.perksUsed >= card.perksTotal}
+                            className="btn-primary text-sm px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Award className="h-4 w-4 mr-1" />
+                            Redeem Perk
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1248,6 +1186,84 @@ export function ClinicPortalView() {
                   For password reset assistance, please include your clinic code and name in your message.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Perk Redemption Modal */}
+      {showPerkRedemptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Redeem Perk</h3>
+                <button
+                  onClick={() => {
+                    setShowPerkRedemptionModal(false);
+                    setSelectedCardForPerk(null);
+                    setSelectedPerkId('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handlePerkRedemption} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Card Control Number
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedCardForPerk || ''}
+                    disabled
+                    className="light-input bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Perk to Redeem
+                  </label>
+                  <select
+                    value={selectedPerkId}
+                    onChange={(e) => setSelectedPerkId(e.target.value)}
+                    className="light-select"
+                    required
+                  >
+                    <option value="">Choose a perk...</option>
+                    {perkOperations.getActive().map((perk) => (
+                      <option key={perk.id} value={perk.id}>
+                        {perk.name} - {perk.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="btn-primary flex-1"
+                    disabled={!selectedPerkId}
+                  >
+                    <Award className="h-4 w-4 mr-2" />
+                    Redeem Perk
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPerkRedemptionModal(false);
+                      setSelectedCardForPerk(null);
+                      setSelectedPerkId('');
+                    }}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

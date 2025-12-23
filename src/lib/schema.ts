@@ -8,7 +8,7 @@
 
 export type ClinicPlan = 'starter' | 'growth' | 'pro';
 export type CardStatus = 'active' | 'inactive';
-export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled';
+export type AppointmentStatus = 'pending' | 'scheduled' | 'completed' | 'cancelled';
 export type UserRole = 'admin' | 'clinic' | 'staff';
 export type PerkType = 'dental_cleaning' | 'consultation' | 'xray' | 'treatment' | 'discount';
 

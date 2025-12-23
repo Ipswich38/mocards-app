@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import {
   Shield,
   Database,
@@ -21,11 +23,15 @@ import {
   Save,
   X,
   Filter,
-  Send
+  Send,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import {
   cardOperations,
   clinicOperations,
+  appointmentOperations,
+  perkOperations,
   PHILIPPINES_REGIONS,
   AREA_CODES,
   PLAN_LIMITS,
@@ -34,7 +40,9 @@ import {
   generateClinicCode,
   type Card,
   type Clinic,
-  type ClinicPlan
+  type ClinicPlan,
+  type Perk,
+  type PerkType
 } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
@@ -42,19 +50,35 @@ import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'settings';
 
 export function AdminPortalView() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, login, logout } = useAuth();
+  useAutoRefresh({ enabled: true, showNotifications: true });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [activeTab, setActiveTab] = useState<AdminTab>('generator');
 
   // Generator State
   const [generatorForm, setGeneratorForm] = useState({
     mode: 'single' as 'single' | 'batch',
-    fullName: '',
     region: '',
     areaCode: '',
     customAreaCode: '',
     startId: '',
     endId: '',
+    perksTotal: 5, // Default perks per card
+  });
+
+  // Perks Management State
+  const [perksManagement, setPerksManagement] = useState({
+    showModal: false,
+    editingPerk: null as Perk | null,
+    form: {
+      type: 'dental_cleaning' as PerkType,
+      name: '',
+      description: '',
+      value: 0,
+      isActive: true,
+      validFor: 365,
+      requiresApproval: false
+    }
   });
 
   // Activation State
@@ -120,6 +144,7 @@ export function AdminPortalView() {
   const [editingClinic, setEditingClinic] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showingCredentials, setShowingCredentials] = useState<string | null>(null);
   const [editCardForm, setEditCardForm] = useState({
     fullName: '',
     status: 'inactive' as 'active' | 'inactive',
@@ -142,12 +167,17 @@ export function AdminPortalView() {
 
   const { addToast } = useToast();
 
+  // Initialize perks on component mount
+  useEffect(() => {
+    perkOperations.initializeDefaults();
+  }, []);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Simple authentication check - in production this would connect to Supabase
     // For now, check against hardcoded credentials matching the database
     if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
-      setIsAuthenticated(true);
+      login('admin', { username: loginForm.username });
       addToast(toastSuccess('Welcome', 'Admin access granted'));
     } else {
       addToast(toastError('Login Failed', 'Invalid credentials'));
@@ -180,7 +210,7 @@ export function AdminPortalView() {
 
   const handleGenerateCards = () => {
     if (generatorForm.mode === 'single') {
-      if (!generatorForm.fullName || !generatorForm.region || !generatorForm.areaCode) {
+      if (!generatorForm.region || !generatorForm.areaCode) {
         addToast(toastWarning('Missing Fields', 'Please fill all required fields'));
         return;
       }
@@ -196,17 +226,16 @@ export function AdminPortalView() {
 
       const newCard: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
         controlNumber,
-        fullName: generatorForm.fullName,
+        fullName: '', // Empty name - will be filled when card is activated
         status: 'inactive',
-        perksTotal: 5,
+        perksTotal: generatorForm.perksTotal,
         perksUsed: 0,
         clinicId: '',
         expiryDate: '2025-12-31',
       };
 
       cardOperations.create(newCard);
-      addToast(toastSuccess('Card Generated', `Created ${controlNumber}`));
-      setGeneratorForm({ ...generatorForm, fullName: '' });
+      addToast(toastSuccess('Card Generated', `Created ${controlNumber} with ${generatorForm.perksTotal} perks`));
     } else {
       // Batch generation
       const start = parseInt(generatorForm.startId);
@@ -223,10 +252,72 @@ export function AdminPortalView() {
         finalAreaCode = generatorForm.customAreaCode;
       }
 
-      const cards = cardOperations.createBatch(start, end, generatorForm.region, finalAreaCode);
-      addToast(toastSuccess('Batch Generated', `Created ${cards.length} cards`));
+      const cards = cardOperations.createBatch(start, end, generatorForm.region, finalAreaCode, generatorForm.perksTotal);
+      addToast(toastSuccess('Batch Generated', `Created ${cards.length} cards with ${generatorForm.perksTotal} perks each`));
     }
   };
+
+  // Perks Management Functions
+  const handlePerkSave = () => {
+    if (!perksManagement.form.name || !perksManagement.form.description) {
+      addToast(toastWarning('Missing Fields', 'Please fill all required fields'));
+      return;
+    }
+
+    if (perksManagement.editingPerk) {
+      // Update existing perk
+      perkOperations.update(perksManagement.editingPerk.id, perksManagement.form);
+      addToast(toastSuccess('Perk Updated', `Updated ${perksManagement.form.name}`));
+    } else {
+      // Create new perk
+      perkOperations.create(perksManagement.form);
+      addToast(toastSuccess('Perk Created', `Created ${perksManagement.form.name}`));
+    }
+
+    // Reset form and close modal
+    setPerksManagement({
+      showModal: false,
+      editingPerk: null,
+      form: {
+        type: 'dental_cleaning' as PerkType,
+        name: '',
+        description: '',
+        value: 0,
+        isActive: true,
+        validFor: 365,
+        requiresApproval: false
+      }
+    });
+  };
+
+  const handlePerkEdit = (perk: Perk) => {
+    setPerksManagement({
+      showModal: true,
+      editingPerk: perk,
+      form: {
+        type: perk.type,
+        name: perk.name,
+        description: perk.description,
+        value: perk.value,
+        isActive: perk.isActive,
+        validFor: perk.validFor,
+        requiresApproval: perk.requiresApproval
+      }
+    });
+  };
+
+  const handlePerkDelete = (perk: Perk) => {
+    perkOperations.delete(perk.id);
+    addToast(toastSuccess('Perk Deleted', `Deleted ${perk.name}`));
+  };
+
+  const PERK_TYPE_OPTIONS: { value: PerkType; label: string }[] = [
+    { value: 'dental_cleaning', label: 'Dental Cleaning' },
+    { value: 'consultation', label: 'Consultation' },
+    { value: 'xray', label: 'X-Ray' },
+    { value: 'treatment', label: 'Treatment' },
+    { value: 'discount', label: 'Discount' }
+  ];
 
   const handleActivationSearch = () => {
     if (!activationQuery.trim()) return;
@@ -370,15 +461,24 @@ export function AdminPortalView() {
     clinicId: string;
     adminNotes: string;
   }) => {
-    const newAppointment = {
-      id: (appointmentRequests.length + 1).toString(),
-      ...appointmentData,
+    // Create appointment in global operations so clinic portals can access it
+    const now = new Date().toISOString();
+    const newAppointment = appointmentOperations.create({
+      cardControlNumber: appointmentData.cardControlNumber,
+      clinicId: appointmentData.clinicId,
+      patientName: appointmentData.patientName,
+      patientEmail: appointmentData.patientEmail,
+      patientPhone: appointmentData.patientPhone,
+      date: appointmentData.preferredDate,
+      time: appointmentData.preferredTime,
       status: 'pending' as const,
-      forwardedAt: new Date().toISOString(),
-      requestedAt: new Date().toISOString(),
-      clinicName: clinicOperations.getById(appointmentData.clinicId)?.name || 'Unknown Clinic'
-    };
+      serviceType: appointmentData.serviceType,
+      notes: appointmentData.adminNotes,
+      createdAt: now,
+      updatedAt: now
+    });
 
+    // Also add to local state for admin view
     setAppointmentRequests(prev => [...prev, newAppointment]);
     addToast(toastSuccess('Manual Appointment Created', `Appointment request sent to clinic for processing`));
   };
@@ -540,13 +640,6 @@ export function AdminPortalView() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <h3 className="font-medium text-gray-900 mb-2">Admin Credentials:</h3>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><strong>Username:</strong> admin</p>
-              <p><strong>Password:</strong> admin123</p>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -575,7 +668,7 @@ export function AdminPortalView() {
               </div>
             </div>
             <button
-              onClick={() => setIsAuthenticated(false)}
+              onClick={logout}
               className="light-button-secondary flex items-center space-x-2"
             >
               <Settings className="h-4 w-4" />
@@ -703,18 +796,39 @@ export function AdminPortalView() {
                   </div>
                 )}
 
-                {generatorForm.mode === 'single' && (
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                {/* Perks Configuration - Available for both single and batch */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Perks per Card</label>
+                  <div className="flex items-center space-x-4">
                     <input
-                      type="text"
-                      value={generatorForm.fullName}
-                      onChange={(e) => setGeneratorForm({ ...generatorForm, fullName: e.target.value })}
-                      className="light-input"
-                      placeholder="Enter patient full name"
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={generatorForm.perksTotal}
+                      onChange={(e) => setGeneratorForm({ ...generatorForm, perksTotal: parseInt(e.target.value) || 1 })}
+                      className="light-input w-20"
                     />
+                    <span className="text-sm text-gray-600">benefits/perks per card</span>
+                    <button
+                      onClick={() => setPerksManagement({ ...perksManagement, showModal: true })}
+                      className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      Manage Perks
+                    </button>
                   </div>
-                )}
+
+                  {/* Active Perks Display */}
+                  <div className="mt-2 text-sm">
+                    <span className="text-gray-600">Available Perks: </span>
+                    {perkOperations.getActive().length > 0 ? (
+                      <span className="text-green-600 font-medium">
+                        {perkOperations.getActive().map(p => p.name).join(', ')}
+                      </span>
+                    ) : (
+                      <span className="text-orange-600">No active perks configured</span>
+                    )}
+                  </div>
+                </div>
 
                 {generatorForm.mode === 'batch' && (
                   <>
@@ -1712,6 +1826,13 @@ export function AdminPortalView() {
                                         <Edit3 className="h-4 w-4" />
                                       </button>
                                       <button
+                                        onClick={() => setShowingCredentials(showingCredentials === clinic.id ? null : clinic.id)}
+                                        className="p-1 text-amber-600 hover:text-amber-700"
+                                        title="Show/Hide Credentials (Emergency Access)"
+                                      >
+                                        {showingCredentials === clinic.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                      </button>
+                                      <button
                                         onClick={() => handleDeleteClinic(clinic.id)}
                                         className="p-1 text-red-600 hover:text-red-700"
                                         title="Delete clinic"
@@ -1721,6 +1842,31 @@ export function AdminPortalView() {
                                     </>
                                   )}
                                 </div>
+                                {showingCredentials === clinic.id && (
+                                  <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <Shield className="h-4 w-4 text-amber-600" />
+                                      <span className="text-sm font-semibold text-amber-800">Emergency Credentials</span>
+                                    </div>
+                                    <div className="space-y-2 text-sm">
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-gray-700 font-medium">Clinic Code:</span>
+                                        <span className="font-mono bg-white px-2 py-1 rounded border text-gray-900">
+                                          {clinic.code}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-gray-700 font-medium">Password:</span>
+                                        <span className="font-mono bg-white px-2 py-1 rounded border text-gray-900">
+                                          {clinic.password}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="mt-3 p-2 bg-amber-100 rounded text-xs text-amber-800">
+                                      ⚠️ <strong>Emergency Use Only:</strong> Only provide these credentials to clinic staff who have forgotten their login details. Keep this information secure.
+                                    </div>
+                                  </div>
+                                )}
                               </td>
                             </tr>
                           );
@@ -1861,6 +2007,180 @@ export function AdminPortalView() {
           )}
         </div>
       </div>
+
+      {/* Perks Management Modal */}
+      {perksManagement.showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {perksManagement.editingPerk ? 'Edit Perk' : 'Create New Perk'}
+              </h3>
+              <button
+                onClick={() => setPerksManagement({ ...perksManagement, showModal: false })}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); handlePerkSave(); }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  value={perksManagement.form.type}
+                  onChange={(e) => setPerksManagement({
+                    ...perksManagement,
+                    form: { ...perksManagement.form, type: e.target.value as PerkType }
+                  })}
+                  className="light-select"
+                >
+                  {PERK_TYPE_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={perksManagement.form.name}
+                  onChange={(e) => setPerksManagement({
+                    ...perksManagement,
+                    form: { ...perksManagement.form, name: e.target.value }
+                  })}
+                  className="light-input"
+                  placeholder="e.g., Free Dental Cleaning"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={perksManagement.form.description}
+                  onChange={(e) => setPerksManagement({
+                    ...perksManagement,
+                    form: { ...perksManagement.form, description: e.target.value }
+                  })}
+                  className="light-input"
+                  placeholder="Describe this perk..."
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Value (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={perksManagement.form.value}
+                    onChange={(e) => setPerksManagement({
+                      ...perksManagement,
+                      form: { ...perksManagement.form, value: parseInt(e.target.value) || 0 }
+                    })}
+                    className="light-input"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Valid Days</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={perksManagement.form.validFor}
+                    onChange={(e) => setPerksManagement({
+                      ...perksManagement,
+                      form: { ...perksManagement.form, validFor: parseInt(e.target.value) || 365 }
+                    })}
+                    className="light-input"
+                    placeholder="365"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-6">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={perksManagement.form.isActive}
+                    onChange={(e) => setPerksManagement({
+                      ...perksManagement,
+                      form: { ...perksManagement.form, isActive: e.target.checked }
+                    })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Active</span>
+                </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={perksManagement.form.requiresApproval}
+                    onChange={(e) => setPerksManagement({
+                      ...perksManagement,
+                      form: { ...perksManagement.form, requiresApproval: e.target.checked }
+                    })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Requires Approval</span>
+                </label>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button type="submit" className="light-button-primary">
+                  {perksManagement.editingPerk ? 'Update' : 'Create'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPerksManagement({ ...perksManagement, showModal: false })}
+                  className="light-button-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            {/* Existing Perks List */}
+            <div className="mt-6">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Existing Perks</h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {perkOperations.getAll().map(perk => (
+                  <div key={perk.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">{perk.name}</span>
+                      <span className={`ml-2 text-xs px-2 py-1 rounded ${
+                        perk.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {perk.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={() => handlePerkEdit(perk)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handlePerkDelete(perk)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

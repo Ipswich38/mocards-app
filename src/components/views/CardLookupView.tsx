@@ -61,15 +61,6 @@ export function CardLookupView() {
     }
   };
 
-  const handleFeelingLucky = () => {
-    // Pick a random card for demo
-    const allCards = cardOperations.getAll();
-    if (allCards.length > 0) {
-      const randomCard = allCards[Math.floor(Math.random() * allCards.length)];
-      setSearchQuery(randomCard.controlNumber);
-      setTimeout(() => handleSearch(), 100);
-    }
-  };
 
   const getClinicName = (clinicId: string): string => {
     const clinic = clinicOperations.getById(clinicId);
@@ -168,13 +159,6 @@ export function CardLookupView() {
             className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Searching...' : 'MOCARDS Search'}
-          </button>
-          <button
-            onClick={handleFeelingLucky}
-            disabled={isLoading}
-            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors disabled:opacity-50"
-          >
-            I'm Feeling Lucky
           </button>
         </div>
       </div>

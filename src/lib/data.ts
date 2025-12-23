@@ -4,19 +4,22 @@ import {
   Card,
   Clinic,
   Appointment,
+  Perk,
+  PerkType,
   ClinicPlan,
   PLAN_LIMITS,
   PLAN_PRICING,
   PHILIPPINES_REGIONS,
   AREA_CODES,
+  DEFAULT_PERKS,
   type CardData,
   type ClinicData,
   type AppointmentData
 } from './schema';
 
 // Re-export types for backward compatibility
-export type { ClinicPlan, Card, Clinic, Appointment, CardData, ClinicData, AppointmentData };
-export { PLAN_LIMITS, PLAN_PRICING, PHILIPPINES_REGIONS, AREA_CODES };
+export type { ClinicPlan, Card, Clinic, Appointment, Perk, PerkType, CardData, ClinicData, AppointmentData };
+export { PLAN_LIMITS, PLAN_PRICING, PHILIPPINES_REGIONS, AREA_CODES, DEFAULT_PERKS };
 
 // Legacy type aliases for backward compatibility - removed to avoid conflicts
 
@@ -26,6 +29,8 @@ let cards: Card[] = [];
 let clinics: Clinic[] = [];
 
 let appointments: Appointment[] = [];
+
+let perks: Perk[] = [];
 
 // Utility Functions
 export const formatDate = (dateString: string): string => {
@@ -80,7 +85,8 @@ export const cardOperations = {
     startId: number,
     endId: number,
     region: string,
-    areaCode: string
+    areaCode: string,
+    perksTotal: number = 5
   ): Card[] => {
     const newCards: Card[] = [];
     const now = new Date().toISOString();
@@ -89,9 +95,9 @@ export const cardOperations = {
       const card: Card = {
         id: `card_${Date.now()}_${i}`,
         controlNumber: generateControlNumber(i, region, areaCode),
-        fullName: `Patient ${i}`,
+        fullName: '', // Empty name - will be filled when card is activated
         status: 'inactive',
-        perksTotal: 5,
+        perksTotal,
         perksUsed: 0,
         clinicId: '',
         expiryDate: '2025-12-31',
@@ -152,6 +158,65 @@ export const cardOperations = {
       return true;
     }
     return false;
+  },
+};
+
+// Perk Operations
+export const perkOperations = {
+  getAll: (): Perk[] => perks,
+
+  getById: (id: string): Perk | null => {
+    return perks.find(perk => perk.id === id) || null;
+  },
+
+  getByType: (type: PerkType): Perk[] => {
+    return perks.filter(perk => perk.type === type);
+  },
+
+  getActive: (): Perk[] => {
+    return perks.filter(perk => perk.isActive);
+  },
+
+  create: (perk: Omit<Perk, 'id' | 'createdAt' | 'updatedAt'>): Perk => {
+    const newPerk: Perk = {
+      ...perk,
+      id: (perks.length + 1).toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    perks.push(newPerk);
+    return newPerk;
+  },
+
+  update: (id: string, updates: Partial<Perk>): boolean => {
+    const index = perks.findIndex(p => p.id === id);
+    if (index !== -1) {
+      perks[index] = {
+        ...perks[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      return true;
+    }
+    return false;
+  },
+
+  delete: (id: string): boolean => {
+    const index = perks.findIndex(p => p.id === id);
+    if (index !== -1) {
+      perks.splice(index, 1);
+      return true;
+    }
+    return false;
+  },
+
+  // Initialize with default perks
+  initializeDefaults: (): void => {
+    if (perks.length === 0) {
+      DEFAULT_PERKS.forEach(defaultPerk => {
+        perkOperations.create(defaultPerk);
+      });
+    }
   },
 };
 
