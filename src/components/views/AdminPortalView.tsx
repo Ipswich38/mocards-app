@@ -594,7 +594,7 @@ export function AdminPortalView() {
     { id: 'generator' as const, label: 'Generator', icon: Plus, color: 'emerald' },
     { id: 'activation' as const, label: 'Activation', icon: Zap, color: 'blue' },
     { id: 'appointments' as const, label: 'Appointments', icon: Calendar, color: 'rose' },
-    { id: 'clinic-management' as const, label: 'Add Clinic', icon: Building, color: 'indigo' },
+    { id: 'clinic-management' as const, label: 'Manage Clinics', icon: Building, color: 'indigo' },
     { id: 'endorsement' as const, label: 'Endorsement', icon: UserCheck, color: 'orange' },
     { id: 'master-list' as const, label: 'Master List', icon: Database, color: 'purple' },
     { id: 'settings' as const, label: 'Settings', icon: Settings, color: 'gray' },
@@ -811,9 +811,12 @@ export function AdminPortalView() {
                     <span className="text-sm text-gray-600">benefits/perks per card</span>
                     <button
                       onClick={() => setPerksManagement({ ...perksManagement, showModal: true })}
-                      className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition-colors"
+                      className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-4 py-2 rounded-lg shadow-lg hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                     >
-                      Manage Perks
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>Manage Perks</span>
                     </button>
                   </div>
 

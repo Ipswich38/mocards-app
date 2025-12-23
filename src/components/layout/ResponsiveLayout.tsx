@@ -11,9 +11,11 @@ interface ResponsiveLayoutProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
   children: React.ReactNode;
+  isAuthenticated?: boolean;
+  userType?: 'admin' | 'clinic';
 }
 
-export function ResponsiveLayout({ currentView, onViewChange, children }: ResponsiveLayoutProps) {
+export function ResponsiveLayout({ currentView, onViewChange, children, isAuthenticated, userType }: ResponsiveLayoutProps) {
   const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
   const { isMobile, isTablet } = useBreakpoint();
   const { height } = useScreenSize();
@@ -25,24 +27,38 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
     }
   }, [isMobile, height]);
 
+  const getNavItemDisabled = (itemId: ViewMode): boolean => {
+    if (!isAuthenticated || !userType) return false;
+
+    // Admin users cannot access clinic portal
+    if (userType === 'admin' && itemId === 'clinic-portal') return true;
+    // Clinic users cannot access admin portal
+    if (userType === 'clinic' && itemId === 'admin-access') return true;
+
+    return false;
+  };
+
   const navItems = [
     {
       id: 'card-lookup' as ViewMode,
       label: 'Card Lookup',
       icon: Search,
       description: 'Verify card validity',
+      disabled: false, // Always accessible
     },
     {
       id: 'clinic-portal' as ViewMode,
       label: 'Clinic Portal',
       icon: Stethoscope,
       description: 'Clinic management',
+      disabled: getNavItemDisabled('clinic-portal'),
     },
     {
       id: 'admin-access' as ViewMode,
       label: 'Admin Access',
       icon: Shield,
       description: 'System administration',
+      disabled: getNavItemDisabled('admin-access'),
     },
   ];
 
@@ -56,6 +72,7 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
           onViewChange={onViewChange}
           onSecurityToggle={() => setShowSecurityDashboard(!showSecurityDashboard)}
           showSecurityDashboard={showSecurityDashboard}
+          navItems={navItems}
         />
 
         {/* Main Content with proper spacing for mobile header */}
@@ -130,19 +147,25 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentView === item.id;
+                const isDisabled = item.disabled;
 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onViewChange(item.id)}
+                    onClick={() => !isDisabled && onViewChange(item.id)}
+                    disabled={isDisabled}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                      isActive
-                        ? 'bg-white text-[#1A535C] shadow-lg'
-                        : 'bg-white bg-opacity-10 text-teal-100 hover:bg-opacity-20'
+                      isDisabled
+                        ? 'bg-gray-400 bg-opacity-20 text-gray-500 cursor-not-allowed opacity-50'
+                        : isActive
+                          ? 'bg-white text-[#1A535C] shadow-lg'
+                          : 'bg-white bg-opacity-10 text-teal-100 hover:bg-opacity-20'
                     }`}
+                    title={isDisabled ? 'Please logout to access this portal' : undefined}
                   >
                     <Icon className="h-4 w-4" />
                     <span className="text-sm font-medium">{item.label}</span>
+                    {isDisabled && <span className="text-xs">🔒</span>}
                   </button>
                 );
               })}
@@ -186,24 +209,36 @@ export function ResponsiveLayout({ currentView, onViewChange, children }: Respon
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
+              const isDisabled = item.disabled;
 
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => onViewChange(item.id)}
+                    onClick={() => !isDisabled && onViewChange(item.id)}
+                    disabled={isDisabled}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                      isActive
-                        ? 'bg-white text-[#1A535C] shadow-lg'
-                        : 'text-teal-100 hover:bg-teal-600 hover:text-white'
+                      isDisabled
+                        ? 'bg-gray-600 bg-opacity-20 text-gray-400 cursor-not-allowed opacity-60'
+                        : isActive
+                          ? 'bg-white text-[#1A535C] shadow-lg'
+                          : 'text-teal-100 hover:bg-teal-600 hover:text-white'
                     }`}
+                    title={isDisabled ? 'Please logout to access this portal' : undefined}
                   >
-                    <Icon className={`h-5 w-5 ${isActive ? 'text-[#1A535C]' : ''}`} />
-                    <div className="text-left">
-                      <div className={`font-medium ${isActive ? 'text-[#1A535C]' : ''}`}>
+                    <Icon className={`h-5 w-5 ${
+                      isDisabled ? 'text-gray-400' : isActive ? 'text-[#1A535C]' : ''
+                    }`} />
+                    <div className="text-left flex-1">
+                      <div className={`font-medium ${
+                        isDisabled ? 'text-gray-400' : isActive ? 'text-[#1A535C]' : ''
+                      }`}>
                         {item.label}
+                        {isDisabled && <span className="ml-2">🔒</span>}
                       </div>
-                      <div className={`text-xs ${isActive ? 'text-teal-600' : 'text-teal-300'}`}>
-                        {item.description}
+                      <div className={`text-xs ${
+                        isDisabled ? 'text-gray-500' : isActive ? 'text-teal-600' : 'text-teal-300'
+                      }`}>
+                        {isDisabled ? 'Logout required' : item.description}
                       </div>
                     </div>
                   </button>

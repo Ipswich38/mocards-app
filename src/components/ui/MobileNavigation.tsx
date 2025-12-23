@@ -3,31 +3,44 @@ import {
   Search, Stethoscope, Shield, Activity, Menu, X,
   ChevronRight, Home
 } from 'lucide-react';
-import { ViewMode } from '../layout/MainLayout';
+import { ViewMode } from '../layout/ResponsiveLayout';
+
+interface NavItem {
+  id: ViewMode;
+  label: string;
+  icon: any;
+  description: string;
+  disabled?: boolean;
+  color?: string;
+  bgColor?: string;
+}
 
 interface MobileNavigationProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
   onSecurityToggle: () => void;
   showSecurityDashboard: boolean;
+  navItems?: NavItem[];
 }
 
 export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   currentView,
   onViewChange,
   onSecurityToggle,
-  showSecurityDashboard
+  showSecurityDashboard,
+  navItems: propNavItems
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navItems = [
+  const defaultNavItems = [
     {
       id: 'card-lookup' as ViewMode,
       label: 'Card Lookup',
       icon: Search,
       description: 'Verify card validity',
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-50',
+      disabled: false
     },
     {
       id: 'clinic-portal' as ViewMode,
@@ -35,7 +48,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       icon: Stethoscope,
       description: 'Clinic management',
       color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      disabled: false
     },
     {
       id: 'admin-access' as ViewMode,
@@ -43,11 +57,15 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       icon: Shield,
       description: 'System administration',
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      bgColor: 'bg-purple-50',
+      disabled: false
     },
   ];
 
-  const handleNavClick = (viewId: ViewMode) => {
+  const navItems = propNavItems || defaultNavItems;
+
+  const handleNavClick = (viewId: ViewMode, disabled?: boolean) => {
+    if (disabled) return;
     onViewChange(viewId);
     setIsOpen(false);
   };
@@ -139,31 +157,67 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
+              const isDisabled = item.disabled;
 
               return (
                 <button
                   key={item.id}
-                  onClick={() => handleNavClick(item.id)}
+                  onClick={() => handleNavClick(item.id, isDisabled)}
+                  disabled={isDisabled}
                   className={`w-full flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? 'bg-[#1A535C] text-white shadow-lg'
-                      : 'hover:bg-gray-50 text-gray-700'
+                    isDisabled
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                      : isActive
+                        ? 'bg-[#1A535C] text-white shadow-lg'
+                        : 'hover:bg-gray-50 text-gray-700'
                   }`}
+                  title={isDisabled ? 'Please logout to access this portal' : undefined}
                 >
-                  <div className={`p-2 rounded-lg ${isActive ? 'bg-white bg-opacity-20' : item.bgColor}`}>
-                    <Icon className={`h-5 w-5 ${isActive ? 'text-white' : item.color}`} />
+                  <div className={`p-2 rounded-lg ${
+                    isDisabled
+                      ? 'bg-gray-300'
+                      : isActive
+                        ? 'bg-white bg-opacity-20'
+                        : item.bgColor
+                  }`}>
+                    <Icon className={`h-5 w-5 ${
+                      isDisabled
+                        ? 'text-gray-400'
+                        : isActive
+                          ? 'text-white'
+                          : item.color
+                    }`} />
                   </div>
 
                   <div className="flex-1 text-left">
-                    <div className={`font-medium ${isActive ? 'text-white' : 'text-gray-900'}`}>
+                    <div className={`font-medium ${
+                      isDisabled
+                        ? 'text-gray-400'
+                        : isActive
+                          ? 'text-white'
+                          : 'text-gray-900'
+                    }`}>
                       {item.label}
+                      {isDisabled && <span className="ml-2">🔒</span>}
                     </div>
-                    <div className={`text-sm ${isActive ? 'text-teal-200' : 'text-gray-500'}`}>
-                      {item.description}
+                    <div className={`text-sm ${
+                      isDisabled
+                        ? 'text-gray-500'
+                        : isActive
+                          ? 'text-teal-200'
+                          : 'text-gray-500'
+                    }`}>
+                      {isDisabled ? 'Logout required' : item.description}
                     </div>
                   </div>
 
-                  <ChevronRight className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                  <ChevronRight className={`h-4 w-4 ${
+                    isDisabled
+                      ? 'text-gray-400'
+                      : isActive
+                        ? 'text-white'
+                        : 'text-gray-400'
+                  }`} />
                 </button>
               );
             })}
