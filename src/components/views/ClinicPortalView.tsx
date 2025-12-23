@@ -88,6 +88,8 @@ export function ClinicPortalView() {
       const clinic = clinicOperations.getById(user.clinicId);
       if (clinic) {
         setCurrentClinic(clinic);
+      } else {
+        console.error('Clinic not found for ID:', user.clinicId);
       }
     }
   }, [isAuthenticated, user, currentClinic]);
@@ -381,7 +383,20 @@ export function ClinicPortalView() {
     );
   }
 
-  if (!currentClinic) return null;
+  if (!currentClinic) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="light-card p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Stethoscope className="h-8 w-8 text-blue-600" />
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Loading Clinic Portal</h2>
+          <p className="text-gray-600">Please wait while we load your clinic information...</p>
+        </div>
+      </div>
+    );
+  }
 
   const assignedCards = cardOperations.getByClinicId(currentClinic.id);
   const activeCards = assignedCards.filter(card => card.status === 'active');

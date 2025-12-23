@@ -65,7 +65,7 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">MOCARDS</h1>
-              <p className="text-sm text-white/70">Philippines Healthcare</p>
+              <p className="text-sm text-white/70">Philippines Dental Benefits</p>
             </div>
           </div>
         </div>

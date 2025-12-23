@@ -183,7 +183,7 @@ export function CardLookupView() {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h2 className="text-2xl font-bold">MOCARDS</h2>
-                      <p className="text-teal-100">Philippines Healthcare Card</p>
+                      <p className="text-teal-100">Philippines Dental Benefits Card</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       searchResult.status === 'active'
@@ -250,7 +250,7 @@ export function CardLookupView() {
 
                   {/* Benefits Info */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white mb-4">Healthcare Benefits</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Dental Benefits</h3>
 
                     <div className="flex items-center space-x-3">
                       <Gift className="h-5 w-5 text-gray-400" />
@@ -317,7 +317,7 @@ export function CardLookupView() {
                   </div>
 
                   <p className="text-gray-300 text-sm mb-4">
-                    Request an appointment directly with your assigned clinic to claim your healthcare benefits.
+                    Request an appointment directly with your assigned clinic to claim your dental benefits.
                   </p>
 
                   {showAppointmentForm && (
