@@ -132,8 +132,8 @@ export const usePWA = () => {
     url?: string;
   }): Promise<boolean> => {
     const shareData = {
-      title: 'MOCARDS Cloud - Healthcare Management Platform',
-      text: 'Professional healthcare card management and clinic portal system',
+      title: 'MOCARDS Cloud - Dental Benefits Management Platform',
+      text: 'Professional dental benefits card management and clinic portal system',
       url: window.location.origin,
       ...data
     };

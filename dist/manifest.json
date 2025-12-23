@@ -1,7 +1,7 @@
 {
-  "name": "MOCARDS CLOUD - Healthcare Management Platform",
+  "name": "MOCARDS CLOUD - Dental Benefits Management Platform",
   "short_name": "MOCARDS",
-  "description": "Professional healthcare card management and clinic portal system",
+  "description": "Professional dental benefits card management and clinic portal system",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
