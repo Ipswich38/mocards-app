@@ -208,8 +208,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
           {/* Footer */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50">
             <div className="text-center">
-              <p className="text-xs text-gray-500">MOCARDS v3.0</p>
-              <p className="text-xs text-gray-400">© 2024 Dental Group</p>
+              <p className="text-xs text-gray-500">MOCARDS v4.0</p>
+              <p className="text-xs text-gray-400">© 2025 Dental Group</p>
             </div>
           </div>
         </div>

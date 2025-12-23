@@ -108,8 +108,8 @@ export function MainLayout({ currentView, onViewChange, children }: MainLayoutPr
         {/* Footer */}
         <div className="p-4 border-t border-white/20">
           <div className="text-center space-y-1">
-            <div className="text-xs text-white/70">MOCARDS v3.0 Philippines</div>
-            <div className="text-xs text-white/50">© 2024 Dental Group</div>
+            <div className="text-xs text-white/70">MOCARDS v4.0 Philippines</div>
+            <div className="text-xs text-white/50">© 2025 Dental Group</div>
           </div>
         </div>
       </div>
