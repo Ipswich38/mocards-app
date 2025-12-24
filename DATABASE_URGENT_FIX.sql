@@ -6,7 +6,7 @@
 -- 🚨 URGENT FIX FOR PERK_REDEMPTIONS COLUMN ERROR 🚨
 
 -- First, let's check what columns exist in perk_redemptions table
-SELECT 'CHECKING PERK_REDEMPTIONS TABLE STRUCTURE:' as info;q
+SELECT 'CHECKING PERK_REDEMPTIONS TABLE STRUCTURE:' as info;
 SELECT
     column_name,
     data_type,
