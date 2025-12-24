@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Calendar, User, Gift, Shield, Clock, Send, Phone, Mail } from 'lucide-react';
 import { cardOperations, clinicOperations, appointmentOperations, type Card, formatDate } from '../../lib/data';
+import { dbOperations } from '../../lib/supabase';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 
@@ -39,10 +40,25 @@ export function CardLookupView() {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      const result = cardOperations.getByControlNumber(searchQuery.trim());
+      // Use real Supabase operations instead of localStorage
+      const result = await dbOperations.getCardByControlNumber(searchQuery.trim());
 
       if (result) {
-        setSearchResult(result);
+        // Transform Supabase result to our Card format
+        const transformedCard: Card = {
+          id: result.id,
+          controlNumber: result.control_number || result.unified_control_number || `${result.card_number}`,
+          fullName: '', // Not stored in Supabase schema
+          status: result.status === 'activated' ? 'active' : 'inactive',
+          perksTotal: 5,
+          perksUsed: result.perks?.filter((p: any) => p.claimed).length || 0,
+          clinicId: result.assigned_clinic_id || '',
+          expiryDate: result.expires_at?.split('T')[0] || '2025-12-31',
+          createdAt: result.created_at,
+          updatedAt: result.updated_at || result.created_at,
+        };
+
+        setSearchResult(transformedCard);
         addToast(toastSuccess('Card Found', 'Card information retrieved successfully'));
       } else {
         setIsNotFound(true);
@@ -94,21 +110,20 @@ export function CardLookupView() {
       return;
     }
 
-    // Create real appointment in database
+    // Create real appointment in Supabase database
     try {
-      appointmentOperations.create({
-        cardControlNumber: searchResult.controlNumber,
-        clinicId: searchResult.clinicId,
-        patientName: appointmentForm.patientName,
-        patientEmail: appointmentForm.patientEmail,
-        patientPhone: appointmentForm.patientPhone || '',
-        preferredDate: appointmentForm.preferredDate,
-        preferredTime: appointmentForm.preferredTime,
-        serviceType: appointmentForm.serviceType,
-        perkRequested: appointmentForm.perkRequested || '',
-        notes: appointmentForm.notes || '',
-        status: 'pending',
-        createdAt: new Date().toISOString()
+      await dbOperations.createAppointment({
+        control_number: searchResult.controlNumber,
+        assigned_clinic_id: searchResult.clinicId,
+        appointment_date: appointmentForm.preferredDate,
+        appointment_time: appointmentForm.preferredTime,
+        perk_type: appointmentForm.perkRequested || appointmentForm.serviceType,
+        cardholder_notes: appointmentForm.notes,
+        status: 'waiting_for_approval',
+        patient_name: appointmentForm.patientName,
+        patient_email: appointmentForm.patientEmail,
+        patient_phone: appointmentForm.patientPhone,
+        service_type: appointmentForm.serviceType,
       });
 
       addToast(toastSuccess(

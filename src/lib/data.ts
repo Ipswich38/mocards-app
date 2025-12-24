@@ -76,15 +76,15 @@ export const generateClinicCode = (areaCode: string): string => {
 
 // Card Operations with Cloud Sync
 export const cardOperations = {
-  getAll: (): Card[] => cloudOperations.cards.getAll(),
+  getAll: async (): Promise<Card[]> => await cloudOperations.cards.getAll(),
 
-  getByControlNumber: (controlNumber: string): Card | null => {
-    const cards = cloudOperations.cards.getAll();
+  getByControlNumber: async (controlNumber: string): Promise<Card | null> => {
+    const cards = await cloudOperations.cards.getAll();
     return cards.find(card => card.controlNumber === controlNumber) || null;
   },
 
-  getByClinicId: (clinicId: string): Card[] => {
-    const cards = cloudOperations.cards.getAll();
+  getByClinicId: async (clinicId: string): Promise<Card[]> => {
+    const cards = await cloudOperations.cards.getAll();
     return cards.filter(card => card.clinicId === clinicId);
   },
 
