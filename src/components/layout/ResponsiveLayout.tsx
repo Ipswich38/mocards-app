@@ -3,6 +3,7 @@ import { Search, Stethoscope, Shield, Activity } from 'lucide-react';
 import { SecurityDashboard } from '../ui/SecurityDashboard';
 import { MobileNavigation } from '../ui/MobileNavigation';
 import { PWAInstallPrompt } from '../ui/PWAInstallPrompt';
+import { CloudSyncIndicator } from '../ui/CloudSyncIndicator';
 import { useBreakpoint, useScreenSize } from '../../hooks/useMediaQuery';
 
 export type ViewMode = 'card-lookup' | 'clinic-portal' | 'admin-access';
@@ -262,8 +263,13 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
             <span className="text-sm font-medium">Security Monitor</span>
           </button>
 
+          {/* Cloud Sync Status */}
+          <div className="mt-4">
+            <CloudSyncIndicator compact={true} className="w-full" />
+          </div>
+
           <div className="text-xs text-teal-300 text-center mt-3">
-            MOCARDS v4.0
+            MOCARDS v4.0 Cloud
             <br />
             © 2025 Dental Group
           </div>

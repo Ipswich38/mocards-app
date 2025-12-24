@@ -1,4 +1,4 @@
-// MOCARDS CLOUD - Data Layer (Legacy Compatible)
+// MOCARDS CLOUD - Data Layer with Cloud Sync
 // Import unified schema for type definitions and constants
 import {
   Card,
@@ -17,20 +17,18 @@ import {
   type AppointmentData
 } from './schema';
 
+// Import cloud sync operations for multi-device persistence
+import { cloudOperations } from './cloudSync';
+
 // Re-export types for backward compatibility
 export type { ClinicPlan, Card, Clinic, Appointment, Perk, PerkType, CardData, ClinicData, AppointmentData };
 export { PLAN_LIMITS, PLAN_PRICING, PHILIPPINES_REGIONS, AREA_CODES, DEFAULT_PERKS };
 
 // Legacy type aliases for backward compatibility - removed to avoid conflicts
 
-// Production Database - Empty State
-let cards: Card[] = [];
-
-let clinics: Clinic[] = [];
-
-let appointments: Appointment[] = [];
-
-let perks: Perk[] = [];
+// Cloud-Synced Database - Multi-device persistence
+// Data is automatically synced across all devices and browsers
+// No more local-only storage!
 
 // Enhanced Perk Usage for tracking redemption history
 export interface PerkRedemption {
@@ -47,7 +45,7 @@ export interface PerkRedemption {
   notes?: string;
 }
 
-let perkRedemptions: PerkRedemption[] = [];
+// Note: perkRedemptions moved to cloud storage - no local array needed
 
 // Utility Functions
 export const formatDate = (dateString: string): string => {
@@ -60,7 +58,8 @@ export const generateControlNumber = (id: number, region: string, areaCode: stri
 };
 
 export const generateClinicCode = (areaCode: string): string => {
-  const existingCodes = clinics.map(c => c.code);
+  const clinics = cloudOperations.clinics.getAll();
+  const existingCodes = clinics.map((c: Clinic) => c.code);
   let counter = 1;
 
   // If custom or others, use CVT prefix
@@ -75,26 +74,30 @@ export const generateClinicCode = (areaCode: string): string => {
   return areaCode;
 };
 
-// Card Operations
+// Card Operations with Cloud Sync
 export const cardOperations = {
-  getAll: (): Card[] => cards,
+  getAll: (): Card[] => cloudOperations.cards.getAll(),
 
   getByControlNumber: (controlNumber: string): Card | null => {
+    const cards = cloudOperations.cards.getAll();
     return cards.find(card => card.controlNumber === controlNumber) || null;
   },
 
   getByClinicId: (clinicId: string): Card[] => {
+    const cards = cloudOperations.cards.getAll();
     return cards.filter(card => card.clinicId === clinicId);
   },
 
   create: (card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>): Card => {
     const newCard: Card = {
       ...card,
-      id: (cards.length + 1).toString(),
+      id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    cards.push(newCard);
+
+    // Save to cloud immediately
+    cloudOperations.cards.add(newCard);
     return newCard;
   },
 
@@ -105,12 +108,13 @@ export const cardOperations = {
     areaCode: string,
     perksTotal: number = 5
   ): Card[] => {
+    const existingCards = cloudOperations.cards.getAll();
     const newCards: Card[] = [];
     const now = new Date().toISOString();
 
     for (let i = startId; i <= endId; i++) {
       const card: Card = {
-        id: `card_${Date.now()}_${i}`,
+        id: `card_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`,
         controlNumber: generateControlNumber(i, region, areaCode),
         fullName: '', // Empty name - will be filled when card is activated
         status: 'inactive',
@@ -121,22 +125,29 @@ export const cardOperations = {
         createdAt: now,
         updatedAt: now,
       };
-      cards.push(card);
       newCards.push(card);
     }
+
+    // Save batch to cloud
+    const allCards = [...existingCards, ...newCards];
+    cloudOperations.cards.save(allCards);
     return newCards;
   },
 
   updateStatus: (controlNumber: string, status: 'active' | 'inactive'): boolean => {
+    const cards = cloudOperations.cards.getAll();
     const card = cards.find(c => c.controlNumber === controlNumber);
     if (card) {
-      card.status = status;
+      // Update cloud storage
+      cloudOperations.cards.update(card.id, { status });
       return true;
     }
     return false;
   },
 
   assignToClinic: (controlNumbers: string[], clinicId: string): boolean => {
+    const clinics = cloudOperations.clinics.getAll();
+    const cards = cloudOperations.cards.getAll();
     const clinic = clinics.find(c => c.id === clinicId);
     if (!clinic) return false;
 
@@ -148,11 +159,11 @@ export const cardOperations = {
       return false; // Exceeds plan limit
     }
 
-    // Assign cards
+    // Assign cards in cloud storage
     controlNumbers.forEach(controlNumber => {
       const card = cards.find(c => c.controlNumber === controlNumber);
       if (card) {
-        card.clinicId = clinicId;
+        cloudOperations.cards.update(card.id, { clinicId });
       }
     });
 
@@ -160,75 +171,81 @@ export const cardOperations = {
   },
 
   updatePerks: (controlNumber: string, perksUsed: number): boolean => {
+    const cards = cloudOperations.cards.getAll();
     const card = cards.find(c => c.controlNumber === controlNumber);
     if (card) {
-      card.perksUsed = Math.min(perksUsed, card.perksTotal);
+      const updatedPerksUsed = Math.min(perksUsed, card.perksTotal);
+      cloudOperations.cards.update(card.id, { perksUsed: updatedPerksUsed });
       return true;
     }
     return false;
   },
 
   delete: (controlNumber: string): boolean => {
-    const index = cards.findIndex(c => c.controlNumber === controlNumber);
-    if (index !== -1) {
-      cards.splice(index, 1);
+    const cards = cloudOperations.cards.getAll();
+    const card = cards.find(c => c.controlNumber === controlNumber);
+    if (card) {
+      cloudOperations.cards.remove(card.id);
       return true;
     }
     return false;
   },
 };
 
-// Perk Operations
+// Perk Operations with Cloud Sync
 export const perkOperations = {
-  getAll: (): Perk[] => perks,
+  getAll: (): Perk[] => cloudOperations.perks.getAll(),
 
   getById: (id: string): Perk | null => {
+    const perks = cloudOperations.perks.getAll();
     return perks.find(perk => perk.id === id) || null;
   },
 
   getByType: (type: PerkType): Perk[] => {
+    const perks = cloudOperations.perks.getAll();
     return perks.filter(perk => perk.type === type);
   },
 
   getActive: (): Perk[] => {
+    const perks = cloudOperations.perks.getAll();
     return perks.filter(perk => perk.isActive);
   },
 
   create: (perk: Omit<Perk, 'id' | 'createdAt' | 'updatedAt'>): Perk => {
     const newPerk: Perk = {
       ...perk,
-      id: (perks.length + 1).toString(),
+      id: `perk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    perks.push(newPerk);
+
+    // Save to cloud immediately
+    cloudOperations.perks.add(newPerk);
     return newPerk;
   },
 
   update: (id: string, updates: Partial<Perk>): boolean => {
-    const index = perks.findIndex(p => p.id === id);
-    if (index !== -1) {
-      perks[index] = {
-        ...perks[index],
+    const perks = cloudOperations.perks.getAll();
+    const perk = perks.find(p => p.id === id);
+    if (perk) {
+      const updatedPerk = {
         ...updates,
         updatedAt: new Date().toISOString()
       };
+      cloudOperations.perks.update(id, updatedPerk);
       return true;
     }
     return false;
   },
 
   delete: (id: string): boolean => {
-    const index = perks.findIndex(p => p.id === id);
-    if (index !== -1) {
-      perks.splice(index, 1);
-      return true;
-    }
-    return false;
+    cloudOperations.perks.remove(id);
+    return true;
   },
 
   // Initialize with default perks
   initializeDefaults: (): void => {
+    const perks = cloudOperations.perks.getAll();
     if (perks.length === 0) {
       DEFAULT_PERKS.forEach(defaultPerk => {
         perkOperations.create(defaultPerk);
@@ -237,19 +254,22 @@ export const perkOperations = {
   },
 };
 
-// Clinic Operations
+// Clinic Operations with Cloud Sync
 export const clinicOperations = {
-  getAll: (): Clinic[] => clinics,
+  getAll: (): Clinic[] => cloudOperations.clinics.getAll(),
 
   getById: (id: string): Clinic | null => {
+    const clinics = cloudOperations.clinics.getAll();
     return clinics.find(clinic => clinic.id === id) || null;
   },
 
   getByCode: (code: string): Clinic | null => {
+    const clinics = cloudOperations.clinics.getAll();
     return clinics.find(clinic => clinic.code === code) || null;
   },
 
   authenticate: (code: string, password: string): Clinic | null => {
+    const clinics = cloudOperations.clinics.getAll();
     return clinics.find(clinic =>
       clinic.code === code && clinic.password === password
     ) || null;
@@ -258,7 +278,7 @@ export const clinicOperations = {
   create: (clinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'>): Clinic => {
     const newClinic: Clinic = {
       ...clinic,
-      id: (clinics.length + 1).toString(),
+      id: `clinic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       subscriptionStatus: 'active',
       subscriptionStartDate: new Date().toISOString(),
       maxCards: PLAN_LIMITS[clinic.plan],
@@ -266,89 +286,99 @@ export const clinicOperations = {
       updatedAt: new Date().toISOString(),
       isActive: true,
     };
-    clinics.push(newClinic);
+
+    // Save to cloud immediately
+    cloudOperations.clinics.add(newClinic);
     return newClinic;
   },
 
   update: (id: string, updates: Partial<Clinic>): boolean => {
-    const index = clinics.findIndex(c => c.id === id);
-    if (index !== -1) {
-      clinics[index] = { ...clinics[index], ...updates };
+    const clinics = cloudOperations.clinics.getAll();
+    const clinic = clinics.find(c => c.id === id);
+    if (clinic) {
+      cloudOperations.clinics.update(id, updates);
       return true;
     }
     return false;
   },
 
   delete: (id: string): boolean => {
-    const index = clinics.findIndex(c => c.id === id);
-    if (index !== -1) {
-      clinics.splice(index, 1);
-      return true;
-    }
-    return false;
+    cloudOperations.clinics.remove(id);
+    return true;
   },
 
   getAssignedCardsCount: (clinicId: string): number => {
+    const cards = cloudOperations.cards.getAll();
     return cards.filter(card => card.clinicId === clinicId).length;
   },
 
   getPlanLimit: (clinicId: string): number => {
+    const clinics = cloudOperations.clinics.getAll();
     const clinic = clinics.find(c => c.id === clinicId);
     return clinic ? PLAN_LIMITS[clinic.plan] : 0;
   },
 };
 
-// Appointment Operations
+// Appointment Operations with Cloud Sync
 export const appointmentOperations = {
-  getAll: (): Appointment[] => appointments,
+  getAll: (): Appointment[] => cloudOperations.appointments.getAll(),
 
   getByClinicId: (clinicId: string): Appointment[] => {
+    const appointments = cloudOperations.appointments.getAll();
     return appointments.filter(apt => apt.clinicId === clinicId);
   },
 
   create: (appointment: Omit<Appointment, 'id'>): Appointment => {
     const newAppointment: Appointment = {
       ...appointment,
-      id: (appointments.length + 1).toString(),
+      id: `appointment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
-    appointments.push(newAppointment);
+
+    // Save to cloud immediately
+    cloudOperations.appointments.add(newAppointment);
     return newAppointment;
   },
 
   updateStatus: (id: string, status: Appointment['status']): boolean => {
+    const appointments = cloudOperations.appointments.getAll();
     const appointment = appointments.find(a => a.id === id);
     if (appointment) {
-      appointment.status = status;
+      cloudOperations.appointments.update(id, { status });
       return true;
     }
     return false;
   },
 };
 
-// Perk Redemption Operations
+// Perk Redemption Operations with Cloud Sync
 export const perkRedemptionOperations = {
-  getAll: (): PerkRedemption[] => perkRedemptions,
+  getAll: (): PerkRedemption[] => cloudOperations.perkRedemptions.getAll(),
 
   getByCardNumber: (cardControlNumber: string): PerkRedemption[] => {
-    return perkRedemptions.filter(redemption => redemption.cardControlNumber === cardControlNumber);
+    const redemptions = cloudOperations.perkRedemptions.getAll();
+    return redemptions.filter(redemption => redemption.cardControlNumber === cardControlNumber);
   },
 
   getByClinicId: (clinicId: string): PerkRedemption[] => {
-    return perkRedemptions.filter(redemption => redemption.clinicId === clinicId);
+    const redemptions = cloudOperations.perkRedemptions.getAll();
+    return redemptions.filter(redemption => redemption.clinicId === clinicId);
   },
 
   create: (redemption: Omit<PerkRedemption, 'id'>): PerkRedemption => {
     const newRedemption: PerkRedemption = {
       ...redemption,
-      id: (perkRedemptions.length + 1).toString(),
+      id: `redemption_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
-    perkRedemptions.push(newRedemption);
+
+    // Save to cloud immediately
+    cloudOperations.perkRedemptions.add(newRedemption);
     return newRedemption;
   },
 
   // Get redemption history for a specific perk type
   getByPerkType: (cardControlNumber: string, perkName: string): PerkRedemption[] => {
-    return perkRedemptions.filter(redemption =>
+    const redemptions = cloudOperations.perkRedemptions.getAll();
+    return redemptions.filter(redemption =>
       redemption.cardControlNumber === cardControlNumber &&
       redemption.perkName.toLowerCase().includes(perkName.toLowerCase())
     );
