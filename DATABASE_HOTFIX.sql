@@ -114,7 +114,8 @@ END $$;
 -- ================================================================
 
 -- Clear any existing default perks first (to avoid duplicates)
-DELETE FROM perks WHERE id LIKE 'perk_%_001';
+-- Convert UUID to text for the LIKE operation
+DELETE FROM perks WHERE id::text LIKE 'perk_%_001';
 
 -- Insert the default perks with all required columns
 INSERT INTO perks (id, type, name, description, value, is_active, valid_for, requires_approval, created_at, updated_at)
