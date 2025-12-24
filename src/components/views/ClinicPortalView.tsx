@@ -6,7 +6,7 @@ import {
   Clock, CheckCircle, XCircle, Phone, Gift, Calendar as CalendarIcon,
   Edit3, Save, X, Trash2, Award
 } from 'lucide-react';
-import { clinicOperations, cardOperations, perkOperations, appointmentOperations, type Clinic } from '../../lib/data';
+import { clinicOperations, cardOperations, perkOperations, appointmentOperations, perkRedemptionOperations, type Clinic, type PerkRedemption as RealPerkRedemption } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastError, toastWarning } from '../../lib/toast';
 
@@ -28,18 +28,8 @@ interface AppointmentRequest {
   processedAt?: string;
 }
 
-// Mock perk redemption requests
-interface PerkRedemption {
-  id: string;
-  cardControlNumber: string;
-  patientName: string;
-  perkType: string;
-  perkDescription: string;
-  requestedAt: string;
-  status: 'pending' | 'approved' | 'denied';
-  clinicNotes?: string;
-  processedAt?: string;
-}
+// Using real perk redemption data from database
+type PerkRedemption = RealPerkRedemption;
 
 export function ClinicPortalView() {
   const { isAuthenticated, user, login, logout } = useAuth();
@@ -52,8 +42,11 @@ export function ClinicPortalView() {
   const [activeTab, setActiveTab] = useState('dashboard');
   // Real appointment state - loads from database
   const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([]);
-  // Production Ready - Empty perk redemptions state
+  // Real perk redemptions state - loads from database
   const [perkRedemptions, setPerkRedemptions] = useState<PerkRedemption[]>([]);
+  // Selected card for viewing history
+  const [selectedCardForHistory, setSelectedCardForHistory] = useState<string | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // Edit state for limited CRUD functionality
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null);
@@ -94,9 +87,10 @@ export function ClinicPortalView() {
     }
   }, [isAuthenticated, user, currentClinic]);
 
-  // Load real appointments for this clinic
+  // Load real appointments and perk redemptions for this clinic
   useEffect(() => {
     if (currentClinic) {
+      // Load appointments
       const realAppointments = appointmentOperations.getByClinicId(currentClinic.id);
       // Convert to the AppointmentRequest format used by the UI
       const formattedAppointments: AppointmentRequest[] = realAppointments.map(apt => ({
@@ -116,6 +110,10 @@ export function ClinicPortalView() {
         processedAt: undefined
       }));
       setAppointmentRequests(formattedAppointments);
+
+      // Load perk redemptions for this clinic
+      const realRedemptions = perkRedemptionOperations.getByClinicId(currentClinic.id);
+      setPerkRedemptions(realRedemptions);
     }
   }, [currentClinic]);
 
@@ -338,11 +336,11 @@ export function ClinicPortalView() {
     addToast(toastSuccess('Password Changed', 'Your clinic password has been updated successfully'));
   };
 
-  // Perk Redemption Handler
+  // Perk Redemption Handler with real tracking
   const handlePerkRedemption = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedCardForPerk || !selectedPerkId) return;
+    if (!selectedCardForPerk || !selectedPerkId || !currentClinic) return;
 
     const card = cardOperations.getByControlNumber(selectedCardForPerk);
     const perk = perkOperations.getById(selectedPerkId);
@@ -357,15 +355,43 @@ export function ClinicPortalView() {
       return;
     }
 
+    // Get required information for tracking
+    const claimantName = prompt('Patient name (claimant):');
+    const handledBy = prompt('Staff member handling this redemption:');
+    const serviceType = prompt('Service type provided:');
+    const notes = prompt('Additional notes (optional):');
+
+    if (!claimantName || !handledBy || !serviceType) {
+      addToast(toastError('Missing Information', 'Please provide all required details for tracking'));
+      return;
+    }
+
+    // Create perk redemption record
+    const redemption = perkRedemptionOperations.create({
+      cardControlNumber: selectedCardForPerk,
+      perkId: selectedPerkId,
+      perkName: perk.name,
+      clinicId: currentClinic.id,
+      claimantName,
+      handledBy,
+      serviceType,
+      usedAt: new Date().toISOString(),
+      value: perk.value || 0,
+      notes: notes || undefined
+    });
+
     // Update card perks count
     cardOperations.updatePerks(selectedCardForPerk, card.perksUsed + 1);
+
+    // Update local perk redemptions list
+    setPerkRedemptions(prev => [...prev, redemption]);
 
     // Close modal and reset form
     setShowPerkRedemptionModal(false);
     setSelectedCardForPerk(null);
     setSelectedPerkId('');
 
-    addToast(toastSuccess('Perk Redeemed', `${perk.name} has been successfully redeemed for card ${selectedCardForPerk}`));
+    addToast(toastSuccess('Perk Redeemed', `${perk.name} has been successfully redeemed and tracked for ${claimantName}`));
   };
 
 
@@ -1065,17 +1091,29 @@ export function ClinicPortalView() {
                         </td>
                         <td className="p-4 text-gray-600">{new Date(card.expiryDate).toLocaleDateString()}</td>
                         <td className="p-4">
-                          <button
-                            onClick={() => {
-                              setSelectedCardForPerk(card.controlNumber);
-                              setShowPerkRedemptionModal(true);
-                            }}
-                            disabled={card.perksUsed >= card.perksTotal}
-                            className="btn-primary text-sm px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Award className="h-4 w-4 mr-1" />
-                            Redeem Perk
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedCardForPerk(card.controlNumber);
+                                setShowPerkRedemptionModal(true);
+                              }}
+                              disabled={card.perksUsed >= card.perksTotal}
+                              className="btn-primary text-sm px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Award className="h-4 w-4 mr-1" />
+                              Redeem Perk
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedCardForHistory(card.controlNumber);
+                                setShowHistoryModal(true);
+                              }}
+                              className="light-button-secondary text-sm px-3 py-1"
+                              title="View perk redemption history"
+                            >
+                              History
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1314,6 +1352,122 @@ export function ClinicPortalView() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Perk Redemption History Modal */}
+      {showHistoryModal && selectedCardForHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Perk Redemption History</h3>
+                  <p className="text-sm text-gray-600">Card: {selectedCardForHistory}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowHistoryModal(false);
+                    setSelectedCardForHistory(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              {(() => {
+                const cardHistory = perkRedemptionOperations.getByCardNumber(selectedCardForHistory);
+                if (cardHistory.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Gift className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h4 className="text-lg font-medium text-gray-900 mb-2">No Redemption History</h4>
+                      <p className="text-gray-600">
+                        This card has not been used to redeem any perks yet.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    {cardHistory.map((redemption, index) => (
+                      <div key={redemption.id} className="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <span className="text-green-600 font-bold text-sm">#{cardHistory.length - index}</span>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{redemption.perkName}</h4>
+                              <p className="text-sm text-gray-600">Service: {redemption.serviceType}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-900">
+                              {new Date(redemption.usedAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(redemption.usedAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600 font-medium">Claimant Name:</span>
+                            <p className="text-gray-900 mt-1">{redemption.claimantName}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 font-medium">Handled By:</span>
+                            <p className="text-gray-900 mt-1">{redemption.handledBy}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 font-medium">Value:</span>
+                            <p className="text-gray-900 mt-1">₱{redemption.value.toFixed(2)}</p>
+                          </div>
+                        </div>
+
+                        {redemption.notes && (
+                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                            <span className="text-blue-800 font-medium text-sm">Notes:</span>
+                            <p className="text-blue-700 text-sm mt-1">{redemption.notes}</p>
+                          </div>
+                        )}
+
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <p className="text-xs text-gray-500">
+                            Redeemed on {new Date(redemption.usedAt).toLocaleDateString('en-PH', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Award className="h-5 w-5 text-blue-600" />
+                        <span className="font-semibold text-blue-900">Total Redemptions: {cardHistory.length}</span>
+                      </div>
+                      <p className="text-sm text-blue-700 mt-2">
+                        This record provides proof of perk usage to prevent misuse and duplicate claims.
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
