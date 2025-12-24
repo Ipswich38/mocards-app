@@ -6,7 +6,7 @@ import {
   Clock, CheckCircle, XCircle, Phone, Gift, Calendar as CalendarIcon,
   Edit3, Save, X, Trash2, Award
 } from 'lucide-react';
-import { clinicOperations, cardOperations, perkOperations, type Clinic } from '../../lib/data';
+import { clinicOperations, cardOperations, perkOperations, appointmentOperations, type Clinic } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastError, toastWarning } from '../../lib/toast';
 
@@ -50,7 +50,7 @@ export function ClinicPortalView() {
   const [selectedCardForPerk, setSelectedCardForPerk] = useState<string | null>(null);
   const [selectedPerkId, setSelectedPerkId] = useState<string>('');
   const [activeTab, setActiveTab] = useState('dashboard');
-  // Production Ready - Empty appointment state
+  // Real appointment state - loads from database
   const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([]);
   // Production Ready - Empty perk redemptions state
   const [perkRedemptions, setPerkRedemptions] = useState<PerkRedemption[]>([]);
@@ -94,8 +94,37 @@ export function ClinicPortalView() {
     }
   }, [isAuthenticated, user, currentClinic]);
 
+  // Load real appointments for this clinic
+  useEffect(() => {
+    if (currentClinic) {
+      const realAppointments = appointmentOperations.getByClinicId(currentClinic.id);
+      // Convert to the AppointmentRequest format used by the UI
+      const formattedAppointments: AppointmentRequest[] = realAppointments.map(apt => ({
+        id: apt.id,
+        cardControlNumber: apt.cardControlNumber,
+        patientName: apt.patientName,
+        patientEmail: apt.patientEmail,
+        patientPhone: apt.patientPhone,
+        preferredDate: apt.preferredDate,
+        preferredTime: apt.preferredTime,
+        serviceType: apt.serviceType,
+        perkRequested: apt.perkRequested || '',
+        status: apt.status as 'pending' | 'accepted' | 'declined' | 'rescheduled',
+        adminNotes: apt.notes,
+        clinicNotes: '',
+        forwardedAt: apt.createdAt,
+        processedAt: undefined
+      }));
+      setAppointmentRequests(formattedAppointments);
+    }
+  }, [currentClinic]);
+
   // Appointment Processing Handlers
   const handleAcceptAppointment = (appointmentId: string, notes?: string) => {
+    // Update in database
+    appointmentOperations.updateStatus(appointmentId, 'accepted');
+
+    // Update local state
     setAppointmentRequests(prev =>
       prev.map(apt =>
         apt.id === appointmentId
@@ -112,6 +141,10 @@ export function ClinicPortalView() {
   };
 
   const handleDeclineAppointment = (appointmentId: string, reason: string) => {
+    // Update in database
+    appointmentOperations.updateStatus(appointmentId, 'declined');
+
+    // Update local state
     setAppointmentRequests(prev =>
       prev.map(apt =>
         apt.id === appointmentId

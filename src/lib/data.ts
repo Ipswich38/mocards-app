@@ -32,6 +32,23 @@ let appointments: Appointment[] = [];
 
 let perks: Perk[] = [];
 
+// Enhanced Perk Usage for tracking redemption history
+export interface PerkRedemption {
+  id: string;
+  cardControlNumber: string;
+  perkId: string;
+  perkName: string;
+  clinicId: string;
+  claimantName: string; // Patient name
+  handledBy: string; // Clinic staff who processed
+  serviceType: string; // What service was provided
+  usedAt: string; // ISO Date timestamp
+  value: number; // Value of the perk
+  notes?: string;
+}
+
+let perkRedemptions: PerkRedemption[] = [];
+
 // Utility Functions
 export const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString('en-PH');
@@ -305,5 +322,35 @@ export const appointmentOperations = {
       return true;
     }
     return false;
+  },
+};
+
+// Perk Redemption Operations
+export const perkRedemptionOperations = {
+  getAll: (): PerkRedemption[] => perkRedemptions,
+
+  getByCardNumber: (cardControlNumber: string): PerkRedemption[] => {
+    return perkRedemptions.filter(redemption => redemption.cardControlNumber === cardControlNumber);
+  },
+
+  getByClinicId: (clinicId: string): PerkRedemption[] => {
+    return perkRedemptions.filter(redemption => redemption.clinicId === clinicId);
+  },
+
+  create: (redemption: Omit<PerkRedemption, 'id'>): PerkRedemption => {
+    const newRedemption: PerkRedemption = {
+      ...redemption,
+      id: (perkRedemptions.length + 1).toString(),
+    };
+    perkRedemptions.push(newRedemption);
+    return newRedemption;
+  },
+
+  // Get redemption history for a specific perk type
+  getByPerkType: (cardControlNumber: string, perkName: string): PerkRedemption[] => {
+    return perkRedemptions.filter(redemption =>
+      redemption.cardControlNumber === cardControlNumber &&
+      redemption.perkName.toLowerCase().includes(perkName.toLowerCase())
+    );
   },
 };

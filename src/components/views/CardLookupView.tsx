@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Calendar, User, Gift, Shield, Clock, Send, Phone, Mail } from 'lucide-react';
-import { cardOperations, clinicOperations, type Card, formatDate } from '../../lib/data';
+import { cardOperations, clinicOperations, appointmentOperations, type Card, formatDate } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 
@@ -94,11 +94,31 @@ export function CardLookupView() {
       return;
     }
 
-    // Send request directly to clinic
-    addToast(toastSuccess(
-      'Request Sent to Clinic',
-      `Your appointment request has been sent directly to ${clinic.name}. The clinic will contact you within 24 hours to confirm your appointment.`
-    ));
+    // Create real appointment in database
+    try {
+      appointmentOperations.create({
+        cardControlNumber: searchResult.controlNumber,
+        clinicId: searchResult.clinicId,
+        patientName: appointmentForm.patientName,
+        patientEmail: appointmentForm.patientEmail,
+        patientPhone: appointmentForm.patientPhone || '',
+        preferredDate: appointmentForm.preferredDate,
+        preferredTime: appointmentForm.preferredTime,
+        serviceType: appointmentForm.serviceType,
+        perkRequested: appointmentForm.perkRequested || '',
+        notes: appointmentForm.notes || '',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      });
+
+      addToast(toastSuccess(
+        'Request Sent to Clinic',
+        `Your appointment request has been sent directly to ${clinic.name}. The clinic will contact you within 24 hours to confirm your appointment.`
+      ));
+    } catch (error) {
+      addToast(toastError('Request Failed', 'Failed to submit appointment request. Please try again.'));
+      return;
+    }
 
     // Reset form and hide
     setAppointmentForm({
