@@ -8,7 +8,7 @@
 
 export type ClinicPlan = 'starter' | 'growth' | 'pro';
 export type CardStatus = 'active' | 'inactive';
-export type AppointmentStatus = 'pending' | 'scheduled' | 'completed' | 'cancelled';
+export type AppointmentStatus = 'pending' | 'accepted' | 'declined' | 'rescheduled' | 'completed' | 'cancelled';
 export type UserRole = 'admin' | 'clinic' | 'staff';
 export type PerkType = 'dental_cleaning' | 'consultation' | 'xray' | 'treatment' | 'discount';
 
@@ -58,24 +58,27 @@ export interface Clinic {
   isActive: boolean;
 }
 
-// Appointment Schema
+// Appointment Schema - Updated for real implementation
 export interface Appointment {
   id: string;
   cardControlNumber: string;
   clinicId: string;
   patientName: string;
-  patientEmail?: string;
-  patientPhone?: string;
-  date: string; // ISO Date
-  time: string; // HH:MM format
-  status: AppointmentStatus;
+  patientEmail: string;
+  patientPhone: string;
+  preferredDate: string; // ISO Date - matches actual implementation
+  preferredTime: string; // HH:MM format
   serviceType: string;
-  notes?: string;
+  perkRequested?: string; // Perk that patient wants to use
+  status: AppointmentStatus;
+  notes?: string; // Admin/clinic notes
   createdAt: string; // ISO Date
-  updatedAt: string; // ISO Date
+  updatedAt?: string; // ISO Date
   completedAt?: string; // ISO Date when marked complete
   cancelledAt?: string; // ISO Date when cancelled
   cancellationReason?: string;
+  processedBy?: string; // Clinic staff who processed
+  processedAt?: string; // When clinic processed the request
 }
 
 // Perk Schema
@@ -92,7 +95,7 @@ export interface Perk {
   updatedAt: string; // ISO Date
 }
 
-// Perk Usage Schema
+// Perk Usage Schema (Legacy - for backward compatibility)
 export interface PerkUsage {
   id: string;
   cardControlNumber: string;
@@ -102,6 +105,21 @@ export interface PerkUsage {
   value: number; // Actual value used
   approvedBy?: string; // Staff ID who approved
   notes?: string;
+}
+
+// Perk Redemption Schema - Current implementation for tracking
+export interface PerkRedemption {
+  id: string;
+  cardControlNumber: string;
+  perkId: string;
+  perkName: string; // For easy display without lookup
+  clinicId: string;
+  claimantName: string; // Patient name who claimed
+  handledBy: string; // Clinic staff who processed
+  serviceType: string; // What service was provided
+  usedAt: string; // ISO Date timestamp
+  value: number; // Value of the perk in PHP
+  notes?: string; // Additional notes
 }
 
 // User Schema (Admin, Clinic Staff)
@@ -226,31 +244,31 @@ export const AREA_CODES = [
   'Custom'
 ] as const;
 
-// Default Perks
+// Production Default Perks - Christmas 2025 Edition
 export const DEFAULT_PERKS: Omit<Perk, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
     type: 'dental_cleaning',
     name: 'Free Dental Cleaning',
-    description: 'Complete dental cleaning service',
-    value: 0,
+    description: 'Complete professional dental cleaning service',
+    value: 1500, // PHP value
     isActive: true,
     validFor: 365,
     requiresApproval: false
   },
   {
     type: 'consultation',
-    name: 'Free Consultation',
-    description: 'General dental consultation',
-    value: 0,
+    name: 'Free Dental Consultation',
+    description: 'Comprehensive dental consultation and check-up',
+    value: 500, // PHP value
     isActive: true,
     validFor: 365,
     requiresApproval: false
   },
   {
     type: 'xray',
-    name: 'X-Ray Discount',
-    description: '50% discount on X-ray services',
-    value: 50,
+    name: 'X-Ray Imaging Service',
+    description: 'Digital X-ray imaging for diagnosis',
+    value: 800, // PHP value
     isActive: true,
     validFor: 365,
     requiresApproval: true
@@ -258,46 +276,82 @@ export const DEFAULT_PERKS: Omit<Perk, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
     type: 'treatment',
     name: 'Treatment Discount',
-    description: '20% discount on dental treatments',
-    value: 20,
+    description: '20% discount on dental treatments and procedures',
+    value: 20, // Percentage value
     isActive: true,
     validFor: 365,
     requiresApproval: true
   },
   {
     type: 'discount',
-    name: 'General Discount',
-    description: '10% discount on all services',
-    value: 10,
+    name: 'General Service Discount',
+    description: '10% discount on all dental services',
+    value: 10, // Percentage value
     isActive: true,
     validFor: 365,
     requiresApproval: false
   }
 ];
 
-// Application Settings
+// Production Application Settings
 export const APP_CONFIG = {
   name: 'MOCARDS CLOUD',
-  version: '1.0.0',
+  version: '4.0.0',
+  tagline: 'Dental Benefits Platform',
   currency: 'PHP',
   timezone: 'Asia/Manila',
   dateFormat: 'en-PH',
-  supportEmail: 'support@mocardscloud.com',
+  supportEmail: 'admin@mocards.cloud',
   maxFileSize: 5 * 1024 * 1024, // 5MB
   allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'],
   sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
   cardExpiryMonths: 12, // Default card expiry
   backupFrequency: 'daily',
-  auditRetentionDays: 365
+  auditRetentionDays: 365,
+
+  // Production sync settings
+  sync: {
+    appointmentRealTime: true,
+    perkRedemptionTracking: true,
+    cardStatusUpdates: true,
+    crossPortalPermissions: true
+  },
+
+  // Feature flags for production
+  features: {
+    adminPortal: true,
+    clinicPortal: true,
+    cardLookup: true,
+    perkRedemption: true,
+    appointmentManagement: true,
+    realTimeSync: true,
+    historyTracking: true,
+    securityDashboard: true,
+    mobileOptimized: true,
+    pwaSupport: true
+  }
 } as const;
 
-// API Response Types
+// Production API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
   timestamp: string;
+  version: string;
+  requestId?: string;
+
+  // Production metadata
+  metadata?: {
+    syncStatus?: 'real-time' | 'cached' | 'stale';
+    lastSync?: string;
+    source?: 'admin' | 'clinic' | 'system';
+    performance?: {
+      queryTime: number;
+      cacheHit: boolean;
+    };
+  };
 }
 
 export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
@@ -309,7 +363,7 @@ export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
   };
 }
 
-// Search and Filter Types
+// Production Search and Filter Types
 export interface SearchFilters {
   query?: string;
   status?: CardStatus | AppointmentStatus;
@@ -322,20 +376,56 @@ export interface SearchFilters {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+
+  // Advanced filters
+  cardControlNumber?: string;
+  perkType?: PerkType;
+  handledBy?: string;
+  serviceType?: string;
+  claimantName?: string;
+  hasRedemptions?: boolean;
+  expiringIn?: number; // days
+
+  // Sync filters
+  syncStatus?: 'synced' | 'pending' | 'failed';
+  lastUpdated?: string;
 }
 
-// Dashboard Stats Types
+// Production Dashboard Stats Types
 export interface DashboardStats {
+  // Card metrics
   totalCards: number;
   activeCards: number;
   inactiveCards: number;
+  cardsAssignedToday: number;
+
+  // Clinic metrics
   totalClinics: number;
   activeClinics: number;
+  clinicsCreatedToday: number;
+
+  // Appointment metrics
   totalAppointments: number;
-  completedAppointments: number;
   pendingAppointments: number;
+  acceptedAppointments: number;
+  completedAppointments: number;
+  appointmentsToday: number;
+
+  // Financial metrics
   monthlyRevenue: number;
-  perkUsageCount: number;
+  totalRevenue: number;
+  avgRevenuePerClinic: number;
+
+  // Perk metrics
+  totalPerkRedemptions: number;
+  perkRedemptionsToday: number;
+  totalPerkValue: number;
+  mostUsedPerk: string;
+
+  // Sync metrics
+  lastSyncTime: string;
+  syncErrors: number;
+  systemHealth: 'healthy' | 'warning' | 'critical';
 }
 
 // Export legacy types for backward compatibility
@@ -343,6 +433,108 @@ export type CardData = Card;
 export type { Clinic as ClinicData };
 export type { Appointment as AppointmentData };
 
+// Production Type Exports - fixed conflicts
+
+// Smart Sync Types for Admin-Clinic Integration
+export interface AdminClinicSync {
+  // Appointment sync between admin portal and clinic portal
+  appointmentSync: {
+    fromCardLookup: (appointment: Omit<Appointment, 'id'>) => Promise<Appointment>;
+    fromAdminPortal: (appointment: Omit<Appointment, 'id'>) => Promise<Appointment>;
+    toClinicPortal: (clinicId: string) => Promise<Appointment[]>;
+  };
+
+  // Card assignment and activation sync
+  cardSync: {
+    assignToClinic: (cardNumbers: string[], clinicId: string) => Promise<boolean>;
+    updateStatus: (cardNumber: string, status: CardStatus) => Promise<boolean>;
+    syncPerksUsage: (cardNumber: string, perksUsed: number) => Promise<boolean>;
+  };
+
+  // Perk redemption tracking sync
+  perkSync: {
+    redeemPerk: (redemption: any) => Promise<any>;
+    getHistory: (cardNumber: string) => Promise<any[]>;
+    validateRedemption: (cardNumber: string, perkId: string) => Promise<boolean>;
+  };
+
+  // Real-time notifications
+  notifications: {
+    notifyClinicNewAppointment: (clinicId: string, appointment: Appointment) => void;
+    notifyAdminPerkRedemption: (redemption: any) => void;
+    notifyCardStatusChange: (cardNumber: string, status: CardStatus) => void;
+  };
+}
+
+// Clinic Portal Permission System
+export interface ClinicPermissions {
+  canManageCards: boolean;
+  canViewAppointments: boolean;
+  canProcessAppointments: boolean;
+  canRedeemPerks: boolean;
+  canViewReports: boolean;
+  canManageStaff: boolean;
+}
+
+// Admin Portal Features
+export interface AdminFeatures {
+  canCreateClinics: boolean;
+  canManageClinics: boolean;
+  canGenerateCards: boolean;
+  canManagePerks: boolean;
+  canViewAllAppointments: boolean;
+  canAccessReports: boolean;
+  canManageSystem: boolean;
+}
+
+// Cross-Portal Sync Configuration
+export interface SyncConfiguration {
+  appointments: {
+    autoSyncToClinic: boolean;
+    notifyClinicOnNew: boolean;
+    allowClinicEdit: boolean;
+  };
+  cards: {
+    autoActivateOnAssign: boolean;
+    syncStatusChanges: boolean;
+  };
+  perks: {
+    syncRedemptionsRealTime: boolean;
+    trackRedemptionHistory: boolean;
+    requireStaffDetails: boolean;
+  };
+}
+
+// Production Data Validation Rules
+export const VALIDATION_RULES = {
+  card: {
+    controlNumber: /^MOC-\d{5}-[A-Z0-9]{2,3}-[A-Z0-9]{3,6}$/,
+    minPerks: 1,
+    maxPerks: 10,
+    expiryMinDays: 30
+  },
+  clinic: {
+    codeFormat: /^[A-Z]{3}\d{3}$/,
+    minPassword: 8,
+    maxCards: {
+      starter: 500,
+      growth: 1000,
+      pro: 2000
+    }
+  },
+  appointment: {
+    minAdvanceDays: 0,
+    maxAdvanceDays: 90,
+    requiredFields: ['patientName', 'patientEmail', 'preferredDate', 'serviceType']
+  },
+  perkRedemption: {
+    requiredFields: ['claimantName', 'handledBy', 'serviceType'],
+    maxNotesLength: 500
+  }
+} as const;
+
 // Schema Version for migrations
-export const SCHEMA_VERSION = '1.0.0';
-export const SCHEMA_UPDATED_AT = '2025-12-19T00:00:00.000Z';
+export const SCHEMA_VERSION = '4.0.0';
+export const SCHEMA_UPDATED_AT = '2025-12-24T00:00:00.000Z';
+export const PRODUCTION_READY = true;
+export const CHRISTMAS_EVE_DEADLINE_VERSION = 'v4.0-christmas-2025';

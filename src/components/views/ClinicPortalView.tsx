@@ -28,8 +28,7 @@ interface AppointmentRequest {
   processedAt?: string;
 }
 
-// Using real perk redemption data from database
-type PerkRedemption = RealPerkRedemption;
+// Using real perk redemption data from database - imported from data.ts as RealPerkRedemption
 
 export function ClinicPortalView() {
   const { isAuthenticated, user, login, logout } = useAuth();
@@ -43,14 +42,13 @@ export function ClinicPortalView() {
   // Real appointment state - loads from database
   const [appointmentRequests, setAppointmentRequests] = useState<AppointmentRequest[]>([]);
   // Real perk redemptions state - loads from database
-  const [perkRedemptions, setPerkRedemptions] = useState<PerkRedemption[]>([]);
+  const [perkRedemptions, setPerkRedemptions] = useState<RealPerkRedemption[]>([]);
   // Selected card for viewing history
   const [selectedCardForHistory, setSelectedCardForHistory] = useState<string | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // Edit state for limited CRUD functionality
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null);
-  const [editingPerk, setEditingPerk] = useState<string | null>(null);
   const [editAppointmentForm, setEditAppointmentForm] = useState({
     preferredDate: '',
     preferredTime: '',
@@ -58,10 +56,6 @@ export function ClinicPortalView() {
     clinicNotes: '',
     patientPhone: '',
     patientEmail: ''
-  });
-  const [editPerkForm, setEditPerkForm] = useState({
-    perkDescription: '',
-    clinicNotes: ''
   });
 
   // Password Management State
@@ -176,38 +170,7 @@ export function ClinicPortalView() {
     addToast(toastSuccess('Appointment Rescheduled', 'Patient will be contacted with new schedule'));
   };
 
-  // Perk Redemption Handlers
-  const handleApprovePerkRedemption = (redemptionId: string, notes?: string) => {
-    setPerkRedemptions(prev =>
-      prev.map(perk =>
-        perk.id === redemptionId
-          ? {
-              ...perk,
-              status: 'approved',
-              clinicNotes: notes || '',
-              processedAt: new Date().toISOString()
-            }
-          : perk
-      )
-    );
-    addToast(toastSuccess('Perk Approved', 'Redemption has been processed successfully'));
-  };
-
-  const handleDenyPerkRedemption = (redemptionId: string, reason: string) => {
-    setPerkRedemptions(prev =>
-      prev.map(perk =>
-        perk.id === redemptionId
-          ? {
-              ...perk,
-              status: 'denied',
-              clinicNotes: reason,
-              processedAt: new Date().toISOString()
-            }
-          : perk
-      )
-    );
-    addToast(toastWarning('Perk Denied', 'Redemption request has been declined'));
-  };
+  // Legacy perk management removed - now using real-time redemption system
 
   // Limited CRUD Handlers for Clinic (Appointments & Perks only)
   const handleEditAppointment = (appointmentId: string) => {
@@ -252,39 +215,7 @@ export function ClinicPortalView() {
     }
   };
 
-  const handleEditPerk = (perkId: string) => {
-    const perk = perkRedemptions.find(p => p.id === perkId);
-    if (perk) {
-      setEditPerkForm({
-        perkDescription: perk.perkDescription,
-        clinicNotes: perk.clinicNotes || ''
-      });
-      setEditingPerk(perkId);
-    }
-  };
-
-  const handleSavePerk = (perkId: string) => {
-    setPerkRedemptions(prev =>
-      prev.map(perk =>
-        perk.id === perkId
-          ? {
-              ...perk,
-              perkDescription: editPerkForm.perkDescription,
-              clinicNotes: editPerkForm.clinicNotes
-            }
-          : perk
-      )
-    );
-    setEditingPerk(null);
-    addToast(toastSuccess('Perk Updated', 'Perk redemption details have been updated'));
-  };
-
-  const handleDeletePerk = (perkId: string) => {
-    if (window.confirm('Are you sure you want to delete this perk redemption? This action cannot be undone.')) {
-      setPerkRedemptions(prev => prev.filter(perk => perk.id !== perkId));
-      addToast(toastSuccess('Perk Deleted', 'Perk redemption has been removed'));
-    }
-  };
+  // Legacy perk CRUD removed - using real tracking system
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -462,12 +393,12 @@ export function ClinicPortalView() {
   const planLimit = clinicOperations.getPlanLimit(currentClinic.id);
   const usagePercentage = (assignedCards.length / planLimit) * 100;
   const pendingAppointments = appointmentRequests.filter(apt => apt.status === 'pending');
-  const pendingPerks = perkRedemptions.filter(perk => perk.status === 'pending');
+  const pendingPerks: RealPerkRedemption[] = []; // No pending system for real redemptions - they are immediate
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'appointments', name: `Appointments (${pendingAppointments.length})`, icon: Calendar },
-    { id: 'perks', name: `Perks (${pendingPerks.length})`, icon: Gift },
+    { id: 'perks', name: `Perk History`, icon: Gift },
     { id: 'cards', name: 'Assigned Cards', icon: Users },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
@@ -863,9 +794,9 @@ export function ClinicPortalView() {
         <div className="light-card">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Perk Redemptions</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Perk Redemption History</h2>
               <span className="text-sm text-gray-600">
-                {perkRedemptions.length} total requests
+                {perkRedemptions.length} total redemptions
               </span>
             </div>
 
@@ -876,145 +807,56 @@ export function ClinicPortalView() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Perk Redemptions</h3>
                 <p className="text-gray-600">
-                  No perk redemption requests have been submitted yet.
+                  No perks have been redeemed at this clinic yet.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {perkRedemptions.map((redemption) => (
-                  <div key={redemption.id} className="border border-gray-200 rounded-xl p-6">
+                  <div key={redemption.id} className="border border-gray-200 rounded-xl p-6 bg-green-50">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                          <Gift className="h-5 w-5 text-purple-600" />
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <Gift className="h-5 w-5 text-green-600" />
                         </div>
                         <div>
-                          <h3 className="font-medium text-gray-900">{redemption.patientName}</h3>
+                          <h3 className="font-medium text-gray-900">{redemption.claimantName}</h3>
                           <p className="text-sm text-gray-600">{redemption.cardControlNumber}</p>
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        redemption.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        redemption.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {redemption.status}
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        Redeemed
                       </span>
                     </div>
 
-                    <div className="mb-4">
-                      {editingPerk === redemption.id ? (
-                        <div className="space-y-2">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Perk Description</label>
-                            <input
-                              type="text"
-                              value={editPerkForm.perkDescription}
-                              onChange={(e) => setEditPerkForm({ ...editPerkForm, perkDescription: e.target.value })}
-                              className="light-input text-sm"
-                            />
-                          </div>
-                          <p className="text-sm text-gray-600">Type: {redemption.perkType.replace('_', ' ')}</p>
-                        </div>
-                      ) : (
-                        <>
-                          <h4 className="font-medium text-gray-900 mb-1">{redemption.perkDescription}</h4>
-                          <p className="text-sm text-gray-600">Type: {redemption.perkType.replace('_', ' ')}</p>
-                        </>
-                      )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+                      <div>
+                        <span className="text-gray-600 font-medium">Perk:</span>
+                        <p className="text-gray-900 mt-1">{redemption.perkName}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-medium">Service Type:</span>
+                        <p className="text-gray-900 mt-1">{redemption.serviceType}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-medium">Handled By:</span>
+                        <p className="text-gray-900 mt-1">{redemption.handledBy}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-medium">Value:</span>
+                        <p className="text-gray-900 mt-1">₱{redemption.value.toFixed(2)}</p>
+                      </div>
                     </div>
 
-                    {(redemption.clinicNotes || editingPerk === redemption.id) && (
-                      <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                        {editingPerk === redemption.id ? (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Clinic Notes:</label>
-                            <textarea
-                              value={editPerkForm.clinicNotes}
-                              onChange={(e) => setEditPerkForm({ ...editPerkForm, clinicNotes: e.target.value })}
-                              placeholder="Add clinic notes..."
-                              className="light-input text-sm resize-none"
-                              rows={2}
-                            />
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-700">
-                            <strong>Clinic Notes:</strong> {redemption.clinicNotes}
-                          </p>
-                        )}
+                    {redemption.notes && (
+                      <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                        <span className="text-blue-800 font-medium text-sm">Notes:</span>
+                        <p className="text-blue-700 text-sm mt-1">{redemption.notes}</p>
                       </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2">
-                      {redemption.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => {
-                              const notes = prompt('Add any notes about the redemption (optional):');
-                              handleApprovePerkRedemption(redemption.id, notes || undefined);
-                            }}
-                            className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                            <span>Approve</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              const reason = prompt('Please provide a reason for denying this redemption:');
-                              if (reason) handleDenyPerkRedemption(redemption.id, reason);
-                            }}
-                            className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                          >
-                            <XCircle className="h-4 w-4" />
-                            <span>Deny</span>
-                          </button>
-                        </>
-                      )}
-
-                      {/* Limited CRUD - Edit & Delete for Clinic */}
-                      {editingPerk === redemption.id ? (
-                        <>
-                          <button
-                            onClick={() => handleSavePerk(redemption.id)}
-                            className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                            title="Save changes"
-                          >
-                            <Save className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => setEditingPerk(null)}
-                            className="flex items-center space-x-2 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                            title="Cancel"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleEditPerk(redemption.id)}
-                            className="flex items-center space-x-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                            title="Edit perk"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePerk(redemption.id)}
-                            className="flex items-center space-x-2 px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                            title="Delete perk"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-
                     <div className="text-xs text-gray-500 mt-4">
-                      Requested: {new Date(redemption.requestedAt).toLocaleString()}
-                      {redemption.processedAt && (
-                        <span> • Processed: {new Date(redemption.processedAt).toLocaleString()}</span>
-                      )}
+                      Redeemed: {new Date(redemption.usedAt).toLocaleString('en-PH')}
                     </div>
                   </div>
                 ))}
