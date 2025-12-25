@@ -488,25 +488,28 @@ class SupabaseCloudSync {
     try {
       this.setSyncStatus('syncing');
       const { data, error } = await supabase
-        .from('perk_usage_analytics')
+        .from('perk_redemptions')
         .select('*')
-        .order('redemption_date', { ascending: false });
+        .order('used_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[SupabaseCloudSync] Perk redemptions query failed:', error);
+        throw error;
+      }
 
       // Transform to our schema format
       const transformedRedemptions: PerkRedemption[] = (data || []).map(redemption => ({
         id: redemption.id,
-        cardControlNumber: 'Unknown', // Not in analytics table
-        perkId: redemption.perk_datalate_id,
-        perkName: 'Unknown Perk', // Would need join
+        cardControlNumber: redemption.card_control_number || 'Unknown',
+        perkId: redemption.perk_id,
+        perkName: redemption.perk_name || 'Unknown Perk',
         clinicId: redemption.clinic_id,
-        claimantName: 'Unknown Patient', // Not in analytics table
-        handledBy: 'System', // Not in analytics table
-        serviceType: 'General Service', // Not in analytics table
-        usedAt: redemption.redeemed_at,
-        value: redemption.value_redeemed,
-        notes: '',
+        claimantName: redemption.claimant_name || 'Unknown Patient',
+        handledBy: redemption.handled_by || 'System',
+        serviceType: redemption.service_type || 'General Service',
+        usedAt: redemption.used_at,
+        value: redemption.value || 0,
+        notes: redemption.notes || '',
       }));
 
       this.setSyncStatus('synced');
@@ -745,22 +748,44 @@ export const cloudOperations = {
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
     },
-    add: async (redemption: PerkRedemption): Promise<boolean> => {
+    add: async (redemption: Omit<PerkRedemption, 'id'>): Promise<PerkRedemption> => {
       try {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('perk_redemptions')
           .insert({
             perk_id: redemption.perkId,
+            perk_name: redemption.perkName,
             clinic_id: redemption.clinicId,
             card_control_number: redemption.cardControlNumber,
-            redeemed_at: redemption.usedAt,
-            value_redeemed: redemption.value,
+            claimant_name: redemption.claimantName,
+            handled_by: redemption.handledBy,
+            service_type: redemption.serviceType,
+            used_at: redemption.usedAt,
+            value: redemption.value,
             notes: redemption.notes || null,
-          });
-        return !error;
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Transform back to our schema
+        return {
+          id: data.id,
+          cardControlNumber: data.card_control_number,
+          perkId: data.perk_id,
+          perkName: data.perk_name,
+          clinicId: data.clinic_id,
+          claimantName: data.claimant_name,
+          handledBy: data.handled_by,
+          serviceType: data.service_type,
+          usedAt: data.used_at,
+          value: data.value,
+          notes: data.notes || '',
+        };
       } catch (error) {
         console.error('[CloudOperations] Error adding perk redemption:', error);
-        return false;
+        throw error;
       }
     }
   },

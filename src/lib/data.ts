@@ -363,14 +363,8 @@ export const perkRedemptionOperations = {
   },
 
   create: async (redemption: Omit<PerkRedemption, 'id'>): Promise<PerkRedemption> => {
-    const newRedemption: PerkRedemption = {
-      ...redemption,
-      id: `redemption_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    };
-
-    // Save to cloud immediately
-    await cloudOperations.perkRedemptions.add(newRedemption);
-    return newRedemption;
+    // Save to cloud immediately and get the returned redemption with real ID
+    return await cloudOperations.perkRedemptions.add(redemption);
   },
 
   // Get redemption history for a specific perk type
