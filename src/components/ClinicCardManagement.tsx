@@ -157,8 +157,11 @@ export function ClinicCardManagement({ clinicId, clinicName, clinicCode }: Clini
         .from('cards')
         .update({
           passcode: completePasscode,
-          location_code: clinicCode,
+          location_code_v2: clinicCode,
+          clinic_code_v2: clinicCode,
           status: 'activated',
+          is_activated: true,
+          assigned_clinic_id: clinicId,
           activated_at: new Date().toISOString(),
           expires_at: expiresAt.toISOString(),
           updated_at: new Date().toISOString()

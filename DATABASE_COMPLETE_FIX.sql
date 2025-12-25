@@ -308,6 +308,24 @@ BEGIN
         ALTER TABLE cards ADD COLUMN clinic_code_v2 VARCHAR(50);
         RAISE NOTICE '✅ Added clinic_code_v2 column to cards table';
     END IF;
+
+    -- Add location_code if it doesn't exist (legacy support)
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'location_code' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN location_code VARCHAR(50);
+        RAISE NOTICE '✅ Added location_code column to cards table';
+    END IF;
+
+    -- Add passcode if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'passcode' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN passcode VARCHAR(50);
+        RAISE NOTICE '✅ Added passcode column to cards table';
+    END IF;
 END $$;
 
 -- Add missing columns to perk_redemptions table
