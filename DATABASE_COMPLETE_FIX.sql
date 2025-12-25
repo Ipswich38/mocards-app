@@ -309,6 +309,55 @@ BEGIN
     END IF;
 END $$;
 
+-- Add missing columns to perk_templates table
+DO $$
+BEGIN
+    -- Add type column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'perk_templates' AND column_name = 'type' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE perk_templates ADD COLUMN type VARCHAR(50) DEFAULT 'consultation';
+        RAISE NOTICE '✅ Added type column to perk_templates table';
+    END IF;
+
+    -- Add value column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'perk_templates' AND column_name = 'value' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE perk_templates ADD COLUMN value DECIMAL(10,2) DEFAULT 0;
+        RAISE NOTICE '✅ Added value column to perk_templates table';
+    END IF;
+
+    -- Add is_active column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'perk_templates' AND column_name = 'is_active' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE perk_templates ADD COLUMN is_active BOOLEAN DEFAULT true;
+        RAISE NOTICE '✅ Added is_active column to perk_templates table';
+    END IF;
+
+    -- Add is_system_default column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'perk_templates' AND column_name = 'is_system_default' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE perk_templates ADD COLUMN is_system_default BOOLEAN DEFAULT false;
+        RAISE NOTICE '✅ Added is_system_default column to perk_templates table';
+    END IF;
+
+    -- Add default_value column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'perk_templates' AND column_name = 'default_value' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE perk_templates ADD COLUMN default_value DECIMAL(10,2) DEFAULT 0;
+        RAISE NOTICE '✅ Added default_value column to perk_templates table';
+    END IF;
+END $$;
+
 -- ================================================================
 -- STEP 4: CREATE INDEXES FOR PERFORMANCE
 -- ================================================================
@@ -474,16 +523,35 @@ END $$;
 -- STEP 5: INSERT DEFAULT DATA IF TABLES ARE EMPTY
 -- ================================================================
 
--- Insert default perk templates if table is empty
-INSERT INTO perk_templates (name, description, type, value, is_active, is_system_default)
-SELECT * FROM (VALUES
-    ('Free Dental Cleaning', 'Complete dental cleaning and oral examination', 'dental_cleaning', 500.00, true, true),
-    ('Free Consultation', 'General dental consultation and assessment', 'consultation', 200.00, true, true),
-    ('Free X-Ray', 'Dental X-ray imaging service', 'xray', 300.00, true, true),
-    ('Treatment Discount', '20% discount on dental treatments', 'discount', 0.20, true, true),
-    ('Emergency Treatment', 'Emergency dental care service', 'treatment', 800.00, true, true)
-) AS v(name, description, type, value, is_active, is_system_default)
-WHERE NOT EXISTS (SELECT 1 FROM perk_templates);
+-- Insert default perk templates (with column validation)
+DO $$
+BEGIN
+    -- Only insert if table is empty and required columns exist
+    IF NOT EXISTS (SELECT 1 FROM perk_templates) THEN
+        -- Check if all required columns exist
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'name' AND table_schema = 'public')
+        AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'description' AND table_schema = 'public')
+        AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'type' AND table_schema = 'public')
+        AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'value' AND table_schema = 'public')
+        AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'is_active' AND table_schema = 'public')
+        AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'is_system_default' AND table_schema = 'public') THEN
+
+            INSERT INTO perk_templates (name, description, type, value, is_active, is_system_default)
+            VALUES
+                ('Free Dental Cleaning', 'Complete dental cleaning and oral examination', 'dental_cleaning', 500.00, true, true),
+                ('Free Consultation', 'General dental consultation and assessment', 'consultation', 200.00, true, true),
+                ('Free X-Ray', 'Dental X-ray imaging service', 'xray', 300.00, true, true),
+                ('Treatment Discount', '20% discount on dental treatments', 'discount', 0.20, true, true),
+                ('Emergency Treatment', 'Emergency dental care service', 'treatment', 800.00, true, true);
+
+            RAISE NOTICE '✅ Inserted % default perk templates', ROW_COUNT;
+        ELSE
+            RAISE NOTICE '⚠️ Skipped perk template insertion - missing required columns';
+        END IF;
+    ELSE
+        RAISE NOTICE 'ℹ️ Perk templates table already has data - skipping insert';
+    END IF;
+END $$;
 
 -- ================================================================
 -- STEP 6: VERIFICATION - SHOW FINAL STRUCTURE
