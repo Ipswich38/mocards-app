@@ -57,6 +57,39 @@ export function AdminPortalView() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [activeTab, setActiveTab] = useState<AdminTab>('generator');
 
+  // Debug function to test database connection
+  const testDatabaseConnection = async () => {
+    try {
+      console.log('[Admin Debug] Testing database connection...');
+      addToast(toastWarning('Database Test', 'Testing database connection...'));
+
+      // Test basic connection by getting cards
+      const testCards = await cardOperations.getAll();
+      console.log('[Admin Debug] Cards retrieved:', testCards);
+
+      // Test simple card creation with minimal data
+      const testCard: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
+        controlNumber: `TEST-${Date.now()}`,
+        fullName: 'Test Card',
+        status: 'inactive',
+        perksTotal: 1,
+        perksUsed: 0,
+        clinicId: '',
+        expiryDate: '2025-12-31',
+      };
+
+      console.log('[Admin Debug] Attempting to create test card:', testCard);
+      const createdTestCard = await cardOperations.create(testCard);
+      console.log('[Admin Debug] Test card created successfully:', createdTestCard);
+
+      addToast(toastSuccess('Database Test Passed', 'Database connection and card creation working correctly!'));
+      await reloadData();
+    } catch (error) {
+      console.error('[Admin Debug] Database test failed:', error);
+      addToast(toastError('Database Test Failed', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
+  };
+
   // Generator State
   const [generatorForm, setGeneratorForm] = useState({
     mode: 'single' as 'single' | 'batch',
@@ -291,9 +324,16 @@ export function AdminPortalView() {
         expiryDate: '2025-12-31',
       };
 
-      await cardOperations.create(newCard);
-      addToast(toastSuccess('Card Generated', `Created ${controlNumber} with ${generatorForm.perksTotal} perks`));
-      await reloadData(); // Refresh the data
+      try {
+        console.log('[Admin] Attempting to create card:', newCard);
+        const createdCard = await cardOperations.create(newCard);
+        console.log('[Admin] Card created successfully:', createdCard);
+        addToast(toastSuccess('Card Generated', `Created ${controlNumber} with ${generatorForm.perksTotal} perks`));
+        await reloadData(); // Refresh the data
+      } catch (error) {
+        console.error('[Admin] Card creation failed:', error);
+        addToast(toastError('Card Creation Failed', `Failed to create card ${controlNumber}. Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      }
     } else {
       // Batch generation
       const start = parseInt(generatorForm.startId);
@@ -310,9 +350,16 @@ export function AdminPortalView() {
         finalAreaCode = generatorForm.customAreaCode;
       }
 
-      const generatedCards = await cardOperations.createBatch(start, end, generatorForm.region, finalAreaCode, generatorForm.perksTotal);
-      addToast(toastSuccess('Batch Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
-      await reloadData(); // Refresh the data
+      try {
+        console.log('[Admin] Attempting batch creation:', { start, end, region: generatorForm.region, areaCode: finalAreaCode });
+        const generatedCards = await cardOperations.createBatch(start, end, generatorForm.region, finalAreaCode, generatorForm.perksTotal);
+        console.log('[Admin] Batch created successfully:', generatedCards);
+        addToast(toastSuccess('Batch Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
+        await reloadData(); // Refresh the data
+      } catch (error) {
+        console.error('[Admin] Batch creation failed:', error);
+        addToast(toastError('Batch Creation Failed', `Failed to create cards. Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      }
     }
   };
 
@@ -978,9 +1025,15 @@ export function AdminPortalView() {
                 )}
               </div>
 
-              <button onClick={handleGenerateCards} className="light-button-primary">
-                {generatorForm.mode === 'single' ? 'Generate Card' : 'Generate Batch'}
-              </button>
+              <div className="flex space-x-3">
+                <button onClick={handleGenerateCards} className="light-button-primary">
+                  {generatorForm.mode === 'single' ? 'Generate Card' : 'Generate Batch'}
+                </button>
+                <button onClick={testDatabaseConnection} className="light-button-secondary">
+                  <Database className="h-4 w-4 mr-2" />
+                  Test DB
+                </button>
+              </div>
             </div>
           )}
 
