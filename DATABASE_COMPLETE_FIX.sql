@@ -155,10 +155,46 @@ BEGIN
     -- Add region column if it doesn't exist
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'clinics' AND column_name = 'region'
+        WHERE table_name = 'clinics' AND column_name = 'region' AND table_schema = 'public'
     ) THEN
         ALTER TABLE clinics ADD COLUMN region VARCHAR(50) DEFAULT 'NCR';
         RAISE NOTICE '✅ Added region column to clinics table';
+    END IF;
+
+    -- Add address column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'address' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN address TEXT;
+        RAISE NOTICE '✅ Added address column to clinics table';
+    END IF;
+
+    -- Add contact_email column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'contact_email' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN contact_email VARCHAR(200);
+        RAISE NOTICE '✅ Added contact_email column to clinics table';
+    END IF;
+
+    -- Add contact_phone column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'contact_phone' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN contact_phone VARCHAR(50);
+        RAISE NOTICE '✅ Added contact_phone column to clinics table';
+    END IF;
+
+    -- Add password_hash column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'password_hash' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN password_hash VARCHAR(200);
+        RAISE NOTICE '✅ Added password_hash column to clinics table';
     END IF;
 END $$;
 
@@ -213,10 +249,64 @@ BEGIN
     -- Add clinic_id if it doesn't exist
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'cards' AND column_name = 'clinic_id'
+        WHERE table_name = 'cards' AND column_name = 'clinic_id' AND table_schema = 'public'
     ) THEN
         ALTER TABLE cards ADD COLUMN clinic_id UUID;
         RAISE NOTICE '✅ Added clinic_id column to cards table';
+    END IF;
+
+    -- Add is_activated if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'is_activated' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN is_activated BOOLEAN DEFAULT false;
+        RAISE NOTICE '✅ Added is_activated column to cards table';
+    END IF;
+
+    -- Add assigned_clinic_id if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'assigned_clinic_id' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN assigned_clinic_id UUID;
+        RAISE NOTICE '✅ Added assigned_clinic_id column to cards table';
+    END IF;
+
+    -- Add activated_at if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'activated_at' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN activated_at TIMESTAMP;
+        RAISE NOTICE '✅ Added activated_at column to cards table';
+    END IF;
+
+    -- Add expires_at if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'expires_at' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN expires_at TIMESTAMP;
+        RAISE NOTICE '✅ Added expires_at column to cards table';
+    END IF;
+
+    -- Add location_code_v2 if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'location_code_v2' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN location_code_v2 VARCHAR(50);
+        RAISE NOTICE '✅ Added location_code_v2 column to cards table';
+    END IF;
+
+    -- Add clinic_code_v2 if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'clinic_code_v2' AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE cards ADD COLUMN clinic_code_v2 VARCHAR(50);
+        RAISE NOTICE '✅ Added clinic_code_v2 column to cards table';
     END IF;
 END $$;
 
