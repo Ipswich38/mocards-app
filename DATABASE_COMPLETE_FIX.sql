@@ -265,6 +265,46 @@ BEGIN
     END IF;
 END $$;
 
+-- Add missing columns to clinics table
+DO $$
+BEGIN
+    -- Add clinic_code column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'clinic_code'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN clinic_code VARCHAR(50) UNIQUE;
+        RAISE NOTICE '✅ Added clinic_code column to clinics table';
+    END IF;
+
+    -- Add clinic_name column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'clinic_name'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN clinic_name VARCHAR(200) NOT NULL DEFAULT 'Unknown Clinic';
+        RAISE NOTICE '✅ Added clinic_name column to clinics table';
+    END IF;
+
+    -- Add region column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'region'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN region VARCHAR(50) DEFAULT 'NCR';
+        RAISE NOTICE '✅ Added region column to clinics table';
+    END IF;
+
+    -- Add status column if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'status'
+    ) THEN
+        ALTER TABLE clinics ADD COLUMN status VARCHAR(20) DEFAULT 'active';
+        RAISE NOTICE '✅ Added status column to clinics table';
+    END IF;
+END $$;
+
 -- Add missing columns to appointments table
 DO $$
 BEGIN
