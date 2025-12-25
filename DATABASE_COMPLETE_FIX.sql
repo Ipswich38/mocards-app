@@ -353,34 +353,66 @@ BEGIN
     END IF;
 END $$;
 
--- Create indexes for clinics table (ensure columns exist first)
+-- Create indexes for clinics table (with robust column creation)
 DO $$
 BEGIN
-    -- Ensure clinic_code column exists before creating index
-    IF NOT EXISTS (
+    -- First, ensure the clinics table exists
+    CREATE TABLE IF NOT EXISTS clinics (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Add clinic_code column with error handling
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'clinics' AND column_name = 'clinic_code' AND table_schema = 'public'
+        ) THEN
+            ALTER TABLE clinics ADD COLUMN clinic_code VARCHAR(50);
+            RAISE NOTICE '✅ Added clinic_code column to clinics table';
+        ELSE
+            RAISE NOTICE 'ℹ️ clinic_code column already exists';
+        END IF;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE '⚠️ Could not add clinic_code column: %', SQLERRM;
+    END;
+
+    -- Add status column with error handling
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'clinics' AND column_name = 'status' AND table_schema = 'public'
+        ) THEN
+            ALTER TABLE clinics ADD COLUMN status VARCHAR(20) DEFAULT 'active';
+            RAISE NOTICE '✅ Added status column to clinics table';
+        ELSE
+            RAISE NOTICE 'ℹ️ status column already exists';
+        END IF;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE '⚠️ Could not add status column: %', SQLERRM;
+    END;
+
+    -- Only create indexes if columns exist
+    IF EXISTS (
         SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'clinics' AND column_name = 'clinic_code'
+        WHERE table_name = 'clinics' AND column_name = 'clinic_code' AND table_schema = 'public'
     ) THEN
-        ALTER TABLE clinics ADD COLUMN clinic_code VARCHAR(50) UNIQUE;
-        RAISE NOTICE '✅ Added clinic_code column to clinics table';
+        CREATE INDEX IF NOT EXISTS idx_clinics_clinic_code ON clinics(clinic_code);
+        RAISE NOTICE '✅ Created index on clinic_code column';
+    ELSE
+        RAISE NOTICE '⚠️ Skipped clinic_code index - column does not exist';
     END IF;
 
-    -- Now create the index
-    CREATE INDEX IF NOT EXISTS idx_clinics_clinic_code ON clinics(clinic_code);
-    RAISE NOTICE '✅ Created index on clinic_code column';
-
-    -- Ensure status column exists before creating index
-    IF NOT EXISTS (
+    IF EXISTS (
         SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'clinics' AND column_name = 'status'
+        WHERE table_name = 'clinics' AND column_name = 'status' AND table_schema = 'public'
     ) THEN
-        ALTER TABLE clinics ADD COLUMN status VARCHAR(20) DEFAULT 'active';
-        RAISE NOTICE '✅ Added status column to clinics table';
+        CREATE INDEX IF NOT EXISTS idx_clinics_status ON clinics(status);
+        RAISE NOTICE '✅ Created index on status column';
+    ELSE
+        RAISE NOTICE '⚠️ Skipped status index - column does not exist';
     END IF;
-
-    -- Now create the index
-    CREATE INDEX IF NOT EXISTS idx_clinics_status ON clinics(status);
-    RAISE NOTICE '✅ Created index on status column';
 END $$;
 
 -- Create indexes for perk_redemptions table (with existence checks)
