@@ -58,7 +58,7 @@ export function CardActivationV2({ clinicName }: CardActivationV2Props) {
     setLoadingClinics(true);
     try {
       const { data, error } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('*')
         .eq('is_active', true)
         .order('clinic_name');

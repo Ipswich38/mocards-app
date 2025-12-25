@@ -75,7 +75,7 @@ export function CardExportSystem() {
         .select(`
           *,
           card_perks(*),
-          mocards_clinics!assigned_clinic_id(
+          clinics!assigned_clinic_id(
             clinic_name,
             clinic_code
           )
@@ -149,10 +149,10 @@ export function CardExportSystem() {
       card.migration_version || 'V1',
       card.location_code_v2 || '',
       card.clinic_code_v2 || '',
-      card.mocards_clinics?.clinic_name || '',
-      card.mocards_clinics?.clinic_code || '',
-      card.mocards_clinics?.clinic_name || '',
-      card.mocards_clinics?.clinic_code || '',
+      card.clinics?.clinic_name || '',
+      card.clinics?.clinic_code || '',
+      card.clinics?.clinic_name || '',
+      card.clinics?.clinic_code || '',
       card.activated_at ? new Date(card.activated_at).toLocaleDateString() : '',
       card.expires_at ? new Date(card.expires_at).toLocaleDateString() : '',
       card.holder_name || '',
@@ -209,7 +209,7 @@ export function CardExportSystem() {
         migrationVersion: card.migration_version,
         locationCodeV2: card.location_code_v2,
         clinicCodeV2: card.clinic_code_v2,
-        assignedClinic: card.mocards_clinics,
+        assignedClinic: card.clinics,
         activationDate: card.activated_at,
         expiryDate: card.expires_at,
         holderInfo: {

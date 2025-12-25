@@ -50,7 +50,7 @@ export function PerkRedemption() {
   const loadClinics = async () => {
     try {
       const { data, error } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('*')
         .eq('is_active', true)
         .order('clinic_name');
@@ -82,7 +82,7 @@ export function PerkRedemption() {
           status,
           is_activated,
           assigned_clinic_id,
-          mocards_clinics!cards_assigned_clinic_id_fkey (
+          clinics!cards_assigned_clinic_id_fkey (
             clinic_name
           )
         `)
@@ -106,7 +106,7 @@ export function PerkRedemption() {
         unified_control_number: cards.unified_control_number,
         status: cards.status,
         is_activated: cards.is_activated,
-        clinic_name: (cards as any).mocards_clinics?.clinic_name || 'Unassigned'
+        clinic_name: (cards as any).clinics?.clinic_name || 'Unassigned'
       };
 
       setSelectedCard(card);

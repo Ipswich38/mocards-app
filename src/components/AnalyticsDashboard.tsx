@@ -45,7 +45,7 @@ export function AnalyticsDashboard() {
 
       // Load card statistics
       const { data: cards } = await supabase.from('cards').select('*');
-      const { data: clinics } = await supabase.from('mocards_clinics').select('*');
+      const { data: clinics } = await supabase.from('clinics').select('*');
       const { data: perks } = await supabase
         .from('card_perks')
         .select('*')

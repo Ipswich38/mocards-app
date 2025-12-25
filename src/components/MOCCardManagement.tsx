@@ -110,7 +110,7 @@ export function MOCCardManagement() {
 
       // Get clinic name suggestions
       const { data: clinicSuggestions } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('clinic_name')
         .ilike('clinic_name', `${query}%`)
         .limit(3);
@@ -191,7 +191,7 @@ export function MOCCardManagement() {
         .from('cards')
         .select(`
           *,
-          mocards_clinics!assigned_clinic_id(
+          clinics!assigned_clinic_id(
             id,
             clinic_name,
             clinic_code
@@ -218,7 +218,7 @@ export function MOCCardManagement() {
         } else {
           // Text search - include clinic name search via join
           query = query.or(
-            `control_number.ilike.%${searchTerm}%,control_number_v2.ilike.%${searchTerm}%,mocards_clinics.clinic_name.ilike.%${searchTerm}%`
+            `control_number.ilike.%${searchTerm}%,control_number_v2.ilike.%${searchTerm}%,clinics.clinic_name.ilike.%${searchTerm}%`
           );
         }
       }
@@ -282,7 +282,7 @@ export function MOCCardManagement() {
   const loadClinics = async () => {
     try {
       const { data, error } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('id, clinic_name, clinic_code, status')
         .eq('status', 'active')
         .order('clinic_name');

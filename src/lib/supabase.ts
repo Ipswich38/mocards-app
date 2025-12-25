@@ -336,7 +336,7 @@ export const dbOperations = {
       .from('cards')
       .select(`
         *,
-        clinic:mocards_clinics(*),
+        clinic:clinics(*),
         perks:card_perks(*)
       `);
 
@@ -396,7 +396,7 @@ export const dbOperations = {
   async activateCard(cardId: string, clinicId: string, regionCode: string = '16') {
     // Get clinic info for assignment tracking
     const { data: clinic } = await supabase
-      .from('mocards_clinics')
+      .from('clinics')
       .select('clinic_code')
       .eq('id', clinicId)
       .single();
@@ -444,7 +444,7 @@ export const dbOperations = {
   // Clinic operations
   async createClinic(clinicData: Omit<Clinic, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await supabase
-      .from('mocards_clinics')
+      .from('clinics')
       .insert({
         ...clinicData,
         created_at: new Date().toISOString(),
@@ -459,7 +459,7 @@ export const dbOperations = {
 
   async getClinicByCode(clinicCode: string) {
     const { data, error } = await supabase
-      .from('mocards_clinics')
+      .from('clinics')
       .select('*')
       .eq('clinic_code', clinicCode)
       .single();
@@ -549,7 +549,7 @@ export const dbOperations = {
       .from('appointments')
       .select(`
         *,
-        clinic:mocards_clinics(*),
+        clinic:clinics(*),
         card:cards(*)
       `)
       .order('created_at', { ascending: false });
@@ -580,7 +580,7 @@ export const dbOperations = {
       .from('appointments')
       .select(`
         *,
-        clinic:mocards_clinics(*),
+        clinic:clinics(*),
         card:cards(*)
       `)
       .eq('id', id)
@@ -686,7 +686,7 @@ export const dbOperations = {
 
   async getAllClinics() {
     const { data, error } = await supabase
-      .from('mocards_clinics')
+      .from('clinics')
       .select('*')
       .eq('status', 'active')
       .order('clinic_name');

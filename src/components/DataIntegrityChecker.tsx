@@ -70,7 +70,7 @@ export function DataIntegrityChecker() {
 
       // 4. Count clinics
       const { count: totalClinics, error: clinicError } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('*', { count: 'exact', head: true });
 
       if (clinicError) {
@@ -121,7 +121,7 @@ export function DataIntegrityChecker() {
             .from('cards')
             .select(`
               *,
-              clinic:mocards_clinics(*),
+              clinic:clinics(*),
               perks:card_perks(*)
             `)
             .eq('control_number', sampleCard.control_number)
@@ -215,7 +215,7 @@ export function DataIntegrityChecker() {
         .from('cards')
         .select(`
           *,
-          clinic:mocards_clinics(*),
+          clinic:clinics(*),
           perks:card_perks(*)
         `)
         .eq('control_number', testCard.trim())

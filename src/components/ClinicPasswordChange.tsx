@@ -50,7 +50,7 @@ export function ClinicPasswordChange({ clinic, onPasswordChanged, onSkipForNow }
     try {
       // Get current clinic data to verify current password
       const { data: clinicData, error: fetchError } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('password_hash')
         .eq('id', clinic.clinicId)
         .single();
@@ -69,7 +69,7 @@ export function ClinicPasswordChange({ clinic, onPasswordChanged, onSkipForNow }
 
       // Update password in database
       const { error: updateError } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .update({
           password_hash: newPasswordHash,
           current_password: newPassword, // Store for admin visibility

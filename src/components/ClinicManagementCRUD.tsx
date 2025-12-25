@@ -129,7 +129,7 @@ export function ClinicManagementCRUD() {
 
     try {
       let query = supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -164,10 +164,10 @@ export function ClinicManagementCRUD() {
   const loadStats = async () => {
     try {
       const [totalResult, activeResult, pendingResult, inactiveResult] = await Promise.all([
-        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }),
-        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }).eq('status', 'inactive')
+        supabase.from('clinics').select('*', { count: 'exact', head: true }),
+        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('status', 'inactive')
       ]);
 
       setStats({
@@ -220,7 +220,7 @@ export function ClinicManagementCRUD() {
         }
 
         const { error } = await supabase
-          .from('mocards_clinics')
+          .from('clinics')
           .update(updateObject)
           .eq('id', editingClinic.id);
 
@@ -252,7 +252,7 @@ export function ClinicManagementCRUD() {
         });
 
         const { data, error } = await supabase
-          .from('mocards_clinics')
+          .from('clinics')
           .insert({
             clinic_name: formData.clinic_name,
             clinic_code: formData.clinic_code,
@@ -346,7 +346,7 @@ export function ClinicManagementCRUD() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .delete()
         .eq('id', clinic.id);
 

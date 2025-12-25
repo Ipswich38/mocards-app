@@ -92,7 +92,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         supabase.from('cards').select('*', { count: 'exact', head: true }).eq('is_activated', true).gte('card_number', 1).lte('card_number', 10000),
         // Cards with proper V2 format
         supabase.from('cards').select('*', { count: 'exact', head: true }).like('control_number_v2', 'MOC-%').gte('card_number', 1).lte('card_number', 10000),
-        supabase.from('mocards_clinics').select('*', { count: 'exact', head: true }),
+        supabase.from('clinics').select('*', { count: 'exact', head: true }),
         supabase.from('default_perk_templates').select('*', { count: 'exact', head: true })
       ]);
 
@@ -129,7 +129,7 @@ export function MOCAdminDashboardV2({ token, onBack }: MOCAdminDashboardV2Props)
         // Load clinic info if assigned
         if (card.assigned_clinic_id) {
           const { data: clinic } = await supabase
-            .from('mocards_clinics')
+            .from('clinics')
             .select('clinic_name, clinic_code')
             .eq('id', card.assigned_clinic_id)
             .single();
