@@ -56,7 +56,7 @@ class SupabaseCloudSync {
     const clinicsSubscription = supabase
       .channel('clinics-changes')
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'mocards_clinics' },
+        { event: '*', schema: 'public', table: 'clinics' },
         (payload) => {
           console.log('[SupabaseCloudSync] Clinics changed:', payload);
           this.lastSync = new Date();
@@ -80,7 +80,7 @@ class SupabaseCloudSync {
     const perksSubscription = supabase
       .channel('perks-changes')
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'perk_datalates' },
+        { event: '*', schema: 'public', table: 'perks' },
         (payload) => {
           console.log('[SupabaseCloudSync] Perks changed:', payload);
           this.lastSync = new Date();
@@ -92,7 +92,7 @@ class SupabaseCloudSync {
     const redemptionsSubscription = supabase
       .channel('redemptions-changes')
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'perk_usage_analytics' },
+        { event: '*', schema: 'public', table: 'perk_redemptions' },
         (payload) => {
           console.log('[SupabaseCloudSync] Perk redemptions changed:', payload);
           this.lastSync = new Date();
@@ -231,7 +231,7 @@ class SupabaseCloudSync {
     try {
       this.setSyncStatus('syncing');
       const { data, error } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -283,7 +283,7 @@ class SupabaseCloudSync {
       };
 
       const { data, error } = await supabase
-        .from('mocards_clinics')
+        .from('clinics')
         .insert(supabaseClinic)
         .select()
         .single();
@@ -459,10 +459,10 @@ class SupabaseCloudSync {
       // Transform to our schema format
       const transformedPerks: Perk[] = (data || []).map(perk => ({
         id: perk.id,
-        type: this.mapPerkType(perk.perk_type),
+        type: this.mapPerkType(perk.type),
         name: perk.name,
         description: perk.description || '',
-        value: perk.default_value || 0,
+        value: perk.value || 0,
         isActive: perk.is_active,
         validFor: 365, // Default
         requiresApproval: false, // Default
@@ -500,8 +500,8 @@ class SupabaseCloudSync {
         claimantName: 'Unknown Patient', // Not in analytics table
         handledBy: 'System', // Not in analytics table
         serviceType: 'General Service', // Not in analytics table
-        usedAt: redemption.redemption_date,
-        value: redemption.redemption_value,
+        usedAt: redemption.redeemed_at,
+        value: redemption.value_redeemed,
         notes: '',
       }));
 
@@ -626,7 +626,7 @@ export const cloudOperations = {
     update: async (clinicId: string, updates: Partial<Clinic>): Promise<boolean> => {
       try {
         const { error } = await supabase
-          .from('mocards_clinics')
+          .from('clinics')
           .update({
             clinic_name: updates.name,
             contact_email: updates.email,
@@ -691,12 +691,12 @@ export const cloudOperations = {
     add: async (perk: Perk): Promise<boolean> => {
       try {
         const { error } = await supabase
-          .from('perk_datalates')
+          .from('perks')
           .insert({
             name: perk.name,
             description: perk.description,
-            perk_type: perk.type,
-            default_value: perk.value,
+            type: perk.type,
+            value: perk.value,
             is_active: perk.isActive,
             is_system_default: false,
           });
@@ -709,7 +709,7 @@ export const cloudOperations = {
     update: async (perkId: string, updates: Partial<Perk>): Promise<boolean> => {
       try {
         const { error } = await supabase
-          .from('perk_datalates')
+          .from('perks')
           .update({
             name: updates.name,
             description: updates.description,
@@ -745,13 +745,14 @@ export const cloudOperations = {
     add: async (redemption: PerkRedemption): Promise<boolean> => {
       try {
         const { error } = await supabase
-          .from('perk_usage_analytics')
+          .from('perk_redemptions')
           .insert({
-            perk_datalate_id: redemption.perkId,
+            perk_id: redemption.perkId,
             clinic_id: redemption.clinicId,
-            card_id: redemption.cardControlNumber, // This might need mapping
-            redemption_date: redemption.usedAt,
-            redemption_value: redemption.value,
+            card_control_number: redemption.cardControlNumber,
+            redeemed_at: redemption.usedAt,
+            value_redeemed: redemption.value,
+            notes: redemption.notes || null,
           });
         return !error;
       } catch (error) {
