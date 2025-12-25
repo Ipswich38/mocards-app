@@ -89,20 +89,10 @@ export const cardOperations = {
   },
 
   create: async (card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>): Promise<Card> => {
-    const newCard: Card = {
-      ...card,
-      id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Save to cloud immediately - this is async and can fail!
+    // Save to cloud immediately - let PostgreSQL generate the UUID
     try {
-      const success = await cloudOperations.cards.add(newCard);
-      if (!success) {
-        throw new Error('Failed to save card to cloud database');
-      }
-      return newCard;
+      const createdCard = await cloudOperations.cards.add(card);
+      return createdCard;
     } catch (error) {
       console.error('Failed to create card:', error);
       throw error; // Re-throw to let the caller handle it

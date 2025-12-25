@@ -151,13 +151,16 @@ class SupabaseCloudSync {
     try {
       this.setSyncStatus('syncing');
 
-      // Transform our schema to Supabase schema
+      // Transform our schema to match the actual Supabase schema
       const supabaseCard = {
         control_number: card.controlNumber,
-        status: card.status === 'active' ? 'activated' : 'unactivated',
-        assigned_clinic_id: card.clinicId || null,
-        expires_at: card.expiryDate + 'T23:59:59Z',
-        card_number: parseInt(card.controlNumber.replace(/[^\d]/g, '')) || 1,
+        full_name: card.fullName || null,
+        status: card.status, // Keep as 'active'/'inactive' as per schema
+        perks_total: card.perksTotal || 5,
+        perks_used: card.perksUsed || 0,
+        clinic_id: card.clinicId || null,
+        expiry_date: card.expiryDate,
+        notes: card.notes || null,
       };
 
       const { data, error } = await supabase
@@ -172,12 +175,13 @@ class SupabaseCloudSync {
       const transformedCard: Card = {
         id: data.id,
         controlNumber: data.control_number,
-        fullName: card.fullName,
-        status: data.status === 'activated' ? 'active' : 'inactive',
-        perksTotal: card.perksTotal,
-        perksUsed: card.perksUsed,
-        clinicId: data.assigned_clinic_id || '',
-        expiryDate: data.expires_at?.split('T')[0] || '2025-12-31',
+        fullName: data.full_name || '',
+        status: data.status,
+        perksTotal: data.perks_total,
+        perksUsed: data.perks_used,
+        clinicId: data.clinic_id || '',
+        expiryDate: data.expiry_date,
+        notes: data.notes || '',
         createdAt: data.created_at,
         updatedAt: data.updated_at || data.created_at,
       };
@@ -584,13 +588,12 @@ export const cloudOperations = {
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
     },
-    add: async (card: Card): Promise<boolean> => {
+    add: async (card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>): Promise<Card> => {
       try {
-        await supabaseCloudSync.createCard(card);
-        return true;
+        return await supabaseCloudSync.createCard(card);
       } catch (error) {
         console.error('[CloudOperations] Error adding card:', error);
-        return false;
+        throw error; // Re-throw to let caller handle it
       }
     },
     update: async (cardId: string, updates: Partial<Card>): Promise<boolean> => {
