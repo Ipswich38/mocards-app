@@ -115,11 +115,7 @@ class SupabaseCloudSync {
       this.setSyncStatus('syncing');
       const { data, error } = await supabase
         .from('cards')
-        .select(`
-          *,
-          clinic:mocards_clinics(*),
-          perks:card_perks(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -127,13 +123,14 @@ class SupabaseCloudSync {
       // Transform Supabase data to our schema format
       const transformedCards: Card[] = (data || []).map(card => ({
         id: card.id,
-        controlNumber: card.control_number || card.unified_control_number || `${card.card_number}`,
-        fullName: '', // Not stored in Supabase schema
-        status: card.status === 'activated' ? 'active' : 'inactive',
-        perksTotal: 5, // Default from our schema
-        perksUsed: card.perks?.filter((p: any) => p.claimed).length || 0,
-        clinicId: card.assigned_clinic_id || '',
-        expiryDate: card.expires_at?.split('T')[0] || '2025-12-31',
+        controlNumber: card.control_number || `MOC-${card.id}`,
+        fullName: card.full_name || '',
+        status: card.status === 'active' ? 'active' : 'inactive',
+        perksTotal: card.perks_total || 5,
+        perksUsed: card.perks_used || 0,
+        clinicId: card.clinic_id || '',
+        expiryDate: card.expiry_date || '2025-12-31',
+        notes: card.notes || '',
         createdAt: card.created_at,
         updatedAt: card.updated_at || card.created_at,
       }));
@@ -151,17 +148,25 @@ class SupabaseCloudSync {
     try {
       this.setSyncStatus('syncing');
 
-      // Transform our schema to match the actual Supabase schema
-      const supabaseCard = {
+      // Transform our schema to match the actual Supabase schema - simplified for initial creation
+      const supabaseCard: any = {
         control_number: card.controlNumber,
-        full_name: card.fullName || null,
-        status: card.status, // Keep as 'active'/'inactive' as per schema
+        full_name: card.fullName || '',
+        status: card.status,
         perks_total: card.perksTotal || 5,
         perks_used: card.perksUsed || 0,
-        clinic_id: card.clinicId || null,
         expiry_date: card.expiryDate,
-        notes: card.notes || null,
       };
+
+      // Only add clinic_id if it's not empty
+      if (card.clinicId && card.clinicId.trim() !== '') {
+        supabaseCard.clinic_id = card.clinicId;
+      }
+
+      // Only add notes if provided
+      if (card.notes) {
+        supabaseCard.notes = card.notes;
+      }
 
       const { data, error } = await supabase
         .from('cards')
@@ -329,11 +334,7 @@ class SupabaseCloudSync {
       this.setSyncStatus('syncing');
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          clinic:mocards_clinics(*),
-          card:cards(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -453,7 +454,7 @@ class SupabaseCloudSync {
     try {
       this.setSyncStatus('syncing');
       const { data, error } = await supabase
-        .from('perk_datalates')
+        .from('perk_templates')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -648,7 +649,7 @@ export const cloudOperations = {
     },
     remove: async (clinicId: string): Promise<boolean> => {
       try {
-        const { error } = await supabase.from('mocards_clinics').delete().eq('id', clinicId);
+        const { error } = await supabase.from('clinics').delete().eq('id', clinicId);
         return !error;
       } catch (error) {
         console.error('[CloudOperations] Error removing clinic:', error);
@@ -732,7 +733,7 @@ export const cloudOperations = {
     },
     remove: async (perkId: string): Promise<boolean> => {
       try {
-        const { error } = await supabase.from('perk_datalates').delete().eq('id', perkId);
+        const { error } = await supabase.from('perk_templates').delete().eq('id', perkId);
         return !error;
       } catch (error) {
         console.error('[CloudOperations] Error removing perk:', error);
