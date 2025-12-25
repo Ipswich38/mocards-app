@@ -2,8 +2,8 @@
 // Version: 5.0.0 - Christmas 2025 Production
 // REAL multi-device cloud sync using Supabase database
 
-import { supabase, dbOperations } from './supabase';
-import { Card, Clinic, Appointment, Perk, PerkRedemption } from './schema';
+import { supabase } from './supabase';
+import { Card, Clinic, Appointment, Perk, PerkRedemption, PLAN_PRICING } from './schema';
 
 // Cloud Sync Status
 export type SyncStatus = 'synced' | 'syncing' | 'error' | 'offline';
@@ -251,6 +251,7 @@ class SupabaseCloudSync {
         contactNumber: clinic.contact_phone,
         subscriptionStatus: clinic.status === 'active' ? 'active' : 'suspended',
         subscriptionStartDate: clinic.created_at.split('T')[0],
+        subscriptionPrice: PLAN_PRICING.starter,
         createdAt: clinic.created_at,
         updatedAt: clinic.updated_at,
         isActive: clinic.status === 'active',
@@ -303,6 +304,7 @@ class SupabaseCloudSync {
         contactNumber: data.contact_phone,
         subscriptionStatus: data.status === 'active' ? 'active' : 'suspended',
         subscriptionStartDate: data.created_at.split('T')[0],
+        subscriptionPrice: PLAN_PRICING[clinic.plan],
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         isActive: data.status === 'active',
@@ -577,7 +579,7 @@ export const cloudOperations = {
   // Cards Cloud Operations
   cards: {
     getAll: () => supabaseCloudSync.getAllCards(),
-    save: async (cards: Card[]): Promise<boolean> => {
+    save: async (_cards: Card[]): Promise<boolean> => {
       // For batch saves, we'd need to implement batch operations
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
@@ -608,7 +610,7 @@ export const cloudOperations = {
   // Clinics Cloud Operations
   clinics: {
     getAll: () => supabaseCloudSync.getAllClinics(),
-    save: async (clinics: Clinic[]): Promise<boolean> => {
+    save: async (_clinics: Clinic[]): Promise<boolean> => {
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
     },
@@ -652,7 +654,7 @@ export const cloudOperations = {
   // Appointments Cloud Operations
   appointments: {
     getAll: () => supabaseCloudSync.getAllAppointments(),
-    save: async (appointments: Appointment[]): Promise<boolean> => {
+    save: async (_appointments: Appointment[]): Promise<boolean> => {
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
     },
@@ -682,7 +684,7 @@ export const cloudOperations = {
   // Perks Cloud Operations
   perks: {
     getAll: () => supabaseCloudSync.getAllPerks(),
-    save: async (perks: Perk[]): Promise<boolean> => {
+    save: async (_perks: Perk[]): Promise<boolean> => {
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
     },
@@ -736,7 +738,7 @@ export const cloudOperations = {
   // Perk Redemptions Cloud Operations
   perkRedemptions: {
     getAll: () => supabaseCloudSync.getAllPerkRedemptions(),
-    save: async (redemptions: PerkRedemption[]): Promise<boolean> => {
+    save: async (_redemptions: PerkRedemption[]): Promise<boolean> => {
       console.warn('[CloudOperations] Batch save not implemented for Supabase');
       return true;
     },

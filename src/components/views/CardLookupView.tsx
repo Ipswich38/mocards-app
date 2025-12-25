@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Calendar, User, Gift, Shield, Clock, Send, Phone, Mail } from 'lucide-react';
-import { cardOperations, clinicOperations, appointmentOperations, type Card, formatDate } from '../../lib/data';
+import { clinicOperations, type Card, formatDate } from '../../lib/data';
 import { dbOperations } from '../../lib/supabase';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
@@ -10,6 +10,7 @@ export function CardLookupView() {
   const [searchResult, setSearchResult] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
+  const [clinics, setClinics] = useState<any[]>([]);
 
   // Appointment Request State
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
@@ -25,6 +26,19 @@ export function CardLookupView() {
   });
 
   const { addToast } = useToast();
+
+  // Load clinics data
+  useEffect(() => {
+    const loadClinics = async () => {
+      try {
+        const clinicsData = await clinicOperations.getAll();
+        setClinics(clinicsData);
+      } catch (error) {
+        console.error('Failed to load clinics:', error);
+      }
+    };
+    loadClinics();
+  }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -79,7 +93,7 @@ export function CardLookupView() {
 
 
   const getClinicName = (clinicId: string): string => {
-    const clinic = clinicOperations.getById(clinicId);
+    const clinic = clinics.find(c => c.id === clinicId);
     return clinic?.name || 'No clinic assigned';
   };
 
@@ -92,7 +106,7 @@ export function CardLookupView() {
     setShowAppointmentForm(true);
   };
 
-  const handleSubmitAppointmentRequest = () => {
+  const handleSubmitAppointmentRequest = async () => {
     if (!appointmentForm.patientName || !appointmentForm.patientEmail || !appointmentForm.preferredDate || !appointmentForm.preferredTime || !appointmentForm.serviceType) {
       addToast(toastWarning('Missing Information', 'Please fill in all required fields'));
       return;
@@ -104,7 +118,7 @@ export function CardLookupView() {
       return;
     }
 
-    const clinic = clinicOperations.getById(searchResult.clinicId);
+    const clinic = clinics.find(c => c.id === searchResult.clinicId);
     if (!clinic) {
       addToast(toastError('Clinic Not Found', 'The assigned clinic was not found. Please contact MOCARDS admin.'));
       return;
@@ -119,11 +133,10 @@ export function CardLookupView() {
         appointment_time: appointmentForm.preferredTime,
         perk_type: appointmentForm.perkRequested || appointmentForm.serviceType,
         cardholder_notes: appointmentForm.notes,
+        cardholder_email: appointmentForm.patientEmail,
+        cardholder_phone: appointmentForm.patientPhone,
         status: 'waiting_for_approval',
-        patient_name: appointmentForm.patientName,
-        patient_email: appointmentForm.patientEmail,
-        patient_phone: appointmentForm.patientPhone,
-        service_type: appointmentForm.serviceType,
+        passcode: 'default-passcode'
       });
 
       addToast(toastSuccess(

@@ -6,7 +6,7 @@ import {
   Clock, CheckCircle, XCircle, Phone, Gift, Calendar as CalendarIcon,
   Edit3, Save, X, Trash2, Award
 } from 'lucide-react';
-import { clinicOperations, cardOperations, perkOperations, appointmentOperations, perkRedemptionOperations, type Clinic, type PerkRedemption as RealPerkRedemption } from '../../lib/data';
+import { clinicOperations, cardOperations, perkOperations, appointmentOperations, perkRedemptionOperations, type Clinic, type Perk, type PerkRedemption as RealPerkRedemption } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastError, toastWarning } from '../../lib/toast';
 
@@ -47,6 +47,12 @@ export function ClinicPortalView() {
   const [selectedCardForHistory, setSelectedCardForHistory] = useState<string | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
+  // Cards data state for async operations
+  const [clinicCards, setClinicCards] = useState<any[]>([]);
+  const [perks, setPerks] = useState<Perk[]>([]);
+  const [planLimit, setPlanLimit] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
   // Edit state for limited CRUD functionality
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null);
   const [editAppointmentForm, setEditAppointmentForm] = useState({
@@ -71,44 +77,77 @@ export function ClinicPortalView() {
 
   // Restore clinic session on mount
   useEffect(() => {
-    if (isAuthenticated && user && user.type === 'clinic' && user.clinicId && !currentClinic) {
-      const clinic = clinicOperations.getById(user.clinicId);
-      if (clinic) {
-        setCurrentClinic(clinic);
-      } else {
-        console.error('Clinic not found for ID:', user.clinicId);
+    const loadClinic = async () => {
+      if (isAuthenticated && user && user.type === 'clinic' && user.clinicId && !currentClinic) {
+        try {
+          const clinic = await clinicOperations.getById(user.clinicId);
+          if (clinic) {
+            setCurrentClinic(clinic);
+          } else {
+            console.error('Clinic not found for ID:', user.clinicId);
+          }
+        } catch (error) {
+          console.error('Failed to load clinic:', error);
+        }
       }
-    }
+    };
+
+    loadClinic();
   }, [isAuthenticated, user, currentClinic]);
 
-  // Load real appointments and perk redemptions for this clinic
+  // Load real appointments, perk redemptions, and clinic cards
   useEffect(() => {
-    if (currentClinic) {
-      // Load appointments
-      const realAppointments = appointmentOperations.getByClinicId(currentClinic.id);
-      // Convert to the AppointmentRequest format used by the UI
-      const formattedAppointments: AppointmentRequest[] = realAppointments.map(apt => ({
-        id: apt.id,
-        cardControlNumber: apt.cardControlNumber,
-        patientName: apt.patientName,
-        patientEmail: apt.patientEmail,
-        patientPhone: apt.patientPhone,
-        preferredDate: apt.preferredDate,
-        preferredTime: apt.preferredTime,
-        serviceType: apt.serviceType,
-        perkRequested: apt.perkRequested || '',
-        status: apt.status as 'pending' | 'accepted' | 'declined' | 'rescheduled',
-        adminNotes: apt.notes,
-        clinicNotes: '',
-        forwardedAt: apt.createdAt,
-        processedAt: undefined
-      }));
-      setAppointmentRequests(formattedAppointments);
+    const loadClinicData = async () => {
+      if (currentClinic) {
+        try {
+          setLoading(true);
 
-      // Load perk redemptions for this clinic
-      const realRedemptions = perkRedemptionOperations.getByClinicId(currentClinic.id);
-      setPerkRedemptions(realRedemptions);
-    }
+          // Load appointments
+          const realAppointments = await appointmentOperations.getByClinicId(currentClinic.id);
+          // Convert to the AppointmentRequest format used by the UI
+          const formattedAppointments: AppointmentRequest[] = realAppointments.map(apt => ({
+            id: apt.id,
+            cardControlNumber: apt.cardControlNumber,
+            patientName: apt.patientName,
+            patientEmail: apt.patientEmail,
+            patientPhone: apt.patientPhone,
+            preferredDate: apt.preferredDate,
+            preferredTime: apt.preferredTime,
+            serviceType: apt.serviceType,
+            perkRequested: apt.perkRequested || '',
+            status: apt.status as 'pending' | 'accepted' | 'declined' | 'rescheduled',
+            adminNotes: apt.notes,
+            clinicNotes: '',
+            forwardedAt: apt.createdAt,
+            processedAt: undefined
+          }));
+          setAppointmentRequests(formattedAppointments);
+
+          // Load perk redemptions for this clinic
+          const realRedemptions = await perkRedemptionOperations.getByClinicId(currentClinic.id);
+          setPerkRedemptions(realRedemptions);
+
+          // Load clinic cards
+          const cards = await cardOperations.getByClinicId(currentClinic.id);
+          setClinicCards(cards);
+
+          // Load perks
+          const perksData = await perkOperations.getAll();
+          setPerks(perksData);
+
+          // Calculate plan limit
+          const limit = await clinicOperations.getPlanLimit(currentClinic.id);
+          setPlanLimit(limit);
+
+        } catch (error) {
+          console.error('Failed to load clinic data:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadClinicData();
   }, [currentClinic]);
 
   // Appointment Processing Handlers
@@ -217,9 +256,9 @@ export function ClinicPortalView() {
 
   // Legacy perk CRUD removed - using real tracking system
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const clinic = clinicOperations.authenticate(loginForm.code, loginForm.password);
+    const clinic = await clinicOperations.authenticate(loginForm.code, loginForm.password);
 
     if (clinic) {
       setCurrentClinic(clinic);
@@ -268,13 +307,13 @@ export function ClinicPortalView() {
   };
 
   // Perk Redemption Handler with real tracking
-  const handlePerkRedemption = (e: React.FormEvent) => {
+  const handlePerkRedemption = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedCardForPerk || !selectedPerkId || !currentClinic) return;
 
-    const card = cardOperations.getByControlNumber(selectedCardForPerk);
-    const perk = perkOperations.getById(selectedPerkId);
+    const card = clinicCards.find(c => c.controlNumber === selectedCardForPerk);
+    const perk = perks.find(p => p.id === selectedPerkId);
 
     if (!card || !perk) {
       addToast(toastError('Error', 'Card or perk not found'));
@@ -298,7 +337,7 @@ export function ClinicPortalView() {
     }
 
     // Create perk redemption record
-    const redemption = perkRedemptionOperations.create({
+    const redemption = await perkRedemptionOperations.create({
       cardControlNumber: selectedCardForPerk,
       perkId: selectedPerkId,
       perkName: perk.name,
@@ -388,10 +427,24 @@ export function ClinicPortalView() {
     );
   }
 
-  const assignedCards = cardOperations.getByClinicId(currentClinic.id);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="light-card p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Stethoscope className="h-8 w-8 text-blue-600" />
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Loading Clinic Data</h2>
+          <p className="text-gray-600">Please wait while we load your cards, appointments, and redemption history...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const assignedCards = clinicCards;
   const activeCards = assignedCards.filter(card => card.status === 'active');
-  const planLimit = clinicOperations.getPlanLimit(currentClinic.id);
-  const usagePercentage = (assignedCards.length / planLimit) * 100;
+  const usagePercentage = planLimit > 0 ? (assignedCards.length / planLimit) * 100 : 0;
   const pendingAppointments = appointmentRequests.filter(apt => apt.status === 'pending');
   const pendingPerks: RealPerkRedemption[] = []; // No pending system for real redemptions - they are immediate
 
@@ -1164,7 +1217,7 @@ export function ClinicPortalView() {
                     required
                   >
                     <option value="">Choose a perk...</option>
-                    {perkOperations.getActive().map((perk) => (
+                    {perks.filter(p => p.isActive).map((perk) => (
                       <option key={perk.id} value={perk.id}>
                         {perk.name} - {perk.description}
                       </option>
@@ -1223,7 +1276,7 @@ export function ClinicPortalView() {
 
             <div className="p-6 overflow-y-auto max-h-[70vh]">
               {(() => {
-                const cardHistory = perkRedemptionOperations.getByCardNumber(selectedCardForHistory);
+                const cardHistory = perkRedemptions.filter(redemption => redemption.cardControlNumber === selectedCardForHistory);
                 if (cardHistory.length === 0) {
                   return (
                     <div className="text-center py-12">

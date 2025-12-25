@@ -57,8 +57,8 @@ export const generateControlNumber = (id: number, region: string, areaCode: stri
   return `MOC-${paddedId}-${region}-${areaCode}`;
 };
 
-export const generateClinicCode = (areaCode: string): string => {
-  const clinics = cloudOperations.clinics.getAll();
+export const generateClinicCode = async (areaCode: string): Promise<string> => {
+  const clinics = await cloudOperations.clinics.getAll();
   const existingCodes = clinics.map((c: Clinic) => c.code);
   let counter = 1;
 
@@ -101,14 +101,14 @@ export const cardOperations = {
     return newCard;
   },
 
-  createBatch: (
+  createBatch: async (
     startId: number,
     endId: number,
     region: string,
     areaCode: string,
     perksTotal: number = 5
-  ): Card[] => {
-    const existingCards = cloudOperations.cards.getAll();
+  ): Promise<Card[]> => {
+    const existingCards = await cloudOperations.cards.getAll();
     const newCards: Card[] = [];
     const now = new Date().toISOString();
 
@@ -130,24 +130,24 @@ export const cardOperations = {
 
     // Save batch to cloud
     const allCards = [...existingCards, ...newCards];
-    cloudOperations.cards.save(allCards);
+    await cloudOperations.cards.save(allCards);
     return newCards;
   },
 
-  updateStatus: (controlNumber: string, status: 'active' | 'inactive'): boolean => {
-    const cards = cloudOperations.cards.getAll();
+  updateStatus: async (controlNumber: string, status: 'active' | 'inactive'): Promise<boolean> => {
+    const cards = await cloudOperations.cards.getAll();
     const card = cards.find(c => c.controlNumber === controlNumber);
     if (card) {
       // Update cloud storage
-      cloudOperations.cards.update(card.id, { status });
+      await cloudOperations.cards.update(card.id, { status });
       return true;
     }
     return false;
   },
 
-  assignToClinic: (controlNumbers: string[], clinicId: string): boolean => {
-    const clinics = cloudOperations.clinics.getAll();
-    const cards = cloudOperations.cards.getAll();
+  assignToClinic: async (controlNumbers: string[], clinicId: string): Promise<boolean> => {
+    const clinics = await cloudOperations.clinics.getAll();
+    const cards = await cloudOperations.cards.getAll();
     const clinic = clinics.find(c => c.id === clinicId);
     if (!clinic) return false;
 
@@ -160,32 +160,32 @@ export const cardOperations = {
     }
 
     // Assign cards in cloud storage
-    controlNumbers.forEach(controlNumber => {
+    await Promise.all(controlNumbers.map(async controlNumber => {
       const card = cards.find(c => c.controlNumber === controlNumber);
       if (card) {
-        cloudOperations.cards.update(card.id, { clinicId });
+        await cloudOperations.cards.update(card.id, { clinicId });
       }
-    });
+    }));
 
     return true;
   },
 
-  updatePerks: (controlNumber: string, perksUsed: number): boolean => {
-    const cards = cloudOperations.cards.getAll();
+  updatePerks: async (controlNumber: string, perksUsed: number): Promise<boolean> => {
+    const cards = await cloudOperations.cards.getAll();
     const card = cards.find(c => c.controlNumber === controlNumber);
     if (card) {
       const updatedPerksUsed = Math.min(perksUsed, card.perksTotal);
-      cloudOperations.cards.update(card.id, { perksUsed: updatedPerksUsed });
+      await cloudOperations.cards.update(card.id, { perksUsed: updatedPerksUsed });
       return true;
     }
     return false;
   },
 
-  delete: (controlNumber: string): boolean => {
-    const cards = cloudOperations.cards.getAll();
+  delete: async (controlNumber: string): Promise<boolean> => {
+    const cards = await cloudOperations.cards.getAll();
     const card = cards.find(c => c.controlNumber === controlNumber);
     if (card) {
-      cloudOperations.cards.remove(card.id);
+      await cloudOperations.cards.remove(card.id);
       return true;
     }
     return false;
@@ -194,24 +194,24 @@ export const cardOperations = {
 
 // Perk Operations with Cloud Sync
 export const perkOperations = {
-  getAll: (): Perk[] => cloudOperations.perks.getAll(),
+  getAll: async (): Promise<Perk[]> => await cloudOperations.perks.getAll(),
 
-  getById: (id: string): Perk | null => {
-    const perks = cloudOperations.perks.getAll();
+  getById: async (id: string): Promise<Perk | null> => {
+    const perks = await cloudOperations.perks.getAll();
     return perks.find(perk => perk.id === id) || null;
   },
 
-  getByType: (type: PerkType): Perk[] => {
-    const perks = cloudOperations.perks.getAll();
+  getByType: async (type: PerkType): Promise<Perk[]> => {
+    const perks = await cloudOperations.perks.getAll();
     return perks.filter(perk => perk.type === type);
   },
 
-  getActive: (): Perk[] => {
-    const perks = cloudOperations.perks.getAll();
+  getActive: async (): Promise<Perk[]> => {
+    const perks = await cloudOperations.perks.getAll();
     return perks.filter(perk => perk.isActive);
   },
 
-  create: (perk: Omit<Perk, 'id' | 'createdAt' | 'updatedAt'>): Perk => {
+  create: async (perk: Omit<Perk, 'id' | 'createdAt' | 'updatedAt'>): Promise<Perk> => {
     const newPerk: Perk = {
       ...perk,
       id: `perk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -220,62 +220,62 @@ export const perkOperations = {
     };
 
     // Save to cloud immediately
-    cloudOperations.perks.add(newPerk);
+    await cloudOperations.perks.add(newPerk);
     return newPerk;
   },
 
-  update: (id: string, updates: Partial<Perk>): boolean => {
-    const perks = cloudOperations.perks.getAll();
+  update: async (id: string, updates: Partial<Perk>): Promise<boolean> => {
+    const perks = await cloudOperations.perks.getAll();
     const perk = perks.find(p => p.id === id);
     if (perk) {
       const updatedPerk = {
         ...updates,
         updatedAt: new Date().toISOString()
       };
-      cloudOperations.perks.update(id, updatedPerk);
+      await cloudOperations.perks.update(id, updatedPerk);
       return true;
     }
     return false;
   },
 
-  delete: (id: string): boolean => {
-    cloudOperations.perks.remove(id);
+  delete: async (id: string): Promise<boolean> => {
+    await cloudOperations.perks.remove(id);
     return true;
   },
 
   // Initialize with default perks
-  initializeDefaults: (): void => {
-    const perks = cloudOperations.perks.getAll();
+  initializeDefaults: async (): Promise<void> => {
+    const perks = await cloudOperations.perks.getAll();
     if (perks.length === 0) {
-      DEFAULT_PERKS.forEach(defaultPerk => {
-        perkOperations.create(defaultPerk);
-      });
+      await Promise.all(DEFAULT_PERKS.map(async defaultPerk => {
+        await perkOperations.create(defaultPerk);
+      }));
     }
   },
 };
 
 // Clinic Operations with Cloud Sync
 export const clinicOperations = {
-  getAll: (): Clinic[] => cloudOperations.clinics.getAll(),
+  getAll: async (): Promise<Clinic[]> => await cloudOperations.clinics.getAll(),
 
-  getById: (id: string): Clinic | null => {
-    const clinics = cloudOperations.clinics.getAll();
+  getById: async (id: string): Promise<Clinic | null> => {
+    const clinics = await cloudOperations.clinics.getAll();
     return clinics.find(clinic => clinic.id === id) || null;
   },
 
-  getByCode: (code: string): Clinic | null => {
-    const clinics = cloudOperations.clinics.getAll();
+  getByCode: async (code: string): Promise<Clinic | null> => {
+    const clinics = await cloudOperations.clinics.getAll();
     return clinics.find(clinic => clinic.code === code) || null;
   },
 
-  authenticate: (code: string, password: string): Clinic | null => {
-    const clinics = cloudOperations.clinics.getAll();
+  authenticate: async (code: string, password: string): Promise<Clinic | null> => {
+    const clinics = await cloudOperations.clinics.getAll();
     return clinics.find(clinic =>
       clinic.code === code && clinic.password === password
     ) || null;
   },
 
-  create: (clinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'>): Clinic => {
+  create: async (clinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'>): Promise<Clinic> => {
     const newClinic: Clinic = {
       ...clinic,
       id: `clinic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -288,32 +288,32 @@ export const clinicOperations = {
     };
 
     // Save to cloud immediately
-    cloudOperations.clinics.add(newClinic);
+    await cloudOperations.clinics.add(newClinic);
     return newClinic;
   },
 
-  update: (id: string, updates: Partial<Clinic>): boolean => {
-    const clinics = cloudOperations.clinics.getAll();
+  update: async (id: string, updates: Partial<Clinic>): Promise<boolean> => {
+    const clinics = await cloudOperations.clinics.getAll();
     const clinic = clinics.find(c => c.id === id);
     if (clinic) {
-      cloudOperations.clinics.update(id, updates);
+      await cloudOperations.clinics.update(id, updates);
       return true;
     }
     return false;
   },
 
-  delete: (id: string): boolean => {
-    cloudOperations.clinics.remove(id);
+  delete: async (id: string): Promise<boolean> => {
+    await cloudOperations.clinics.remove(id);
     return true;
   },
 
-  getAssignedCardsCount: (clinicId: string): number => {
-    const cards = cloudOperations.cards.getAll();
+  getAssignedCardsCount: async (clinicId: string): Promise<number> => {
+    const cards = await cloudOperations.cards.getAll();
     return cards.filter(card => card.clinicId === clinicId).length;
   },
 
-  getPlanLimit: (clinicId: string): number => {
-    const clinics = cloudOperations.clinics.getAll();
+  getPlanLimit: async (clinicId: string): Promise<number> => {
+    const clinics = await cloudOperations.clinics.getAll();
     const clinic = clinics.find(c => c.id === clinicId);
     return clinic ? PLAN_LIMITS[clinic.plan] : 0;
   },
@@ -321,29 +321,29 @@ export const clinicOperations = {
 
 // Appointment Operations with Cloud Sync
 export const appointmentOperations = {
-  getAll: (): Appointment[] => cloudOperations.appointments.getAll(),
+  getAll: async (): Promise<Appointment[]> => await cloudOperations.appointments.getAll(),
 
-  getByClinicId: (clinicId: string): Appointment[] => {
-    const appointments = cloudOperations.appointments.getAll();
+  getByClinicId: async (clinicId: string): Promise<Appointment[]> => {
+    const appointments = await cloudOperations.appointments.getAll();
     return appointments.filter(apt => apt.clinicId === clinicId);
   },
 
-  create: (appointment: Omit<Appointment, 'id'>): Appointment => {
+  create: async (appointment: Omit<Appointment, 'id'>): Promise<Appointment> => {
     const newAppointment: Appointment = {
       ...appointment,
       id: `appointment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
     // Save to cloud immediately
-    cloudOperations.appointments.add(newAppointment);
+    await cloudOperations.appointments.add(newAppointment);
     return newAppointment;
   },
 
-  updateStatus: (id: string, status: Appointment['status']): boolean => {
-    const appointments = cloudOperations.appointments.getAll();
+  updateStatus: async (id: string, status: Appointment['status']): Promise<boolean> => {
+    const appointments = await cloudOperations.appointments.getAll();
     const appointment = appointments.find(a => a.id === id);
     if (appointment) {
-      cloudOperations.appointments.update(id, { status });
+      await cloudOperations.appointments.update(id, { status });
       return true;
     }
     return false;
@@ -352,32 +352,32 @@ export const appointmentOperations = {
 
 // Perk Redemption Operations with Cloud Sync
 export const perkRedemptionOperations = {
-  getAll: (): PerkRedemption[] => cloudOperations.perkRedemptions.getAll(),
+  getAll: async (): Promise<PerkRedemption[]> => await cloudOperations.perkRedemptions.getAll(),
 
-  getByCardNumber: (cardControlNumber: string): PerkRedemption[] => {
-    const redemptions = cloudOperations.perkRedemptions.getAll();
+  getByCardNumber: async (cardControlNumber: string): Promise<PerkRedemption[]> => {
+    const redemptions = await cloudOperations.perkRedemptions.getAll();
     return redemptions.filter(redemption => redemption.cardControlNumber === cardControlNumber);
   },
 
-  getByClinicId: (clinicId: string): PerkRedemption[] => {
-    const redemptions = cloudOperations.perkRedemptions.getAll();
+  getByClinicId: async (clinicId: string): Promise<PerkRedemption[]> => {
+    const redemptions = await cloudOperations.perkRedemptions.getAll();
     return redemptions.filter(redemption => redemption.clinicId === clinicId);
   },
 
-  create: (redemption: Omit<PerkRedemption, 'id'>): PerkRedemption => {
+  create: async (redemption: Omit<PerkRedemption, 'id'>): Promise<PerkRedemption> => {
     const newRedemption: PerkRedemption = {
       ...redemption,
       id: `redemption_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
     // Save to cloud immediately
-    cloudOperations.perkRedemptions.add(newRedemption);
+    await cloudOperations.perkRedemptions.add(newRedemption);
     return newRedemption;
   },
 
   // Get redemption history for a specific perk type
-  getByPerkType: (cardControlNumber: string, perkName: string): PerkRedemption[] => {
-    const redemptions = cloudOperations.perkRedemptions.getAll();
+  getByPerkType: async (cardControlNumber: string, perkName: string): Promise<PerkRedemption[]> => {
+    const redemptions = await cloudOperations.perkRedemptions.getAll();
     return redemptions.filter(redemption =>
       redemption.cardControlNumber === cardControlNumber &&
       redemption.perkName.toLowerCase().includes(perkName.toLowerCase())
