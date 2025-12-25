@@ -331,31 +331,126 @@ END $$;
 -- STEP 4: CREATE INDEXES FOR PERFORMANCE
 -- ================================================================
 
--- Create indexes for cards table
-CREATE INDEX IF NOT EXISTS idx_cards_control_number ON cards(control_number);
-CREATE INDEX IF NOT EXISTS idx_cards_clinic_id ON cards(clinic_id);
-CREATE INDEX IF NOT EXISTS idx_cards_status ON cards(status);
-CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards(created_at);
+-- Create indexes for cards table (with existence checks)
+DO $$
+BEGIN
+    -- Only create control_number index if the column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'control_number'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_cards_control_number ON cards(control_number);
+        RAISE NOTICE '✅ Created index on cards.control_number';
+    END IF;
 
--- Create indexes for clinics table
-CREATE INDEX IF NOT EXISTS idx_clinics_clinic_code ON clinics(clinic_code);
-CREATE INDEX IF NOT EXISTS idx_clinics_status ON clinics(status);
+    -- Only create clinic_id index if the column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'clinic_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_cards_clinic_id ON cards(clinic_id);
+        RAISE NOTICE '✅ Created index on cards.clinic_id';
+    END IF;
 
--- Create indexes for perk_redemptions table
-CREATE INDEX IF NOT EXISTS idx_perk_redemptions_used_at ON perk_redemptions(used_at);
-CREATE INDEX IF NOT EXISTS idx_perk_redemptions_card_control_number ON perk_redemptions(card_control_number);
-CREATE INDEX IF NOT EXISTS idx_perk_redemptions_clinic_id ON perk_redemptions(clinic_id);
-CREATE INDEX IF NOT EXISTS idx_perk_redemptions_perk_id ON perk_redemptions(perk_id);
+    -- Only create status index if the column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'status'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_cards_status ON cards(status);
+        RAISE NOTICE '✅ Created index on cards.status';
+    END IF;
 
--- Create indexes for appointments table
-CREATE INDEX IF NOT EXISTS idx_appointments_control_number ON appointments(control_number);
-CREATE INDEX IF NOT EXISTS idx_appointments_card_control_number ON appointments(card_control_number);
-CREATE INDEX IF NOT EXISTS idx_appointments_clinic_id ON appointments(clinic_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
+    -- Only create created_at index if the column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'cards' AND column_name = 'created_at'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards(created_at);
+        RAISE NOTICE '✅ Created index on cards.created_at';
+    END IF;
+END $$;
 
--- Create indexes for perk_templates table
-CREATE INDEX IF NOT EXISTS idx_perk_templates_is_active ON perk_templates(is_active);
-CREATE INDEX IF NOT EXISTS idx_perk_templates_type ON perk_templates(type);
+-- Create indexes for clinics table (with existence checks)
+DO $$
+BEGIN
+    -- Only create clinic_code index if the column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'clinic_code'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_clinics_clinic_code ON clinics(clinic_code);
+        RAISE NOTICE '✅ Created index on clinic_code column';
+    ELSE
+        RAISE NOTICE '⚠️ Skipped clinic_code index - column does not exist';
+    END IF;
+
+    -- Only create status index if the column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'clinics' AND column_name = 'status'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_clinics_status ON clinics(status);
+        RAISE NOTICE '✅ Created index on status column';
+    ELSE
+        RAISE NOTICE '⚠️ Skipped status index - column does not exist';
+    END IF;
+END $$;
+
+-- Create indexes for perk_redemptions table (with existence checks)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_redemptions' AND column_name = 'used_at') THEN
+        CREATE INDEX IF NOT EXISTS idx_perk_redemptions_used_at ON perk_redemptions(used_at);
+        RAISE NOTICE '✅ Created index on perk_redemptions.used_at';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_redemptions' AND column_name = 'card_control_number') THEN
+        CREATE INDEX IF NOT EXISTS idx_perk_redemptions_card_control_number ON perk_redemptions(card_control_number);
+        RAISE NOTICE '✅ Created index on perk_redemptions.card_control_number';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_redemptions' AND column_name = 'clinic_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_perk_redemptions_clinic_id ON perk_redemptions(clinic_id);
+        RAISE NOTICE '✅ Created index on perk_redemptions.clinic_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_redemptions' AND column_name = 'perk_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_perk_redemptions_perk_id ON perk_redemptions(perk_id);
+        RAISE NOTICE '✅ Created index on perk_redemptions.perk_id';
+    END IF;
+END $$;
+
+-- Create indexes for appointments table (with existence checks)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'appointments' AND column_name = 'control_number') THEN
+        CREATE INDEX IF NOT EXISTS idx_appointments_control_number ON appointments(control_number);
+        RAISE NOTICE '✅ Created index on appointments.control_number';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'appointments' AND column_name = 'card_control_number') THEN
+        CREATE INDEX IF NOT EXISTS idx_appointments_card_control_number ON appointments(card_control_number);
+        RAISE NOTICE '✅ Created index on appointments.card_control_number';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'appointments' AND column_name = 'clinic_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_appointments_clinic_id ON appointments(clinic_id);
+        RAISE NOTICE '✅ Created index on appointments.clinic_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'appointments' AND column_name = 'status') THEN
+        CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
+        RAISE NOTICE '✅ Created index on appointments.status';
+    END IF;
+END $$;
+
+-- Create indexes for perk_templates table (with existence checks)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'is_active') THEN
+        CREATE INDEX IF NOT EXISTS idx_perk_templates_is_active ON perk_templates(is_active);
+        RAISE NOTICE '✅ Created index on perk_templates.is_active';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perk_templates' AND column_name = 'type') THEN
+        CREATE INDEX IF NOT EXISTS idx_perk_templates_type ON perk_templates(type);
+        RAISE NOTICE '✅ Created index on perk_templates.type';
+    END IF;
+END $$;
 
 -- ================================================================
 -- STEP 5: INSERT DEFAULT DATA IF TABLES ARE EMPTY
