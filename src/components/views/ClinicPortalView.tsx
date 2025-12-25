@@ -151,9 +151,9 @@ export function ClinicPortalView() {
   }, [currentClinic]);
 
   // Appointment Processing Handlers
-  const handleAcceptAppointment = (appointmentId: string, notes?: string) => {
+  const handleAcceptAppointment = async (appointmentId: string, notes?: string) => {
     // Update in database
-    appointmentOperations.updateStatus(appointmentId, 'accepted');
+    await appointmentOperations.updateStatus(appointmentId, 'accepted');
 
     // Update local state
     setAppointmentRequests(prev =>
@@ -171,9 +171,9 @@ export function ClinicPortalView() {
     addToast(toastSuccess('Appointment Accepted', 'Patient will be notified of the confirmation'));
   };
 
-  const handleDeclineAppointment = (appointmentId: string, reason: string) => {
+  const handleDeclineAppointment = async (appointmentId: string, reason: string) => {
     // Update in database
-    appointmentOperations.updateStatus(appointmentId, 'declined');
+    await appointmentOperations.updateStatus(appointmentId, 'declined');
 
     // Update local state
     setAppointmentRequests(prev =>
@@ -276,7 +276,7 @@ export function ClinicPortalView() {
   };
 
   // Password Change Handler
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!currentClinic) return;
@@ -298,7 +298,7 @@ export function ClinicPortalView() {
 
     // Update clinic password
     const updatedClinic = { ...currentClinic, password: passwordChangeForm.newPassword };
-    clinicOperations.update(currentClinic.id, { password: passwordChangeForm.newPassword });
+    await clinicOperations.update(currentClinic.id, { password: passwordChangeForm.newPassword });
     setCurrentClinic(updatedClinic);
 
     setPasswordChangeForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -351,7 +351,7 @@ export function ClinicPortalView() {
     });
 
     // Update card perks count
-    cardOperations.updatePerks(selectedCardForPerk, card.perksUsed + 1);
+    await cardOperations.updatePerks(selectedCardForPerk, card.perksUsed + 1);
 
     // Update local perk redemptions list
     setPerkRedemptions(prev => [...prev, redemption]);
@@ -748,9 +748,9 @@ export function ClinicPortalView() {
                       {request.status === 'pending' && (
                         <>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               const notes = prompt('Add any notes for the patient (optional):');
-                              handleAcceptAppointment(request.id, notes || undefined);
+                              await handleAcceptAppointment(request.id, notes || undefined);
                             }}
                             className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                           >
@@ -758,9 +758,9 @@ export function ClinicPortalView() {
                             <span>Accept</span>
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               const reason = prompt('Please provide a reason for declining:');
-                              if (reason) handleDeclineAppointment(request.id, reason);
+                              if (reason) await handleDeclineAppointment(request.id, reason);
                             }}
                             className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                           >

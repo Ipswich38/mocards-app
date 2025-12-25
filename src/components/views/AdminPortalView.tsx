@@ -180,7 +180,10 @@ export function AdminPortalView() {
 
   // Initialize perks on component mount
   useEffect(() => {
-    perkOperations.initializeDefaults();
+    const initPerks = async () => {
+      await perkOperations.initializeDefaults();
+    };
+    initPerks();
   }, []);
 
   // Load data asynchronously
@@ -288,7 +291,7 @@ export function AdminPortalView() {
         expiryDate: '2025-12-31',
       };
 
-      cardOperations.create(newCard);
+      await cardOperations.create(newCard);
       addToast(toastSuccess('Card Generated', `Created ${controlNumber} with ${generatorForm.perksTotal} perks`));
       await reloadData(); // Refresh the data
     } else {
@@ -365,9 +368,10 @@ export function AdminPortalView() {
     });
   };
 
-  const handlePerkDelete = (perk: Perk) => {
-    perkOperations.delete(perk.id);
+  const handlePerkDelete = async (perk: Perk) => {
+    await perkOperations.delete(perk.id);
     addToast(toastSuccess('Perk Deleted', `Deleted ${perk.name}`));
+    await reloadData(); // Refresh the data
   };
 
   const PERK_TYPE_OPTIONS: { value: PerkType; label: string }[] = [
@@ -594,7 +598,7 @@ export function AdminPortalView() {
   // Note: Admin can only VIEW appointment statuses (read-only) and create manual appointments
   // All appointment processing (accept/decline/reschedule) is handled by clinics
 
-  const handleCreateManualAppointment = (appointmentData: {
+  const handleCreateManualAppointment = async (appointmentData: {
     cardControlNumber: string;
     patientName: string;
     patientEmail: string;
@@ -608,7 +612,7 @@ export function AdminPortalView() {
   }) => {
     // Create appointment in global operations so clinic portals can access it
     const now = new Date().toISOString();
-    const newAppointment = appointmentOperations.create({
+    const newAppointment = await appointmentOperations.create({
       cardControlNumber: appointmentData.cardControlNumber,
       clinicId: appointmentData.clinicId,
       patientName: appointmentData.patientName,
