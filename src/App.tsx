@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { ResponsiveLayout, type ViewMode } from './components/layout/ResponsiveLayout';
-import { CardLookupView } from './components/views/CardLookupView';
-import { ClinicPortalView } from './components/views/ClinicPortalView';
-import { AdminPortalView } from './components/views/AdminPortalView';
 import { ToastProvider } from './hooks/useToast';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { useAuth } from './hooks/useAuth';
+
+// Lazy load components for code splitting
+const CardLookupView = lazy(() => import('./components/views/CardLookupView').then(module => ({ default: module.CardLookupView })));
+const ClinicPortalView = lazy(() => import('./components/views/ClinicPortalView').then(module => ({ default: module.ClinicPortalView })));
+const AdminPortalView = lazy(() => import('./components/views/AdminPortalView').then(module => ({ default: module.AdminPortalView })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('card-lookup');
@@ -55,7 +57,17 @@ export default function App() {
         isAuthenticated={isAuthenticated}
         userType={user?.type}
       >
-        {renderCurrentView()}
+        <Suspense fallback={
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="light-card p-8 w-full max-w-md text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Loading...</h2>
+              <p className="text-gray-600">Please wait while we load the application.</p>
+            </div>
+          </div>
+        }>
+          {renderCurrentView()}
+        </Suspense>
       </ResponsiveLayout>
       <ToastContainer />
     </ToastProvider>
