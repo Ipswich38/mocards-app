@@ -6,7 +6,7 @@ import { PWAInstallPrompt } from '../ui/PWAInstallPrompt';
 import { CloudSyncIndicator } from '../ui/CloudSyncIndicator';
 import { useBreakpoint, useScreenSize } from '../../hooks/useMediaQuery';
 
-export type ViewMode = 'card-lookup' | 'enhanced-lookup' | 'clinic-portal' | 'admin-access';
+export type ViewMode = 'enhanced-lookup' | 'clinic-portal' | 'admin-access';
 
 interface ResponsiveLayoutProps {
   currentView: ViewMode;
@@ -41,17 +41,10 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
 
   const navItems = [
     {
-      id: 'card-lookup' as ViewMode,
+      id: 'enhanced-lookup' as ViewMode,
       label: 'Card Lookup',
       icon: Search,
-      description: 'Verify card validity',
-      disabled: false, // Always accessible
-    },
-    {
-      id: 'enhanced-lookup' as ViewMode,
-      label: 'Enhanced Lookup',
-      icon: Search,
-      description: 'Advanced card search',
+      description: 'Verify card validity and search',
       disabled: false, // Always accessible
     },
     {

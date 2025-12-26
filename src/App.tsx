@@ -5,19 +5,16 @@ import { ToastContainer } from './components/ui/ToastContainer';
 import { useAuth } from './hooks/useAuth';
 
 // Lazy load components for code splitting
-const CardLookupView = lazy(() => import('./components/views/CardLookupView').then(module => ({ default: module.CardLookupView })));
 const EnhancedCardLookupView = lazy(() => import('./components/views/EnhancedCardLookupView').then(module => ({ default: module.EnhancedCardLookupView })));
 const ClinicPortalView = lazy(() => import('./components/views/ClinicPortalView').then(module => ({ default: module.ClinicPortalView })));
 const AdminPortalView = lazy(() => import('./components/views/AdminPortalView').then(module => ({ default: module.AdminPortalView })));
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>('card-lookup');
+  const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
   const { isAuthenticated, user } = useAuth();
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'card-lookup':
-        return <CardLookupView />;
       case 'enhanced-lookup':
         return <EnhancedCardLookupView />;
       case 'clinic-portal':
@@ -25,14 +22,14 @@ export default function App() {
       case 'admin-access':
         return <AdminPortalView />;
       default:
-        return <CardLookupView />;
+        return <EnhancedCardLookupView />;
     }
   };
 
   // Handle view change with authentication restrictions
   const handleViewChange = (view: ViewMode) => {
-    // Card lookup views are always accessible
-    if (view === 'card-lookup' || view === 'enhanced-lookup') {
+    // Enhanced lookup is always accessible
+    if (view === 'enhanced-lookup') {
       setCurrentView(view);
       return;
     }
