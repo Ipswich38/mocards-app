@@ -198,14 +198,14 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
   return (
     <div className="min-h-screen flex">
       {/* Desktop Sidebar */}
-      <div className="w-64 bg-[#1A535C] text-white flex flex-col fixed h-full z-10">
+      <div className="w-56 bg-[#1A535C] text-white flex flex-col fixed h-full z-10">
         {/* Header */}
-        <div className="p-6 border-b border-teal-600">
-          <h1 className="text-xl font-bold text-white">MOCARDS CLOUD</h1>
+        <div className="p-5 border-b border-teal-600">
+          <h1 className="text-lg font-bold text-white">MOCARDS CLOUD</h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-3">
           <ul className="space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -217,7 +217,7 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
                   <button
                     onClick={() => !isDisabled && onViewChange(item.id)}
                     disabled={isDisabled}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg transition-all duration-200 ${
                       isDisabled
                         ? 'bg-gray-600 bg-opacity-20 text-gray-400 cursor-not-allowed opacity-60'
                         : isActive
@@ -226,11 +226,11 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
                     }`}
                     title={isDisabled ? 'Please logout to access this portal' : undefined}
                   >
-                    <Icon className={`h-5 w-5 ${
+                    <Icon className={`h-4 w-4 ${
                       isDisabled ? 'text-gray-400' : isActive ? 'text-[#1A535C]' : ''
                     }`} />
                     <div className="text-left flex-1">
-                      <div className={`font-medium ${
+                      <div className={`font-medium text-sm ${
                         isDisabled ? 'text-gray-400' : isActive ? 'text-[#1A535C]' : ''
                       }`}>
                         {item.label}
@@ -250,26 +250,26 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
         </nav>
 
         {/* Security Dashboard Toggle */}
-        <div className="p-4 border-t border-teal-600">
+        <div className="p-3 border-t border-teal-600">
           <button
             onClick={() => setShowSecurityDashboard(!showSecurityDashboard)}
-            className={`w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 ${
+            className={`w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-lg transition-all duration-200 ${
               showSecurityDashboard
                 ? 'bg-blue-600 text-white shadow-lg'
                 : 'text-teal-100 hover:bg-teal-600 hover:text-white'
             }`}
           >
             <Activity className="h-4 w-4" />
-            <span className="text-sm font-medium">Security Monitor</span>
+            <span className="text-sm font-medium">Security</span>
           </button>
 
           {/* Cloud Sync Status */}
-          <div className="mt-4">
+          <div className="mt-3">
             <CloudSyncIndicator compact={true} className="w-full" />
           </div>
 
-          <div className="text-xs text-teal-300 text-center mt-3">
-            MOCARDS v4.0 Cloud
+          <div className="text-xs text-teal-300 text-center mt-2 leading-tight">
+            MOCARDS v4.0
             <br />
             © 2025 Dental Group
           </div>
@@ -277,7 +277,7 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
       </div>
 
       {/* Desktop Main Content */}
-      <div className="flex-1 ml-64 bg-gray-50 min-h-screen">
+      <div className="flex-1 ml-56 bg-gray-50 min-h-screen">
         {children}
       </div>
 

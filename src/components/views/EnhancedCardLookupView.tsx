@@ -165,27 +165,27 @@ export function EnhancedCardLookupView() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Search className="h-8 w-8 text-blue-600" />
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Search className="h-7 w-7 text-blue-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Enhanced Card Lookup</h1>
-            <p className="text-gray-600">Search for any MOC card using the card number</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Card Lookup</h1>
+            <p className="text-gray-600 text-sm">Search for any MOC card using the card number</p>
           </div>
 
           {/* Search Section */}
-          <div className="light-card p-6 mb-6">
-            <div className="space-y-4">
+          <div className="light-card p-5 mb-5">
+            <div className="space-y-3">
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="light-input pl-12 text-lg"
+                  className="light-input pl-10"
                   placeholder="Enter card number (e.g., MOC-00001-01-CVT001)"
                   disabled={isLoading}
                 />
@@ -195,7 +195,7 @@ export function EnhancedCardLookupView() {
               <button
                 onClick={handleSearch}
                 disabled={isLoading || !searchQuery.trim()}
-                className="light-button-primary w-full flex items-center justify-center space-x-2 text-lg py-3"
+                className="light-button-primary w-full flex items-center justify-center space-x-2"
               >
                 {isLoading ? (
                   <>

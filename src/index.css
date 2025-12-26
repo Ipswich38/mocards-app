@@ -30,11 +30,11 @@
   }
 
   .teal-nav-item {
-    @apply flex items-center p-3 rounded-xl transition-all duration-200 cursor-pointer text-white/80 hover:bg-white/10 hover:text-white;
+    @apply flex items-center p-2.5 rounded-lg transition-all duration-200 cursor-pointer text-white/80 hover:bg-white/10 hover:text-white text-sm;
   }
 
   .teal-nav-item-active {
-    @apply flex items-center p-3 rounded-xl bg-white/20 text-white font-medium;
+    @apply flex items-center p-2.5 rounded-lg bg-white/20 text-white font-medium text-sm;
   }
 
   /* Apple iOS Light Mode Components - Everything Else */
@@ -43,13 +43,13 @@
   }
 
   .light-stat-card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200;
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200;
   }
 
   .light-button-primary {
     background-color: #1A535C; /* Deep Teal */
-    @apply text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md;
-    min-height: 44px;
+    @apply text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md text-sm;
+    min-height: 38px;
   }
 
   .light-button-primary:hover {
@@ -58,13 +58,13 @@
   }
 
   .light-button-secondary {
-    @apply bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300;
-    min-height: 44px;
+    @apply bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-900 font-medium py-2.5 px-5 rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300 text-sm;
+    min-height: 38px;
   }
 
   .light-input {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm;
-    min-height: 44px;
+    @apply w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm text-sm;
+    min-height: 38px;
   }
 
   .light-input:focus {
@@ -72,8 +72,8 @@
   }
 
   .light-select {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm;
-    min-height: 44px;
+    @apply w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1A535C] focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm text-sm;
+    min-height: 38px;
   }
 
   .light-select:focus {
@@ -81,12 +81,12 @@
   }
 
   .light-tab {
-    @apply px-4 py-2 rounded-xl text-gray-600 font-medium transition-all duration-200 cursor-pointer hover:text-gray-900 hover:bg-gray-50;
+    @apply px-3 py-1.5 rounded-lg text-gray-600 font-medium transition-all duration-200 cursor-pointer hover:text-gray-900 hover:bg-gray-50 text-sm;
   }
 
   .light-tab-active {
     background-color: #1A535C;
-    @apply text-white px-4 py-2 rounded-xl font-medium shadow-sm;
+    @apply text-white px-3 py-1.5 rounded-lg font-medium shadow-sm text-sm;
   }
 
   .light-table {
@@ -109,8 +109,8 @@
 
   .dark-search-bar {
     background-color: #303134; /* Google Search Bar Dark */
-    @apply border border-gray-600 rounded-full px-6 py-4 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-    min-height: 56px;
+    @apply border border-gray-600 rounded-full px-5 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm;
+    min-height: 48px;
   }
 
   .dark-card {
@@ -145,22 +145,43 @@
   }
 
   .sidebar-layout {
-    @apply w-64 fixed h-full z-10;
+    @apply w-56 fixed h-full z-10; /* Reduced from w-64 to w-56 (15% smaller) */
   }
 
   .content-layout {
-    @apply flex-1 ml-64 min-h-screen bg-gray-50;
+    @apply flex-1 ml-56 min-h-screen bg-gray-50; /* Adjusted margin */
   }
 
-  /* Mobile Responsive */
+  /* Enhanced Mobile Responsive */
+  @media (max-width: 1024px) {
+    .sidebar-layout {
+      @apply w-52; /* Even smaller on tablets */
+    }
+    .content-layout {
+      @apply ml-52;
+    }
+  }
+
   @media (max-width: 768px) {
     .sidebar-layout {
-      @apply transform -translate-x-full;
+      @apply transform -translate-x-full w-64; /* Full width on mobile */
     }
-
     .content-layout {
       @apply ml-0;
     }
+  }
+
+  /* Compact Mode for Small Screens */
+  .compact-text {
+    @apply text-sm leading-tight;
+  }
+
+  .compact-spacing {
+    @apply space-y-3;
+  }
+
+  .compact-padding {
+    @apply p-3;
   }
 }
 
