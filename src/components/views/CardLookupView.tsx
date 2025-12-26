@@ -63,7 +63,8 @@ export function CardLookupView() {
           id: result.id,
           controlNumber: result.control_number || result.unified_control_number || `${result.card_number}`,
           fullName: '', // Not stored in Supabase schema
-          status: result.status === 'activated' ? 'active' : 'inactive',
+          // CRITICAL FIX: Handle both 'activated' and 'active' status from database
+          status: (result.status === 'activated' || result.status === 'active') ? 'active' : 'inactive',
           perksTotal: 5,
           perksUsed: result.perks?.filter((p: any) => p.claimed).length || 0,
           clinicId: result.assigned_clinic_id || '',

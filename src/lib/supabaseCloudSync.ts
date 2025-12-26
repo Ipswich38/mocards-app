@@ -125,7 +125,8 @@ class SupabaseCloudSync {
         id: card.id,
         controlNumber: card.control_number || `MOC-${card.id}`,
         fullName: card.full_name || '',
-        status: card.status === 'active' ? 'active' : 'inactive',
+        // CRITICAL FIX: Map 'activated' status from Supabase to 'active' in our app
+        status: (card.status === 'active' || card.status === 'activated') ? 'active' : 'inactive',
         perksTotal: card.perks_total || 5,
         perksUsed: card.perks_used || 0,
         clinicId: card.clinic_id || '',
