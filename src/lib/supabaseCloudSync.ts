@@ -252,7 +252,7 @@ class SupabaseCloudSync {
         name: clinic.clinic_name,
         username: clinic.username || clinic.clinic_code.toLowerCase(),
         code: clinic.clinic_code,
-        password: 'clinic123', // Default password (not stored in Supabase)
+        password: clinic.password_hash || 'clinic123', // Use stored password or default
         plan: 'starter' as const,
         maxCards: 500,
         region: clinic.region || 'NCR',

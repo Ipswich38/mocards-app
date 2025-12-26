@@ -492,6 +492,11 @@ export function AdminPortalView() {
     if (success) {
       setActivationResult({ ...activationResult, status: newStatus });
       addToast(toastSuccess('Status Updated', `Card is now ${newStatus}`));
+
+      // CRITICAL FIX: Reload all data to sync dashboard and cloud
+      await reloadData();
+    } else {
+      addToast(toastError('Update Failed', 'Failed to update card status'));
     }
   };
 
