@@ -49,8 +49,9 @@ import {
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 import { supabase } from '../../lib/supabase';
+import { DatabaseDebugger } from '../DatabaseDebugger';
 
-type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'settings';
+type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
 
 export function AdminPortalView() {
   const { isAuthenticated, login, logout } = useAuth();
@@ -796,6 +797,7 @@ export function AdminPortalView() {
     { id: 'clinic-management' as const, label: 'Manage Clinics', icon: Building, color: 'indigo' },
     { id: 'endorsement' as const, label: 'Endorsement', icon: UserCheck, color: 'orange' },
     { id: 'master-list' as const, label: 'Master List', icon: Database, color: 'purple' },
+    { id: 'debug' as const, label: 'Debug DB', icon: AlertTriangle, color: 'red' },
     { id: 'settings' as const, label: 'Settings', icon: Settings, color: 'gray' },
   ];
 
@@ -2313,6 +2315,20 @@ export function AdminPortalView() {
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Debug Tab */}
+          {activeTab === 'debug' && (
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+                <h2 className="text-xl font-bold text-gray-900">Database Debugger</h2>
+              </div>
+              <p className="text-gray-600">
+                Use this tool to analyze the database and troubleshoot card lookup issues.
+              </p>
+              <DatabaseDebugger />
             </div>
           )}
 
