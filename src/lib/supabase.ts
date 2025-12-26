@@ -321,7 +321,7 @@ export const dbOperations = {
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
     console.log('[Supabase] Searching for card with control number:', controlNumber);
 
-    // Simple and robust card search
+    // Robust search supporting multiple formats
     let query = supabase
       .from('cards')
       .select(`
@@ -330,8 +330,16 @@ export const dbOperations = {
         perks:card_perks(*)
       `);
 
-    // Search by exact control number first (most common case)
-    query = query.eq('control_number', controlNumber);
+    // Search by control number with OR conditions to handle different formats
+    const searchTerm = controlNumber.trim();
+
+    // Try multiple search patterns for maximum compatibility
+    query = query.or(
+      `control_number.eq.${searchTerm},` +
+      `control_number.ilike.%${searchTerm}%,` +
+      `control_number_v2.eq.${searchTerm},` +
+      `unified_control_number.eq.${searchTerm}`
+    );
 
     if (passcode) {
       query = query.eq('passcode', passcode);
@@ -339,7 +347,12 @@ export const dbOperations = {
 
     const { data, error } = await query;
 
-    console.log('[Supabase] Card search result:', { data, error, query: controlNumber });
+    console.log('[Supabase] Card search result:', {
+      searchTerm,
+      foundCards: data?.length || 0,
+      error,
+      firstCard: data?.[0]?.control_number
+    });
 
     if (error) {
       console.error('[Supabase] Card search error:', error);

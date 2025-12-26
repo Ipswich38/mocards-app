@@ -106,13 +106,12 @@ export const cardOperations = {
     areaCode: string,
     perksTotal: number = 5
   ): Promise<Card[]> => {
-    const existingCards = await cloudOperations.cards.getAll();
     const newCards: Card[] = [];
-    const now = new Date().toISOString();
+
+    console.log('[BATCH] Creating batch cards from', startId, 'to', endId);
 
     for (let i = startId; i <= endId; i++) {
-      const card: Card = {
-        id: `card_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`,
+      const card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
         controlNumber: generateControlNumber(i, region, areaCode),
         fullName: '', // Empty name - will be filled when card is activated
         status: 'inactive',
@@ -120,15 +119,22 @@ export const cardOperations = {
         perksUsed: 0,
         clinicId: '',
         expiryDate: '2025-12-31',
-        createdAt: now,
-        updatedAt: now,
       };
-      newCards.push(card);
+
+      console.log('[BATCH] Creating card:', card.controlNumber);
+
+      // Create each card individually in Supabase (proper way)
+      try {
+        const createdCard = await cloudOperations.cards.add(card);
+        newCards.push(createdCard);
+        console.log('[BATCH] Card created successfully:', createdCard.controlNumber);
+      } catch (error) {
+        console.error('[BATCH] Failed to create card:', card.controlNumber, error);
+        throw new Error(`Failed to create card ${card.controlNumber}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
 
-    // Save batch to cloud
-    const allCards = [...existingCards, ...newCards];
-    await cloudOperations.cards.save(allCards);
+    console.log('[BATCH] Successfully created', newCards.length, 'cards');
     return newCards;
   },
 
