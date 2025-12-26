@@ -250,6 +250,7 @@ class SupabaseCloudSync {
       const transformedClinics: Clinic[] = (data || []).map(clinic => ({
         id: clinic.id,
         name: clinic.clinic_name,
+        username: clinic.username || clinic.clinic_code.toLowerCase(),
         code: clinic.clinic_code,
         password: 'clinic123', // Default password (not stored in Supabase)
         plan: 'starter' as const,
@@ -282,6 +283,7 @@ class SupabaseCloudSync {
       // Transform our schema to Supabase schema
       const supabaseClinic = {
         clinic_name: clinic.name,
+        username: clinic.username,
         clinic_code: clinic.code,
         password_hash: clinic.password, // In production, hash this
         region: clinic.region,
@@ -303,6 +305,7 @@ class SupabaseCloudSync {
       const transformedClinic: Clinic = {
         id: data.id,
         name: data.clinic_name,
+        username: clinic.username,
         code: data.clinic_code,
         password: clinic.password,
         plan: clinic.plan,

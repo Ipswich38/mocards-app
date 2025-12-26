@@ -58,7 +58,7 @@ export function CardholderLookup({ onBack, onCardFound, prefilledData }: Cardhol
           activated_at: card.activated_at,
           expires_at: card.expires_at,
           clinic_name: card.clinic?.clinic_name,
-          perks: (card.perks || []).map(perk => ({
+          perks: (card.perks || []).map((perk: any) => ({
             id: perk.id,
             perk_type: perk.perk_type,
             perk_value: 500, // Default value, should be mapped from actual perk data
