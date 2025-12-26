@@ -319,19 +319,9 @@ export const dbOperations = {
   },
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
-    // Universal card search supporting all formats:
-    // - Legacy: MOC-00001, MOC-10000
-    // - V2: MOC-00001
-    // - Unified: MOC-10000-01-CVT001
-    // - Card numbers: 1, 10000
-    // - Display numbers: 10000, 19999
-    // - 5-digit: 00001, 10000
+    console.log('[Supabase] Searching for card with control number:', controlNumber);
 
-    const fiveDigitPattern = /^\d{5}$/;
-    const simpleNumberPattern = /^\d{1,5}$/;
-    const isFiveDigitSearch = fiveDigitPattern.test(controlNumber);
-    const isSimpleNumber = simpleNumberPattern.test(controlNumber);
-
+    // Simple and robust card search
     let query = supabase
       .from('cards')
       .select(`
@@ -340,37 +330,24 @@ export const dbOperations = {
         perks:card_perks(*)
       `);
 
-    if (isFiveDigitSearch || isSimpleNumber) {
-      // Search by multiple formats for numbers
-      const searchNum = parseInt(controlNumber.replace(/^0+/, '') || '0');
-      const paddedNum = controlNumber.padStart(5, '0');
-
-      query = query.or(
-        `control_number.like.%${paddedNum},` +
-        `control_number_v2.like.%${paddedNum},` +
-        `unified_control_number.like.%${paddedNum},` +
-        `card_number.eq.${searchNum},` +
-        `display_card_number.eq.${searchNum + 9999}`
-      );
-    } else {
-      // Search by full control number (all formats)
-      query = query.or(
-        `control_number.eq.${controlNumber},` +
-        `control_number_v2.eq.${controlNumber},` +
-        `unified_control_number.eq.${controlNumber}`
-      );
-    }
-
-    // Restrict to our 10k card range
-    query = query.gte('card_number', 1).lte('card_number', 10000);
+    // Search by exact control number first (most common case)
+    query = query.eq('control_number', controlNumber);
 
     if (passcode) {
       query = query.eq('passcode', passcode);
     }
 
-    const { data, error } = await query.single();
-    if (error) throw error;
-    return data as Card;
+    const { data, error } = await query;
+
+    console.log('[Supabase] Card search result:', { data, error, query: controlNumber });
+
+    if (error) {
+      console.error('[Supabase] Card search error:', error);
+      throw error;
+    }
+
+    // Return the first match, or null if no matches
+    return data && data.length > 0 ? data[0] : null;
   },
 
   // New universal search function for multiple results

@@ -38,6 +38,7 @@ export interface Card {
 export interface Clinic {
   id: string;
   name: string;
+  username: string; // Username for clinic portal login
   region: string;
   plan: ClinicPlan;
   code: string; // Unique clinic code

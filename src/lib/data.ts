@@ -266,10 +266,10 @@ export const clinicOperations = {
     return clinics.find(clinic => clinic.code === code) || null;
   },
 
-  authenticate: async (code: string, password: string): Promise<Clinic | null> => {
+  authenticate: async (username: string, password: string): Promise<Clinic | null> => {
     const clinics = await cloudOperations.clinics.getAll();
     return clinics.find(clinic =>
-      clinic.code === code && clinic.password === password
+      clinic.username === username && clinic.password === password
     ) || null;
   },
 

@@ -48,6 +48,7 @@ import {
 } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
+import { supabase } from '../../lib/supabase';
 
 type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'settings';
 
@@ -139,6 +140,7 @@ export function AdminPortalView() {
     email: '',
     contactNumber: '',
     password: '',
+    username: '',
   });
 
   // Additional Clinic CRUD State
@@ -242,6 +244,46 @@ export function AdminPortalView() {
 
     if (isAuthenticated) {
       loadData();
+
+      // Set up real-time subscriptions for live updates
+      const cardsSubscription = supabase
+        .channel('admin-cards-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'cards' },
+          async (payload) => {
+            console.log('[Admin] Real-time cards change detected:', payload);
+            // Reload cards data when any card is updated
+            try {
+              const updatedCards = await cardOperations.getAll();
+              setCards(updatedCards);
+            } catch (error) {
+              console.error('Failed to reload cards after real-time update:', error);
+            }
+          }
+        )
+        .subscribe();
+
+      const clinicsSubscription = supabase
+        .channel('admin-clinics-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'clinics' },
+          async (payload) => {
+            console.log('[Admin] Real-time clinics change detected:', payload);
+            try {
+              const updatedClinics = await clinicOperations.getAll();
+              setClinics(updatedClinics);
+            } catch (error) {
+              console.error('Failed to reload clinics after real-time update:', error);
+            }
+          }
+        )
+        .subscribe();
+
+      // Cleanup function
+      return () => {
+        cardsSubscription.unsubscribe();
+        clinicsSubscription.unsubscribe();
+      };
     }
   }, [isAuthenticated]);
 
@@ -502,8 +544,8 @@ export function AdminPortalView() {
   };
 
   const handleCreateClinic = async () => {
-    if (!clinicForm.name || !clinicForm.region || !clinicForm.plan || !clinicForm.areaCode || !clinicForm.password) {
-      addToast(toastWarning('Missing Required Fields', 'Please fill all required fields'));
+    if (!clinicForm.name || !clinicForm.username || !clinicForm.region || !clinicForm.plan || !clinicForm.areaCode || !clinicForm.password) {
+      addToast(toastWarning('Missing Required Fields', 'Please fill all required fields including username'));
       return;
     }
 
@@ -519,6 +561,7 @@ export function AdminPortalView() {
     try {
       const newClinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'> = {
         name: clinicForm.name,
+        username: clinicForm.username,
         region: clinicForm.region,
         plan: clinicForm.plan,
         code: clinicCode,
@@ -549,6 +592,7 @@ export function AdminPortalView() {
         email: '',
         contactNumber: '',
         password: '',
+        username: '',
       });
 
       await reloadData(); // Refresh the data
@@ -571,6 +615,7 @@ export function AdminPortalView() {
       email: clinic.email || '',
       contactNumber: clinic.contactNumber || '',
       password: '', // Don't populate password for security
+      username: clinic.username || '', // Include username
     });
     setShowClinicForm(true);
   };
@@ -586,6 +631,7 @@ export function AdminPortalView() {
     try {
       const updates: Partial<Clinic> = {
         name: clinicForm.name,
+        username: clinicForm.username,
         region: clinicForm.region,
         plan: clinicForm.plan,
         address: clinicForm.address || undefined,
@@ -609,7 +655,7 @@ export function AdminPortalView() {
         setEditingClinic(null);
         setClinicForm({
           name: '', region: '', plan: 'starter', areaCode: '', customAreaCode: '',
-          password: '', address: '', adminClinic: '', email: '', contactNumber: ''
+          password: '', address: '', adminClinic: '', email: '', contactNumber: '', username: ''
         });
       } else {
         addToast(toastError('Update Failed', 'Could not update clinic'));
@@ -1101,6 +1147,7 @@ export function AdminPortalView() {
                       email: '',
                       contactNumber: '',
                       password: '',
+                      username: '',
                     });
                   }}
                   className="light-button-primary flex items-center gap-2"
@@ -1141,6 +1188,18 @@ export function AdminPortalView() {
                           onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })}
                           className="light-input"
                           placeholder="Enter clinic name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Username <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={clinicForm.username}
+                          onChange={(e) => setClinicForm({ ...clinicForm, username: e.target.value })}
+                          className="light-input"
+                          placeholder="Enter clinic username for login"
                         />
                       </div>
                       <div>

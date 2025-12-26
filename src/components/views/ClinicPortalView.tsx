@@ -34,7 +34,7 @@ export function ClinicPortalView() {
   const { isAuthenticated, user, login, logout } = useAuth();
   useAutoRefresh({ enabled: true, showNotifications: true });
   const [currentClinic, setCurrentClinic] = useState<Clinic | null>(null);
-  const [loginForm, setLoginForm] = useState({ code: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [showPerkRedemptionModal, setShowPerkRedemptionModal] = useState(false);
   const [selectedCardForPerk, setSelectedCardForPerk] = useState<string | null>(null);
   const [selectedPerkId, setSelectedPerkId] = useState<string>('');
@@ -258,7 +258,7 @@ export function ClinicPortalView() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const clinic = await clinicOperations.authenticate(loginForm.code, loginForm.password);
+    const clinic = await clinicOperations.authenticate(loginForm.username, loginForm.password);
 
     if (clinic) {
       setCurrentClinic(clinic);
@@ -272,7 +272,7 @@ export function ClinicPortalView() {
   const handleLogout = () => {
     logout();
     setCurrentClinic(null);
-    setLoginForm({ code: '', password: '' });
+    setLoginForm({ username: '', password: '' });
   };
 
   // Password Change Handler
@@ -379,13 +379,13 @@ export function ClinicPortalView() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Clinic Code</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
               <input
                 type="text"
-                value={loginForm.code}
-                onChange={(e) => setLoginForm({ ...loginForm, code: e.target.value })}
+                value={loginForm.username}
+                onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
                 className="light-input"
-                placeholder="Enter clinic code (e.g., CVT001)"
+                placeholder="Enter clinic username"
                 required
               />
             </div>
