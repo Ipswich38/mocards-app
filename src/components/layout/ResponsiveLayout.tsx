@@ -6,7 +6,7 @@ import { PWAInstallPrompt } from '../ui/PWAInstallPrompt';
 import { CloudSyncIndicator } from '../ui/CloudSyncIndicator';
 import { useBreakpoint, useScreenSize } from '../../hooks/useMediaQuery';
 
-export type ViewMode = 'card-lookup' | 'clinic-portal' | 'admin-access';
+export type ViewMode = 'card-lookup' | 'enhanced-lookup' | 'clinic-portal' | 'admin-access';
 
 interface ResponsiveLayoutProps {
   currentView: ViewMode;
@@ -45,6 +45,13 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
       label: 'Card Lookup',
       icon: Search,
       description: 'Verify card validity',
+      disabled: false, // Always accessible
+    },
+    {
+      id: 'enhanced-lookup' as ViewMode,
+      label: 'Enhanced Lookup',
+      icon: Search,
+      description: 'Advanced card search',
       disabled: false, // Always accessible
     },
     {
