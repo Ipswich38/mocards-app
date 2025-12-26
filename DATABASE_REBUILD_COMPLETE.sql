@@ -145,41 +145,41 @@ CREATE TABLE clinic_sales (
 );
 
 -- ================================================================
--- STEP 4: CREATE ALL PERFORMANCE INDEXES
+-- STEP 4: CREATE ALL PERFORMANCE INDEXES (SAFE)
 -- ================================================================
 
 -- Cards table indexes
-CREATE INDEX idx_cards_control_number ON cards(control_number);
-CREATE INDEX idx_cards_clinic_id ON cards(clinic_id);
-CREATE INDEX idx_cards_assigned_clinic_id ON cards(assigned_clinic_id);
-CREATE INDEX idx_cards_status ON cards(status);
-CREATE INDEX idx_cards_is_activated ON cards(is_activated);
-CREATE INDEX idx_cards_created_at ON cards(created_at);
+CREATE INDEX IF NOT EXISTS idx_cards_control_number ON cards(control_number);
+CREATE INDEX IF NOT EXISTS idx_cards_clinic_id ON cards(clinic_id);
+CREATE INDEX IF NOT EXISTS idx_cards_assigned_clinic_id ON cards(assigned_clinic_id);
+CREATE INDEX IF NOT EXISTS idx_cards_status ON cards(status);
+CREATE INDEX IF NOT EXISTS idx_cards_is_activated ON cards(is_activated);
+CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards(created_at);
 
 -- Clinics table indexes
-CREATE INDEX idx_clinics_clinic_code ON clinics(clinic_code);
-CREATE INDEX idx_clinics_status ON clinics(status);
-CREATE INDEX idx_clinics_clinic_name ON clinics(clinic_name);
+CREATE INDEX IF NOT EXISTS idx_clinics_clinic_code ON clinics(clinic_code);
+CREATE INDEX IF NOT EXISTS idx_clinics_status ON clinics(status);
+CREATE INDEX IF NOT EXISTS idx_clinics_clinic_name ON clinics(clinic_name);
 
 -- Perk redemptions indexes
-CREATE INDEX idx_perk_redemptions_used_at ON perk_redemptions(used_at);
-CREATE INDEX idx_perk_redemptions_card_control_number ON perk_redemptions(card_control_number);
-CREATE INDEX idx_perk_redemptions_clinic_id ON perk_redemptions(clinic_id);
-CREATE INDEX idx_perk_redemptions_perk_id ON perk_redemptions(perk_id);
+CREATE INDEX IF NOT EXISTS idx_perk_redemptions_used_at ON perk_redemptions(used_at);
+CREATE INDEX IF NOT EXISTS idx_perk_redemptions_card_control_number ON perk_redemptions(card_control_number);
+CREATE INDEX IF NOT EXISTS idx_perk_redemptions_clinic_id ON perk_redemptions(clinic_id);
+CREATE INDEX IF NOT EXISTS idx_perk_redemptions_perk_id ON perk_redemptions(perk_id);
 
 -- Appointments table indexes
-CREATE INDEX idx_appointments_control_number ON appointments(control_number);
-CREATE INDEX idx_appointments_card_control_number ON appointments(card_control_number);
-CREATE INDEX idx_appointments_clinic_id ON appointments(clinic_id);
-CREATE INDEX idx_appointments_status ON appointments(status);
+CREATE INDEX IF NOT EXISTS idx_appointments_control_number ON appointments(control_number);
+CREATE INDEX IF NOT EXISTS idx_appointments_card_control_number ON appointments(card_control_number);
+CREATE INDEX IF NOT EXISTS idx_appointments_clinic_id ON appointments(clinic_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
 
 -- Perk templates indexes
-CREATE INDEX idx_perk_templates_is_active ON perk_templates(is_active);
-CREATE INDEX idx_perk_templates_type ON perk_templates(type);
+CREATE INDEX IF NOT EXISTS idx_perk_templates_is_active ON perk_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_perk_templates_type ON perk_templates(type);
 
 -- Card perks indexes
-CREATE INDEX idx_card_perks_card_id ON card_perks(card_id);
-CREATE INDEX idx_card_perks_claimed ON card_perks(claimed);
+CREATE INDEX IF NOT EXISTS idx_card_perks_card_id ON card_perks(card_id);
+CREATE INDEX IF NOT EXISTS idx_card_perks_claimed ON card_perks(claimed);
 
 -- ================================================================
 -- STEP 5: RESTORE BACKED UP CARDS DATA
