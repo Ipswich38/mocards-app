@@ -319,35 +319,34 @@ export const dbOperations = {
   },
 
   async getCardByControlNumber(controlNumber: string, passcode?: string) {
-    console.log('[Supabase] Searching for card with control number:', controlNumber);
+    console.log('[Supabase] BULLETPROOF SEARCH for card:', controlNumber);
 
-    // Robust search supporting multiple formats
-    let query = supabase
+    const searchTerm = controlNumber.trim().toUpperCase();
+
+    // BULLETPROOF SEARCH: Try exact match first, then simple contains
+    let { data, error } = await supabase
       .from('cards')
-      .select(`
-        *,
-        clinic:clinics(*),
-        perks:card_perks(*)
-      `);
+      .select('*')
+      .eq('control_number', searchTerm)
+      .limit(10);
 
-    // Search by control number with OR conditions to handle different formats
-    const searchTerm = controlNumber.trim();
+    // If exact match fails, try case-insensitive contains search
+    if (!error && (!data || data.length === 0)) {
+      const result = await supabase
+        .from('cards')
+        .select('*')
+        .ilike('control_number', `%${searchTerm}%`)
+        .limit(10);
 
-    // Try multiple search patterns for maximum compatibility
-    query = query.or(
-      `control_number.eq.${searchTerm},` +
-      `control_number.ilike.%${searchTerm}%,` +
-      `control_number_v2.eq.${searchTerm},` +
-      `unified_control_number.eq.${searchTerm}`
-    );
-
-    if (passcode) {
-      query = query.eq('passcode', passcode);
+      data = result.data;
+      error = result.error;
     }
 
-    const { data, error } = await query;
+    if (passcode && data && data.length > 0) {
+      data = data.filter(card => card.passcode === passcode);
+    }
 
-    console.log('[Supabase] Card search result:', {
+    console.log('[Supabase] BULLETPROOF Card search result:', {
       searchTerm,
       foundCards: data?.length || 0,
       error,
@@ -355,7 +354,7 @@ export const dbOperations = {
     });
 
     if (error) {
-      console.error('[Supabase] Card search error:', error);
+      console.error('[Supabase] BULLETPROOF Card search error:', error);
       throw error;
     }
 

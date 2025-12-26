@@ -42,23 +42,24 @@ export function EnhancedCardLookupView() {
       // Direct Supabase query with multiple search patterns
       const searchTerm = searchQuery.trim().toUpperCase();
 
-      // Try multiple search approaches
-      let query = supabase
+      // BULLETPROOF SEARCH: Try exact match first, then simple contains
+      let { data, error } = await supabase
         .from('cards')
-        .select(`
-          *,
-          clinics(clinic_name)
-        `);
+        .select('*')
+        .eq('control_number', searchTerm)
+        .limit(10);
 
-      // Search with multiple patterns for maximum compatibility
-      query = query.or(
-        `control_number.eq.${searchTerm},` +
-        `control_number.ilike.%${searchTerm}%,` +
-        `control_number.ilike.${searchTerm}%,` +
-        `control_number.ilike.%${searchTerm}`
-      );
+      // If exact match fails, try case-insensitive contains search
+      if (!error && (!data || data.length === 0)) {
+        const result = await supabase
+          .from('cards')
+          .select('*')
+          .ilike('control_number', `%${searchTerm}%`)
+          .limit(10);
 
-      const { data, error } = await query.limit(10);
+        data = result.data;
+        error = result.error;
+      }
 
       console.log('[Enhanced Lookup] Search result:', {
         searchTerm,
@@ -75,6 +76,25 @@ export function EnhancedCardLookupView() {
       if (data && data.length > 0) {
         // Transform the result
         const card = data[0];
+
+        // Get clinic name separately to avoid relationship issues
+        let clinic_name = 'Not Assigned';
+        if (card.assigned_clinic_id) {
+          try {
+            const { data: clinicData } = await supabase
+              .from('clinics')
+              .select('clinic_name')
+              .eq('id', card.assigned_clinic_id)
+              .single();
+
+            if (clinicData) {
+              clinic_name = clinicData.clinic_name;
+            }
+          } catch (err) {
+            console.log('Could not fetch clinic name:', err);
+          }
+        }
+
         const transformedCard: CardResult = {
           id: card.id,
           control_number: card.control_number,
@@ -84,7 +104,7 @@ export function EnhancedCardLookupView() {
           created_at: card.created_at,
           expires_at: card.expires_at,
           activated_at: card.activated_at,
-          clinic_name: card.clinics?.clinic_name || 'Not Assigned',
+          clinic_name: clinic_name,
           full_name: card.full_name || 'Not Activated'
         };
 
