@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy, useEffect } from 'react';
 import { ResponsiveLayout, type ViewMode } from './components/layout/ResponsiveLayout';
 import { ToastProvider } from './hooks/useToast';
 import { ToastContainer } from './components/ui/ToastContainer';
@@ -12,6 +12,13 @@ const AdminPortalView = lazy(() => import('./components/views/AdminPortalView').
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
   const { isAuthenticated, user } = useAuth();
+
+  // Redirect to card lookup when user logs out
+  useEffect(() => {
+    if (!isAuthenticated && (currentView === 'admin-access' || currentView === 'clinic-portal')) {
+      setCurrentView('enhanced-lookup');
+    }
+  }, [isAuthenticated, currentView]);
 
   const renderCurrentView = () => {
     switch (currentView) {
