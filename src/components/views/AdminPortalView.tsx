@@ -354,6 +354,12 @@ export function AdminPortalView() {
     try {
       console.log('[Admin] BEFORE Generation - Current cards count:', cards.length);
       console.log('[Admin] Generating', generatorForm.quantity, 'cards with region:', generatorForm.region, 'areaCode:', finalAreaCode);
+      console.log('[Admin] Generator form data:', {
+        quantity: generatorForm.quantity,
+        region: generatorForm.region,
+        areaCode: finalAreaCode,
+        perksTotal: generatorForm.perksTotal
+      });
 
       const generatedCards = await cardOperations.generateCards(
         generatorForm.quantity,
@@ -365,7 +371,12 @@ export function AdminPortalView() {
       console.log('[Admin] Cards generated successfully:', generatedCards);
       console.log('[Admin] Generated cards count:', generatedCards.length);
 
-      addToast(toastSuccess('Cards Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
+      if (generatedCards.length === 0) {
+        console.error('[Admin] WARNING: No cards were created! Check the generator logs above for errors.');
+        addToast(toastError('Generation Issue', 'No cards were created. Check the console for details and try again.'));
+      } else {
+        addToast(toastSuccess('Cards Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
+      }
 
       console.log('[Admin] Calling reloadData to refresh dashboard...');
       await reloadData(); // Refresh the data
@@ -373,7 +384,14 @@ export function AdminPortalView() {
       console.log('[Admin] AFTER Generation - New cards count should be updated via reloadData');
 
     } catch (error) {
-      console.error('[Admin] Card generation failed:', error);
+      console.error('[Admin] Card generation failed with error:', error);
+      if (error instanceof Error) {
+        console.error('[Admin] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
       addToast(toastError('Generation Failed', error instanceof Error ? error.message : 'Failed to generate cards'));
     }
   };

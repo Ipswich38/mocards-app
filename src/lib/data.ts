@@ -109,32 +109,70 @@ export const cardOperations = {
 
     console.log('[GENERATOR] Creating', quantity, 'cards with region:', region, 'areaCode:', areaCode);
 
+    // Input validation
+    if (!region || !areaCode) {
+      console.error('[GENERATOR] Invalid input - region and areaCode are required');
+      console.error('[GENERATOR] Received:', { region, areaCode, quantity, perksTotal });
+      throw new Error('Region and Area Code are required for card generation');
+    }
+
+    if (quantity <= 0) {
+      console.error('[GENERATOR] Invalid quantity:', quantity);
+      throw new Error('Quantity must be greater than 0');
+    }
+
+    console.log('[GENERATOR] Input validation passed');
+
     // Get existing cards to find the next available ID
+    console.log('[GENERATOR] Fetching existing cards...');
     const existingCards = await cloudOperations.cards.getAll();
+    console.log('[GENERATOR] Found', existingCards.length, 'existing cards');
     const existingControlNumbers = new Set(existingCards.map(card => card.controlNumber));
 
     // Find the highest existing ID for this region/areaCode combination
     let nextId = 1;
-    const pattern = new RegExp(`MOC-(\\d+)-${region}-${areaCode}`);
+    try {
+      const pattern = new RegExp(`MOC-(\\\\d+)-${region}-${areaCode}`);
+      console.log('[GENERATOR] Using pattern:', pattern.source);
 
-    existingCards.forEach(card => {
-      const match = card.controlNumber.match(pattern);
-      if (match) {
-        const cardId = parseInt(match[1]);
-        if (cardId >= nextId) {
-          nextId = cardId + 1;
+      existingCards.forEach(card => {
+        const match = card.controlNumber.match(pattern);
+        if (match) {
+          const cardId = parseInt(match[1]);
+          if (cardId >= nextId) {
+            nextId = cardId + 1;
+          }
         }
+      });
+    } catch (patternError) {
+      console.error('[GENERATOR] Regex pattern error:', patternError);
+      console.log('[GENERATOR] Falling back to simple ID detection');
+      // Fallback: just find any existing MOC cards and use the next number
+      const allMocCards = existingCards.filter(card => card.controlNumber.startsWith('MOC-'));
+      if (allMocCards.length > 0) {
+        const highestId = Math.max(...allMocCards.map(card => {
+          const match = card.controlNumber.match(/MOC-(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        }));
+        nextId = highestId + 1;
       }
-    });
+    }
 
     console.log('[GENERATOR] Starting from ID:', nextId);
 
     let created = 0;
     let attempts = 0;
     let consecutiveFailures = 0;
-    const maxAttempts = quantity * 3; // Increased safety limit
-    const maxConsecutiveFailures = 5; // Stop after 5 consecutive failures
+    const maxAttempts = quantity * 5; // Further increased safety limit
+    const maxConsecutiveFailures = Math.min(10, Math.max(5, quantity / 10)); // Dynamic failure limit
     const batchSize = 50; // Process in batches for large quantities
+
+    console.log('[GENERATOR] Configuration:', {
+      maxAttempts,
+      maxConsecutiveFailures,
+      batchSize,
+      targetQuantity: quantity
+    });
 
     console.log('[GENERATOR] Processing in batches for optimal performance...');
 
