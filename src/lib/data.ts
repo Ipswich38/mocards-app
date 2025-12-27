@@ -129,33 +129,23 @@ export const cardOperations = {
     console.log('[GENERATOR] Found', existingCards.length, 'existing cards');
     const existingControlNumbers = new Set(existingCards.map(card => card.controlNumber));
 
-    // Find the highest existing ID for this region/areaCode combination
+    // Find the highest existing ID globally (not just for this region/area)
     let nextId = 1;
-    try {
-      const pattern = new RegExp(`MOC-(\\\\d+)-${region}-${areaCode}`);
-      console.log('[GENERATOR] Using pattern:', pattern.source);
+    console.log('[GENERATOR] Finding highest existing ID across all cards...');
 
-      existingCards.forEach(card => {
-        const match = card.controlNumber.match(pattern);
-        if (match) {
-          const cardId = parseInt(match[1]);
-          if (cardId >= nextId) {
-            nextId = cardId + 1;
-          }
-        }
-      });
-    } catch (patternError) {
-      console.error('[GENERATOR] Regex pattern error:', patternError);
-      console.log('[GENERATOR] Falling back to simple ID detection');
-      // Fallback: just find any existing MOC cards and use the next number
-      const allMocCards = existingCards.filter(card => card.controlNumber.startsWith('MOC-'));
-      if (allMocCards.length > 0) {
-        const highestId = Math.max(...allMocCards.map(card => {
-          const match = card.controlNumber.match(/MOC-(\d+)/);
-          return match ? parseInt(match[1]) : 0;
-        }));
-        nextId = highestId + 1;
-      }
+    // Find highest ID from ANY MOC card, regardless of region/area
+    const allMocCards = existingCards.filter(card => card.controlNumber.startsWith('MOC-'));
+    console.log('[GENERATOR] Found', allMocCards.length, 'existing MOC cards');
+
+    if (allMocCards.length > 0) {
+      const highestId = Math.max(...allMocCards.map(card => {
+        const match = card.controlNumber.match(/MOC-(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      }));
+      nextId = highestId + 1;
+      console.log('[GENERATOR] Highest existing ID found:', highestId, '- Starting from:', nextId);
+    } else {
+      console.log('[GENERATOR] No existing MOC cards found, starting from ID 1');
     }
 
     console.log('[GENERATOR] Starting from ID:', nextId);
