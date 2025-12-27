@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "health-check": "node scripts/production-health-check.cjs",
+    "safeguard": "npm run health-check && npm run build",
+    "deploy-safe": "npm run safeguard && echo '✅ Safe to deploy!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
