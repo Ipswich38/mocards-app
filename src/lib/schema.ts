@@ -10,7 +10,7 @@ export type ClinicPlan = 'starter' | 'growth' | 'pro';
 export type CardStatus = 'active' | 'inactive';
 export type AppointmentStatus = 'pending' | 'accepted' | 'declined' | 'rescheduled' | 'completed' | 'cancelled';
 export type UserRole = 'admin' | 'clinic' | 'staff';
-export type PerkType = 'dental_cleaning' | 'consultation' | 'xray' | 'treatment' | 'discount';
+export type PerkType = 'dental_cleaning' | 'consultation' | 'xray' | 'treatment' | 'discount' | 'extraction' | 'filling' | 'fluoride' | 'checkup';
 
 // ============================================================================
 // CORE INTERFACES

@@ -109,7 +109,7 @@ export function AdminPortalView() {
       type: 'dental_cleaning' as PerkType,
       name: '',
       description: '',
-      value: 0,
+      value: 800,
       isActive: true,
       validFor: 365,
       requiresApproval: false
@@ -406,7 +406,7 @@ export function AdminPortalView() {
         type: 'dental_cleaning' as PerkType,
         name: '',
         description: '',
-        value: 0,
+        value: 800,
         isActive: true,
         validFor: 365,
         requiresApproval: false
@@ -441,7 +441,11 @@ export function AdminPortalView() {
     { value: 'consultation', label: 'Consultation' },
     { value: 'xray', label: 'X-Ray' },
     { value: 'treatment', label: 'Treatment' },
-    { value: 'discount', label: 'Discount' }
+    { value: 'discount', label: 'Discount' },
+    { value: 'extraction', label: 'Tooth Extraction (Bunot)' },
+    { value: 'filling', label: 'Tooth Filling (Pasta)' },
+    { value: 'fluoride', label: 'Fluoride Treatment' },
+    { value: 'checkup', label: 'Checkup/Unlimited' }
   ];
 
   const handleActivationSearch = () => {
@@ -2499,18 +2503,18 @@ export function AdminPortalView() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Value (%)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Value (₱ PHP)</label>
                   <input
                     type="number"
                     min="0"
-                    max="100"
+                    max="10000"
                     value={perksManagement.form.value}
                     onChange={(e) => setPerksManagement({
                       ...perksManagement,
                       form: { ...perksManagement.form, value: parseInt(e.target.value) || 0 }
                     })}
                     className="light-input"
-                    placeholder="0"
+                    placeholder="800"
                   />
                 </div>
 

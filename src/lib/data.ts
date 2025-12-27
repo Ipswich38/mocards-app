@@ -131,9 +131,14 @@ export const cardOperations = {
 
     let created = 0;
     let attempts = 0;
-    const maxAttempts = quantity * 2; // Safety limit
+    let consecutiveFailures = 0;
+    const maxAttempts = quantity * 3; // Increased safety limit
+    const maxConsecutiveFailures = 5; // Stop after 5 consecutive failures
+    const batchSize = 50; // Process in batches for large quantities
 
-    while (created < quantity && attempts < maxAttempts) {
+    console.log('[GENERATOR] Processing in batches for optimal performance...');
+
+    while (created < quantity && attempts < maxAttempts && consecutiveFailures < maxConsecutiveFailures) {
       const controlNumber = generateControlNumber(nextId, region, areaCode);
       attempts++;
 
@@ -154,19 +159,38 @@ export const cardOperations = {
         expiryDate: '2025-12-31',
       };
 
-      console.log('[GENERATOR] Creating card:', card.controlNumber);
-
-      // Create each card individually in Supabase
+      // Create each card individually in Supabase with better error handling
       try {
         const createdCard = await cloudOperations.cards.add(card);
         newCards.push(createdCard);
         existingControlNumbers.add(controlNumber); // Update our local set
         created++;
         nextId++;
-        console.log(`[GENERATOR] Card created successfully (${created}/${quantity}):`, createdCard.controlNumber);
+        consecutiveFailures = 0; // Reset failure counter on success
+
+        // Progress logging every 10 cards or at key milestones
+        if (created % 10 === 0 || created === 1 || created === quantity) {
+          console.log(`[GENERATOR] Progress: ${created}/${quantity} cards created (${Math.round((created/quantity)*100)}%)`);
+        }
+
+        // Small delay every batch to avoid overwhelming Supabase
+        if (created % batchSize === 0 && created < quantity) {
+          console.log(`[GENERATOR] Batch of ${batchSize} completed, brief pause...`);
+          await new Promise(resolve => setTimeout(resolve, 100)); // 100ms pause
+        }
+
       } catch (error) {
         console.error('[GENERATOR] Failed to create card:', card.controlNumber, error);
-        throw new Error(`Failed to create card ${card.controlNumber}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        consecutiveFailures++;
+        nextId++; // Still increment to avoid infinite loop
+
+        // Don't throw immediately, try to continue unless too many failures
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          console.error(`[GENERATOR] Too many consecutive failures (${consecutiveFailures}), stopping generation.`);
+          break;
+        } else {
+          console.log(`[GENERATOR] Continuing after failure (${consecutiveFailures}/${maxConsecutiveFailures})...`);
+        }
       }
     }
 
