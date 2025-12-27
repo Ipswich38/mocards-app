@@ -352,16 +352,26 @@ export function AdminPortalView() {
     }
 
     try {
+      console.log('[Admin] BEFORE Generation - Current cards count:', cards.length);
       console.log('[Admin] Generating', generatorForm.quantity, 'cards with region:', generatorForm.region, 'areaCode:', finalAreaCode);
+
       const generatedCards = await cardOperations.generateCards(
         generatorForm.quantity,
         generatorForm.region,
         finalAreaCode,
         generatorForm.perksTotal
       );
+
       console.log('[Admin] Cards generated successfully:', generatedCards);
+      console.log('[Admin] Generated cards count:', generatedCards.length);
+
       addToast(toastSuccess('Cards Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
+
+      console.log('[Admin] Calling reloadData to refresh dashboard...');
       await reloadData(); // Refresh the data
+
+      console.log('[Admin] AFTER Generation - New cards count should be updated via reloadData');
+
     } catch (error) {
       console.error('[Admin] Card generation failed:', error);
       addToast(toastError('Generation Failed', error instanceof Error ? error.message : 'Failed to generate cards'));

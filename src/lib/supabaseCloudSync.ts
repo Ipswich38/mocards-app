@@ -113,15 +113,37 @@ class SupabaseCloudSync {
   async getAllCards(): Promise<Card[]> {
     try {
       this.setSyncStatus('syncing');
-      const { data, error } = await supabase
-        .from('cards')
-        .select('*')
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      // Get all cards with pagination to handle large datasets (default limit is 1000)
+      let allCards: any[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const batchSize = 1000;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('cards')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(offset, offset + batchSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allCards = allCards.concat(data);
+          offset += batchSize;
+          hasMore = data.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      console.log(`[SupabaseCloudSync] Retrieved ${allCards.length} total cards from database`);
+
+      if (!allCards) allCards = [];
 
       // Transform Supabase data to our schema format
-      const transformedCards: Card[] = (data || []).map(card => ({
+      const transformedCards: Card[] = (allCards || []).map(card => ({
         id: card.id,
         controlNumber: card.control_number || `MOC-${card.id}`,
         fullName: card.full_name || '',
