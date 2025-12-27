@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "health-check": "node scripts/production-health-check.cjs",
     "safeguard": "npm run health-check && npm run build",
-    "deploy-safe": "npm run safeguard && echo '✅ Safe to deploy!'"
+    "deploy-safe": "npm run safeguard && echo '✅ Safe to deploy!'",
+    "reset-db": "node scripts/quick-reset.cjs",
+    "fresh-start": "npm run reset-db && echo '🎯 Database reset instructions provided!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
