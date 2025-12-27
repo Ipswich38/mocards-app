@@ -38,7 +38,6 @@ import {
   AREA_CODES,
   PLAN_LIMITS,
   PLAN_PRICING,
-  generateControlNumber,
   generateClinicCode,
   type Card,
   type Clinic,
@@ -93,14 +92,12 @@ export function AdminPortalView() {
     }
   };
 
-  // Generator State
+  // Enhanced Generator State - Simplified with quantity options
   const [generatorForm, setGeneratorForm] = useState({
-    mode: 'single' as 'single' | 'batch',
+    quantity: 1,
     region: '',
     areaCode: '',
     customAreaCode: '',
-    startId: '',
-    endId: '',
     perksTotal: 5, // Default perks per card
   });
 
@@ -343,71 +340,31 @@ export function AdminPortalView() {
   };
 
   const handleGenerateCards = async () => {
-    if (generatorForm.mode === 'single') {
-      if (!generatorForm.region || !generatorForm.areaCode) {
-        addToast(toastWarning('Missing Fields', 'Please fill all required fields'));
-        return;
-      }
+    if (!generatorForm.region || !generatorForm.areaCode) {
+      addToast(toastWarning('Missing Fields', 'Please fill all required fields'));
+      return;
+    }
 
-      // Handle custom area code
-      let finalAreaCode = generatorForm.areaCode;
-      if (generatorForm.areaCode === 'Custom' && generatorForm.customAreaCode) {
-        finalAreaCode = generatorForm.customAreaCode;
-      }
+    // Handle custom area code
+    let finalAreaCode = generatorForm.areaCode;
+    if (generatorForm.areaCode === 'Custom' && generatorForm.customAreaCode) {
+      finalAreaCode = generatorForm.customAreaCode;
+    }
 
-      const newId = cards.length + 1;
-      const controlNumber = generateControlNumber(newId, generatorForm.region, finalAreaCode);
-
-      const newCard: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
-        controlNumber,
-        fullName: '', // Empty name - will be filled when card is activated
-        status: 'inactive',
-        perksTotal: generatorForm.perksTotal,
-        perksUsed: 0,
-        clinicId: '',
-        expiryDate: '2025-12-31',
-      };
-
-      try {
-        console.log('[Admin] Attempting to create card:', newCard);
-        const createdCard = await cardOperations.create(newCard);
-        console.log('[Admin] Card created successfully:', createdCard);
-        addToast(toastSuccess('Card Generated', `Created ${controlNumber} with ${generatorForm.perksTotal} perks`));
-        await reloadData(); // Refresh the data
-      } catch (error) {
-        console.error('[Admin] Card creation failed:', error);
-        addToast(toastError('Card Creation Failed', `Failed to create card ${controlNumber}. Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
-      }
-    } else {
-      // Batch generation
-      console.log('[DEBUG] Batch generation form data:', generatorForm);
-      const start = parseInt(generatorForm.startId);
-      const end = parseInt(generatorForm.endId);
-
-      console.log('[DEBUG] Parsed values:', { start, end, startValid: !isNaN(start), endValid: !isNaN(end) });
-
-      if (!start || !end || start > end || isNaN(start) || isNaN(end)) {
-        console.log('[DEBUG] Validation failed:', { start, end, condition: 'Invalid range' });
-        addToast(toastWarning('Invalid Range', 'Please enter a valid ID range (numbers only)'));
-        return;
-      }
-
-      // Handle custom area code
-      let finalAreaCode = generatorForm.areaCode;
-      if (generatorForm.areaCode === 'Custom' && generatorForm.customAreaCode) {
-        finalAreaCode = generatorForm.customAreaCode;
-      }
-
-      try {
-        console.log('[Admin] Attempting batch creation:', { start, end, region: generatorForm.region, areaCode: finalAreaCode });
-        const generatedCards = await cardOperations.createBatch(start, end, generatorForm.region, finalAreaCode, generatorForm.perksTotal);
-        console.log('[Admin] Batch created successfully:', generatedCards);
-        addToast(toastSuccess('Batch Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
-        await reloadData(); // Refresh the data
-      } catch (error) {
-        console.error('[Admin] Batch creation failed:', error);
-        addToast(toastError('Batch Creation Failed', `Failed to create cards. Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
-      }
+    try {
+      console.log('[Admin] Generating', generatorForm.quantity, 'cards with region:', generatorForm.region, 'areaCode:', finalAreaCode);
+      const generatedCards = await cardOperations.generateCards(
+        generatorForm.quantity,
+        generatorForm.region,
+        finalAreaCode,
+        generatorForm.perksTotal
+      );
+      console.log('[Admin] Cards generated successfully:', generatedCards);
+      addToast(toastSuccess('Cards Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
+      await reloadData(); // Refresh the data
+    } catch (error) {
+      console.error('[Admin] Card generation failed:', error);
+      addToast(toastError('Generation Failed', error instanceof Error ? error.message : 'Failed to generate cards'));
     }
   };
 
@@ -962,23 +919,35 @@ export function AdminPortalView() {
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-gray-900">Card Generator</h2>
 
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-                <button
-                  onClick={() => setGeneratorForm({ ...generatorForm, mode: 'single' })}
-                  className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                    generatorForm.mode === 'single' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
-                  }`}
-                >
-                  Single Card
-                </button>
-                <button
-                  onClick={() => setGeneratorForm({ ...generatorForm, mode: 'batch' })}
-                  className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                    generatorForm.mode === 'batch' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
-                  }`}
-                >
-                  Batch Mode
-                </button>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {[1, 50, 100, 250, 500, 1000].map((qty) => (
+                    <button
+                      key={qty}
+                      onClick={() => setGeneratorForm({ ...generatorForm, quantity: qty })}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        generatorForm.quantity === qty
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {qty === 1 ? '1 Card' : `${qty} Cards`}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value={generatorForm.quantity}
+                    onChange={(e) => setGeneratorForm({ ...generatorForm, quantity: parseInt(e.target.value) || 1 })}
+                    className="light-input w-32"
+                    placeholder="Custom quantity"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">Custom quantity (1-10000)</span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1027,7 +996,7 @@ export function AdminPortalView() {
                   </div>
                 )}
 
-                {/* Perks Configuration - Available for both single and batch */}
+                {/* Perks Configuration */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Perks per Card</label>
                   <div className="flex items-center space-x-4">
@@ -1064,35 +1033,11 @@ export function AdminPortalView() {
                   </div>
                 </div>
 
-                {generatorForm.mode === 'batch' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Start ID</label>
-                      <input
-                        type="number"
-                        value={generatorForm.startId}
-                        onChange={(e) => setGeneratorForm({ ...generatorForm, startId: e.target.value })}
-                        className="light-input"
-                        placeholder="1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">End ID</label>
-                      <input
-                        type="number"
-                        value={generatorForm.endId}
-                        onChange={(e) => setGeneratorForm({ ...generatorForm, endId: e.target.value })}
-                        className="light-input"
-                        placeholder="100"
-                      />
-                    </div>
-                  </>
-                )}
               </div>
 
               <div className="flex space-x-3">
                 <button onClick={handleGenerateCards} className="light-button-primary">
-                  {generatorForm.mode === 'single' ? 'Generate Card' : 'Generate Batch'}
+                  {generatorForm.quantity === 1 ? 'Generate 1 Card' : `Generate ${generatorForm.quantity} Cards`}
                 </button>
                 <button onClick={testDatabaseConnection} className="light-button-secondary">
                   <Database className="h-4 w-4 mr-2" />

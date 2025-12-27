@@ -99,29 +99,48 @@ export const cardOperations = {
     }
   },
 
-  createBatch: async (
-    startId: number,
-    endId: number,
+  generateCards: async (
+    quantity: number,
     region: string,
     areaCode: string,
     perksTotal: number = 5
   ): Promise<Card[]> => {
     const newCards: Card[] = [];
-    const skippedCards: string[] = [];
 
-    console.log('[BATCH] Creating batch cards from', startId, 'to', endId);
+    console.log('[GENERATOR] Creating', quantity, 'cards with region:', region, 'areaCode:', areaCode);
 
-    // Get existing cards to check for duplicates
+    // Get existing cards to find the next available ID
     const existingCards = await cloudOperations.cards.getAll();
     const existingControlNumbers = new Set(existingCards.map(card => card.controlNumber));
 
-    for (let i = startId; i <= endId; i++) {
-      const controlNumber = generateControlNumber(i, region, areaCode);
+    // Find the highest existing ID for this region/areaCode combination
+    let nextId = 1;
+    const pattern = new RegExp(`MOC-(\\d+)-${region}-${areaCode}`);
 
-      // CRITICAL FIX: Skip cards that already exist
+    existingCards.forEach(card => {
+      const match = card.controlNumber.match(pattern);
+      if (match) {
+        const cardId = parseInt(match[1]);
+        if (cardId >= nextId) {
+          nextId = cardId + 1;
+        }
+      }
+    });
+
+    console.log('[GENERATOR] Starting from ID:', nextId);
+
+    let created = 0;
+    let attempts = 0;
+    const maxAttempts = quantity * 2; // Safety limit
+
+    while (created < quantity && attempts < maxAttempts) {
+      const controlNumber = generateControlNumber(nextId, region, areaCode);
+      attempts++;
+
+      // Skip if card already exists (safety check)
       if (existingControlNumbers.has(controlNumber)) {
-        console.log('[BATCH] Skipping existing card:', controlNumber);
-        skippedCards.push(controlNumber);
+        console.log('[GENERATOR] Skipping existing card:', controlNumber);
+        nextId++;
         continue;
       }
 
@@ -135,23 +154,27 @@ export const cardOperations = {
         expiryDate: '2025-12-31',
       };
 
-      console.log('[BATCH] Creating card:', card.controlNumber);
+      console.log('[GENERATOR] Creating card:', card.controlNumber);
 
-      // Create each card individually in Supabase (proper way)
+      // Create each card individually in Supabase
       try {
         const createdCard = await cloudOperations.cards.add(card);
         newCards.push(createdCard);
-        console.log('[BATCH] Card created successfully:', createdCard.controlNumber);
+        existingControlNumbers.add(controlNumber); // Update our local set
+        created++;
+        nextId++;
+        console.log(`[GENERATOR] Card created successfully (${created}/${quantity}):`, createdCard.controlNumber);
       } catch (error) {
-        console.error('[BATCH] Failed to create card:', card.controlNumber, error);
+        console.error('[GENERATOR] Failed to create card:', card.controlNumber, error);
         throw new Error(`Failed to create card ${card.controlNumber}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
-    console.log('[BATCH] Successfully created', newCards.length, 'cards');
-    if (skippedCards.length > 0) {
-      console.log('[BATCH] Skipped', skippedCards.length, 'existing cards:', skippedCards);
+    if (created < quantity) {
+      console.warn(`[GENERATOR] Only created ${created} out of ${quantity} requested cards`);
     }
+
+    console.log('[GENERATOR] Successfully created', created, 'unique cards');
     return newCards;
   },
 
