@@ -19,6 +19,7 @@ import {
 
 // Import cloud sync operations for multi-device persistence
 import { cloudOperations } from './cloudSync';
+import { supabase } from './supabase';
 
 // Re-export types for backward compatibility
 export type { ClinicPlan, Card, Clinic, Appointment, Perk, PerkType, CardData, ClinicData, AppointmentData };
@@ -352,7 +353,30 @@ export const perkOperations = {
 
 // Clinic Operations with Cloud Sync
 export const clinicOperations = {
-  getAll: async (): Promise<Clinic[]> => await cloudOperations.clinics.getAll(),
+  getAll: async (): Promise<Clinic[]> => {
+    try {
+      return await cloudOperations.clinics.getAll();
+    } catch (error) {
+      console.warn('Cloud sync failed, using Supabase fallback:', error);
+      const { data: supabaseClinics } = await supabase.from('clinics').select('*');
+      return (supabaseClinics || []).map((clinic: any) => ({
+        id: clinic.id,
+        name: clinic.clinic_name,
+        username: clinic.clinic_code.toLowerCase(),
+        region: '4A',
+        plan: 'starter' as ClinicPlan,
+        code: clinic.clinic_code,
+        password: clinic.password_hash,
+        subscriptionPrice: PLAN_PRICING.starter,
+        subscriptionStatus: 'active' as const,
+        subscriptionStartDate: new Date().toISOString(),
+        maxCards: PLAN_LIMITS.starter,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true,
+      }));
+    }
+  },
 
   getById: async (id: string): Promise<Clinic | null> => {
     const clinics = await cloudOperations.clinics.getAll();
@@ -365,10 +389,30 @@ export const clinicOperations = {
   },
 
   authenticate: async (username: string, password: string): Promise<Clinic | null> => {
-    const clinics = await cloudOperations.clinics.getAll();
-    return clinics.find(clinic =>
-      clinic.username === username && clinic.password === password
-    ) || null;
+    try {
+      const { data: clinic } = await supabase.from('clinics').select('*').eq('clinic_code', username).single();
+      if (clinic && clinic.password_hash === password) {
+        return {
+          id: clinic.id,
+          name: clinic.clinic_name,
+          username: clinic.clinic_code.toLowerCase(),
+          region: '4A',
+          plan: 'starter' as ClinicPlan,
+          code: clinic.clinic_code,
+          password: clinic.password_hash,
+          subscriptionPrice: PLAN_PRICING.starter,
+          subscriptionStatus: 'active' as const,
+          subscriptionStartDate: new Date().toISOString(),
+          maxCards: PLAN_LIMITS.starter,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isActive: true,
+        };
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+    }
+    return null;
   },
 
   create: async (clinic: Omit<Clinic, 'id' | 'createdAt' | 'updatedAt' | 'subscriptionStatus' | 'subscriptionStartDate' | 'maxCards' | 'isActive'>): Promise<Clinic> => {
