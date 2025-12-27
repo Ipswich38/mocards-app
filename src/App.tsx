@@ -13,7 +13,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
   const { isAuthenticated, user } = useAuth();
 
-  // Redirect to card lookup when user logs out
+  // Redirect to card lookup when user logs out and reset view to allow portal switching
   useEffect(() => {
     if (!isAuthenticated && (currentView === 'admin-access' || currentView === 'clinic-portal')) {
       setCurrentView('enhanced-lookup');
@@ -41,7 +41,8 @@ export default function App() {
       return;
     }
 
-    // If user is authenticated, check portal restrictions
+    // Allow portal switching when not authenticated (user can choose which portal to log into)
+    // When authenticated, allow access to the matching portal type only
     if (isAuthenticated && user) {
       // Admin user trying to access clinic portal - blocked
       if (user.type === 'admin' && view === 'clinic-portal') {
@@ -53,6 +54,7 @@ export default function App() {
       }
     }
 
+    // Allow view change for all other cases (including when not authenticated)
     setCurrentView(view);
   };
 

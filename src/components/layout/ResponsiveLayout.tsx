@@ -29,8 +29,12 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
   }, [isMobile, height]);
 
   const getNavItemDisabled = (itemId: ViewMode): boolean => {
-    if (!isAuthenticated || !userType) return false;
+    // When not authenticated, all portals should be accessible for login
+    if (!isAuthenticated || !userType) {
+      return false;
+    }
 
+    // When authenticated, only allow access to matching portal type
     // Admin users cannot access clinic portal
     if (userType === 'admin' && itemId === 'clinic-portal') return true;
     // Clinic users cannot access admin portal
