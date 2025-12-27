@@ -212,10 +212,23 @@ class SupabaseCloudSync {
         supabaseUpdates.status = updates.status === 'active' ? 'activated' : 'unactivated';
       }
       if (updates.clinicId !== undefined) {
-        supabaseUpdates.assigned_clinic_id = updates.clinicId || null;
+        // CRITICAL FIX: Write to the same column we read from (clinic_id)
+        supabaseUpdates.clinic_id = updates.clinicId || null;
+      }
+      if (updates.fullName !== undefined) {
+        supabaseUpdates.full_name = updates.fullName;
+      }
+      if (updates.perksTotal !== undefined) {
+        supabaseUpdates.perks_total = updates.perksTotal;
+      }
+      if (updates.perksUsed !== undefined) {
+        supabaseUpdates.perks_used = updates.perksUsed;
+      }
+      if (updates.notes !== undefined) {
+        supabaseUpdates.notes = updates.notes;
       }
       if (updates.expiryDate !== undefined) {
-        supabaseUpdates.expires_at = updates.expiryDate + 'T23:59:59Z';
+        supabaseUpdates.expiry_date = updates.expiryDate;
       }
 
       supabaseUpdates.updated_at = new Date().toISOString();
