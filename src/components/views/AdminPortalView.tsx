@@ -380,11 +380,15 @@ export function AdminPortalView() {
       }
     } else {
       // Batch generation
+      console.log('[DEBUG] Batch generation form data:', generatorForm);
       const start = parseInt(generatorForm.startId);
       const end = parseInt(generatorForm.endId);
 
-      if (!start || !end || start > end) {
-        addToast(toastWarning('Invalid Range', 'Please enter a valid ID range'));
+      console.log('[DEBUG] Parsed values:', { start, end, startValid: !isNaN(start), endValid: !isNaN(end) });
+
+      if (!start || !end || start > end || isNaN(start) || isNaN(end)) {
+        console.log('[DEBUG] Validation failed:', { start, end, condition: 'Invalid range' });
+        addToast(toastWarning('Invalid Range', 'Please enter a valid ID range (numbers only)'));
         return;
       }
 
