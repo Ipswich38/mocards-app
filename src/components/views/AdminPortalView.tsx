@@ -46,6 +46,7 @@ import {
   type Perk,
   type PerkType
 } from '../../lib/data';
+import { cloudOperations } from '../../lib/supabaseCloudSync';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 import { supabase } from '../../lib/supabase';
@@ -546,6 +547,10 @@ export function AdminPortalView() {
     if (success) {
       addToast(toastSuccess('Cards Assigned', `Assigned ${cardsToAssign.length} cards to ${clinic.name}`));
       setEndorsementForm({ clinicId: '', startRange: '', endRange: '' });
+      // Reload data to reflect changes
+      await reloadData();
+    } else {
+      addToast(toastError('Assignment Failed', 'Failed to assign cards to clinic'));
     }
   };
 
@@ -765,13 +770,16 @@ export function AdminPortalView() {
           updatedAt: new Date().toISOString()
         };
 
-        // For now, we'll update directly since cardOperations doesn't have update by control number
-        // In production, this should go through the cloud operations
-        Object.assign(updatedCard, updateData);
+        // CRITICAL FIX: Actually save to database instead of just local update
+        const success = await cloudOperations.cards.update(updatedCard.id, updateData);
 
-        setEditingCard(null);
-        addToast(toastSuccess('Card Updated', `Updated ${controlNumber} successfully`));
-        await reloadData(); // Refresh the data
+        if (success) {
+          setEditingCard(null);
+          addToast(toastSuccess('Card Updated', `Updated ${controlNumber} successfully`));
+          await reloadData(); // Refresh the data to show the saved changes
+        } else {
+          throw new Error('Failed to save to database');
+        }
       } catch (error) {
         addToast(toastError('Update Failed', 'Failed to update card'));
       }
