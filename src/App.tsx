@@ -18,7 +18,7 @@ export default function App() {
     if (!isAuthenticated && (currentView === 'admin-access' || currentView === 'clinic-portal')) {
       setCurrentView('enhanced-lookup');
     }
-  }, [isAuthenticated, currentView]);
+  }, [isAuthenticated]); // Removed currentView from dependencies to prevent infinite loops
 
   const renderCurrentView = () => {
     switch (currentView) {
