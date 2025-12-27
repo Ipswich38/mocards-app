@@ -107,12 +107,26 @@ export const cardOperations = {
     perksTotal: number = 5
   ): Promise<Card[]> => {
     const newCards: Card[] = [];
+    const skippedCards: string[] = [];
 
     console.log('[BATCH] Creating batch cards from', startId, 'to', endId);
 
+    // Get existing cards to check for duplicates
+    const existingCards = await cloudOperations.cards.getAll();
+    const existingControlNumbers = new Set(existingCards.map(card => card.controlNumber));
+
     for (let i = startId; i <= endId; i++) {
+      const controlNumber = generateControlNumber(i, region, areaCode);
+
+      // CRITICAL FIX: Skip cards that already exist
+      if (existingControlNumbers.has(controlNumber)) {
+        console.log('[BATCH] Skipping existing card:', controlNumber);
+        skippedCards.push(controlNumber);
+        continue;
+      }
+
       const card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
-        controlNumber: generateControlNumber(i, region, areaCode),
+        controlNumber,
         fullName: '', // Empty name - will be filled when card is activated
         status: 'inactive',
         perksTotal,
@@ -135,6 +149,9 @@ export const cardOperations = {
     }
 
     console.log('[BATCH] Successfully created', newCards.length, 'cards');
+    if (skippedCards.length > 0) {
+      console.log('[BATCH] Skipped', skippedCards.length, 'existing cards:', skippedCards);
+    }
     return newCards;
   },
 
