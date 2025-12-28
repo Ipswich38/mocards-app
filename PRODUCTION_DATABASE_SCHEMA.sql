@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS clinics (
     id VARCHAR(50) PRIMARY KEY,
     clinic_name VARCHAR(255) NOT NULL,
     username VARCHAR(50) UNIQUE NOT NULL,
-    clinic_code VARCHAR(20) UNIQUE NOT NULL,
+    code VARCHAR(20) UNIQUE NOT NULL,
     region VARCHAR(10) NOT NULL,
     plan VARCHAR(20) NOT NULL CHECK (plan IN ('starter', 'growth', 'pro')),
     address TEXT,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS perk_redemptions (
 
 -- Performance Indexes for Clinics
 CREATE INDEX IF NOT EXISTS idx_clinics_username ON clinics(username);
-CREATE INDEX IF NOT EXISTS idx_clinics_code ON clinics(clinic_code);
+CREATE INDEX IF NOT EXISTS idx_clinics_code ON clinics(code);
 CREATE INDEX IF NOT EXISTS idx_clinics_region ON clinics(region);
 CREATE INDEX IF NOT EXISTS idx_clinics_plan ON clinics(plan);
 CREATE INDEX IF NOT EXISTS idx_clinics_status ON clinics(subscription_status);
@@ -146,7 +146,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Insert Demo Clinic for Testing (Remove for production)
 INSERT INTO clinics (
-    id, clinic_name, username, clinic_code, region, plan, address, admin_clinic,
+    id, clinic_name, username, code, region, plan, address, admin_clinic,
     email, contact_number, password_hash, subscription_price, subscription_status,
     subscription_start_date, max_cards
 ) VALUES (
@@ -189,7 +189,7 @@ SELECT
     id,
     clinic_name,
     username as login_username,
-    clinic_code as area_code,
+    code as area_code,
     region,
     plan,
     subscription_status
