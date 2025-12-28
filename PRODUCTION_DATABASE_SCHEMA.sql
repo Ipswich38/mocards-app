@@ -52,20 +52,20 @@ CREATE TABLE IF NOT EXISTS cards (
     FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE SET NULL
 );
 
--- APPOINTMENTS TABLE (if needed)
+-- APPOINTMENTS TABLE (matches Supabase schema)
 CREATE TABLE IF NOT EXISTS appointments (
     id VARCHAR(50) PRIMARY KEY,
-    card_control_number VARCHAR(50) NOT NULL,
-    clinic_id VARCHAR(50),
+    control_number VARCHAR(50) NOT NULL,
+    assigned_clinic_id VARCHAR(50),
     patient_name VARCHAR(255) NOT NULL,
     patient_email VARCHAR(255),
     patient_phone VARCHAR(50),
-    preferred_date DATE NOT NULL,
-    preferred_time TIME NOT NULL,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
     service_type VARCHAR(255) NOT NULL,
-    perk_requested VARCHAR(255),
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'rescheduled', 'completed', 'cancelled')),
-    notes TEXT,
+    perk_type VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'waiting_for_approval' CHECK (status IN ('waiting_for_approval', 'approved', 'declined', 'rescheduled', 'completed', 'cancelled')),
+    cardholder_notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     completed_at TIMESTAMPTZ,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS appointments (
     cancellation_reason TEXT,
     processed_by VARCHAR(50),
     processed_at TIMESTAMPTZ,
-    FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE
+    FOREIGN KEY (assigned_clinic_id) REFERENCES clinics(id) ON DELETE CASCADE
 );
 
 -- PERKS TABLE
@@ -123,10 +123,10 @@ CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards(created_at);
 CREATE INDEX IF NOT EXISTS idx_cards_expiry_date ON cards(expiry_date);
 
 -- Performance Indexes for Appointments
-CREATE INDEX IF NOT EXISTS idx_appointments_clinic_id ON appointments(clinic_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_card_number ON appointments(card_control_number);
+CREATE INDEX IF NOT EXISTS idx_appointments_clinic_id ON appointments(assigned_clinic_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_card_number ON appointments(control_number);
 CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
-CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(preferred_date);
+CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(appointment_date);
 CREATE INDEX IF NOT EXISTS idx_appointments_created_at ON appointments(created_at);
 
 -- Performance Indexes for Perk Redemptions
