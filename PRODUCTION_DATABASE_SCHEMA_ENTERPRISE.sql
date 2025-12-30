@@ -456,20 +456,20 @@ GROUP BY cl.id, cl.name, cl.region, cp.name, cp.max_cards;
 -- ===============================================
 
 -- Authentication indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_profiles_email ON auth_mgmt.user_profiles(email);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_profiles_role ON auth_mgmt.user_profiles(role);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_profiles_clinic_id ON auth_mgmt.user_profiles(clinic_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON auth_mgmt.user_profiles(email);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_role ON auth_mgmt.user_profiles(role);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_clinic_id ON auth_mgmt.user_profiles(clinic_id);
 
 -- Clinics indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_clinics_code ON clinics.clinics(code);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_clinics_email ON clinics.clinics(email);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_clinics_tenant_id ON clinics.clinics(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_clinics_code ON clinics.clinics(code);
+CREATE INDEX IF NOT EXISTS idx_clinics_email ON clinics.clinics(email);
+CREATE INDEX IF NOT EXISTS idx_clinics_tenant_id ON clinics.clinics(tenant_id);
 
 -- Cards indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cards_control_number ON cards.cards(control_number);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cards_clinic_id ON cards.cards(clinic_id);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cards_status ON cards.cards(status);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cards_expiry_date ON cards.cards(expiry_date);
+CREATE INDEX IF NOT EXISTS idx_cards_control_number ON cards.cards(control_number);
+CREATE INDEX IF NOT EXISTS idx_cards_clinic_id ON cards.cards(clinic_id);
+CREATE INDEX IF NOT EXISTS idx_cards_status ON cards.cards(status);
+CREATE INDEX IF NOT EXISTS idx_cards_expiry_date ON cards.cards(expiry_date);
 
 -- ===============================================
 -- STEP 12: DEFAULT DATA

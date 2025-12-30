@@ -1,7 +1,214 @@
--- ================================================================
--- MOCARDS PRODUCTION DATABASE SCHEMA - FINAL VERSION
--- Clean SQL with proper syntax and preserved functionality
--- ================================================================
+-- ===============================================
+-- MOCARDS ENTERPRISE PRODUCTION DATABASE SCHEMA
+-- ===============================================
+-- Complete schema for enterprise multi-tenant deployment
+-- Includes cloud isolation, security, and audit features
+-- Version: 2.0 (Modular Architecture)
+-- Last Updated: 2024-12-30
+
+-- ===============================================
+-- STEP 1: EXTENSIONS AND INITIAL SETUP
+-- ===============================================
+
+-- Enable necessary extensions for enterprise features
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+
+-- Create feature-based schemas for organization
+CREATE SCHEMA IF NOT EXISTS auth_mgmt;
+CREATE SCHEMA IF NOT EXISTS cards;
+CREATE SCHEMA IF NOT EXISTS clinics;
+CREATE SCHEMA IF NOT EXISTS appointments;
+CREATE SCHEMA IF NOT EXISTS perks;
+CREATE SCHEMA IF NOT EXISTS analytics;
+CREATE SCHEMA IF NOT EXISTS audit;
+
+-- Set schema search path for better organization
+ALTER DATABASE postgres SET search_path = public, auth_mgmt, cards, clinics, appointments, perks, analytics, audit;
+
+-- ===============================================
+-- STEP 2: AUDIT SYSTEM
+-- ===============================================
+
+-- Create audit trigger function for all data changes
+CREATE OR REPLACE FUNCTION audit.audit_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO audit.audit_log (
+        table_name,
+        operation,
+        old_data,
+        new_data,
+        user_id,
+        timestamp,
+        ip_address
+    ) VALUES (
+        TG_TABLE_NAME,
+        TG_OP,
+        CASE WHEN TG_OP = 'DELETE' THEN row_to_json(OLD) ELSE NULL END,
+        CASE WHEN TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN row_to_json(NEW) ELSE NULL END,
+        auth.uid(),
+        NOW(),
+        inet_client_addr()
+    );
+
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create audit log table with advanced security
+CREATE TABLE IF NOT EXISTS audit.audit_log (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    table_name TEXT NOT NULL,
+    operation TEXT NOT NULL CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE')),
+    old_data JSONB,
+    new_data JSONB,
+    user_id UUID,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    ip_address INET,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS on audit log
+ALTER TABLE audit.audit_log ENABLE ROW LEVEL SECURITY;
+
+-- Only super admins can see audit logs
+CREATE POLICY "audit_log_super_admin_only" ON audit.audit_log
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE auth.users.id = auth.uid()
+            AND auth.users.raw_user_meta_data->>'role' = 'super_admin'
+        )
+    );
+
+-- ===============================================
+-- STEP 3: AUTHENTICATION SCHEMA
+-- ===============================================
+
+-- User profiles table with advanced security
+CREATE TABLE IF NOT EXISTS auth_mgmt.user_profiles (
+    id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    full_name TEXT,
+    role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('super_admin', 'admin', 'clinic', 'user')),
+    clinic_id UUID,
+    is_active BOOLEAN DEFAULT true,
+    last_login TIMESTAMP WITH TIME ZONE,
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
+    password_changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- Enable RLS
+ALTER TABLE auth_mgmt.user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- User sessions for advanced session management
+CREATE TABLE IF NOT EXISTS auth_mgmt.user_sessions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth_mgmt.user_profiles(id) ON DELETE CASCADE,
+    session_token TEXT UNIQUE NOT NULL,
+    ip_address INET,
+    user_agent TEXT,
+    is_active BOOLEAN DEFAULT true,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_activity TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE auth_mgmt.user_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Security events for monitoring
+CREATE TABLE IF NOT EXISTS auth_mgmt.security_events (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth_mgmt.user_profiles(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL CHECK (event_type IN ('login', 'logout', 'failed_login', 'password_change', 'account_locked', 'suspicious_activity')),
+    ip_address INET,
+    user_agent TEXT,
+    details JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE auth_mgmt.security_events ENABLE ROW LEVEL SECURITY;
+
+-- ===============================================
+-- STEP 4: CLINICS SCHEMA
+-- ===============================================
+
+-- Clinic plans and pricing
+CREATE TABLE IF NOT EXISTS clinics.clinic_plans (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    max_cards INTEGER NOT NULL,
+    max_clinics INTEGER NOT NULL,
+    price_monthly DECIMAL(10,2) NOT NULL,
+    price_yearly DECIMAL(10,2) NOT NULL,
+    features JSONB DEFAULT '{}'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Clinics table with enhanced security
+CREATE TABLE IF NOT EXISTS clinics.clinics (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    code TEXT UNIQUE NOT NULL, -- Clinic access code
+    email TEXT UNIQUE NOT NULL,
+    contact_number TEXT NOT NULL,
+    address TEXT NOT NULL,
+    region TEXT NOT NULL,
+    plan_id UUID REFERENCES clinics.clinic_plans(id),
+    password_hash TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    subscription_status TEXT DEFAULT 'active' CHECK (subscription_status IN ('active', 'suspended', 'cancelled')),
+    subscription_expires TIMESTAMP WITH TIME ZONE,
+    tenant_id UUID DEFAULT uuid_generate_v4(), -- For multi-tenant isolation
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- Clinic settings for customization
+CREATE TABLE IF NOT EXISTS clinics.clinic_settings (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    clinic_id UUID REFERENCES clinics.clinics(id) ON DELETE CASCADE,
+    setting_key TEXT NOT NULL,
+    setting_value JSONB,
+    is_encrypted BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(clinic_id, setting_key)
+);
+
+-- Clinic staff management
+CREATE TABLE IF NOT EXISTS clinics.clinic_staff (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    clinic_id UUID REFERENCES clinics.clinics(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth_mgmt.user_profiles(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'viewer')),
+    permissions JSONB DEFAULT '{}'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    hired_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(clinic_id, user_id)
+);
+
+-- Enable RLS
+ALTER TABLE clinics.clinic_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinics.clinics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinics.clinic_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinics.clinic_staff ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing tables if they exist (for fresh setup)
 -- WARNING: Only run this if you want to reset all data!
