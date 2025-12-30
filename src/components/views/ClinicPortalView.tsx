@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+import { useLegacyAuth } from '../../features/authentication';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import {
   Stethoscope, Users, Calendar, BarChart3, Settings, LogIn, User,
@@ -31,7 +31,7 @@ interface AppointmentRequest {
 // Using real perk redemption data from database - imported from data.ts as RealPerkRedemption
 
 export function ClinicPortalView() {
-  const { isAuthenticated, user, login, logout } = useAuth();
+  const { isAuthenticated, user, login, logout } = useLegacyAuth();
   useAutoRefresh({ enabled: true, showNotifications: true });
   const [currentClinic, setCurrentClinic] = useState<Clinic | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });

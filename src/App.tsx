@@ -2,7 +2,7 @@ import { useState, Suspense, lazy, useEffect } from 'react';
 import { ResponsiveLayout, type ViewMode } from './components/layout/ResponsiveLayout';
 import { ToastProvider } from './hooks/useToast';
 import { ToastContainer } from './components/ui/ToastContainer';
-import { useAuth } from './hooks/useAuth';
+import { useLegacyAuth } from './features/authentication';
 
 // Lazy load components for code splitting
 const EnhancedCardLookupView = lazy(() => import('./components/views/EnhancedCardLookupView').then(module => ({ default: module.EnhancedCardLookupView })));
@@ -11,7 +11,7 @@ const AdminPortalView = lazy(() => import('./components/views/AdminPortalView').
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useLegacyAuth();
 
   // Redirect to card lookup when user logs out and reset view to allow portal switching
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function App() {
         currentView={currentView}
         onViewChange={handleViewChange}
         isAuthenticated={isAuthenticated}
-        userType={user?.type}
+        userType={user?.type as "admin" | "clinic" | undefined}
       >
         <Suspense fallback={
           <div className="min-h-screen bg-gray-50 flex items-center justify-center">
