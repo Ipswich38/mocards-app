@@ -21,18 +21,16 @@ import {
 
 interface Clinic {
   id: string;
-  clinic_code: string;
-  clinic_name: string;
-  email?: string; // Fixed field name to match database
-  phone?: string; // Fixed field name to match database
-  contact_email?: string; // Keep for backward compatibility
-  contact_phone?: string; // Keep for backward compatibility
+  code: string;
+  name: string;
+  email?: string;
+  contact_number?: string;
   address?: string;
-  status: string;
   region?: string;
-  location_code?: string;
-  current_password?: string; // Current active password
-  password_hash?: string; // Stored password hash
+  password?: string;
+  is_active?: boolean;
+  subscription_status?: string;
+  tenant_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -129,7 +127,7 @@ export function ClinicManagementCRUD() {
 
     try {
       let query = supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -164,10 +162,10 @@ export function ClinicManagementCRUD() {
   const loadStats = async () => {
     try {
       const [totalResult, activeResult, pendingResult, inactiveResult] = await Promise.all([
-        supabase.from('clinics').select('*', { count: 'exact', head: true }),
-        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('status', 'inactive')
+        supabase.from('app_clinics.clinics').select('*', { count: 'exact', head: true }),
+        supabase.from('app_clinics.clinics').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('app_clinics.clinics').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('app_clinics.clinics').select('*', { count: 'exact', head: true }).eq('status', 'inactive')
       ]);
 
       setStats({
@@ -195,22 +193,21 @@ export function ClinicManagementCRUD() {
 
         // Prepare update object
         let updateObject: any = {
-          clinic_name: updateData.clinic_name,
-          clinic_code: updateData.clinic_code,
+          name: updateData.clinic_name,
+          code: updateData.clinic_code,
           email: updateData.contact_email,
-          phone: updateData.contact_phone,
+          contact_number: updateData.contact_phone,
           address: updateData.address,
           region: updateData.region,
-          location_code: updateData.location_code,
-          status: updateData.status,
+          is_active: updateData.status === 'active',
+          subscription_status: updateData.status,
           updated_at: new Date().toISOString()
         };
 
         // If password is provided, hash it and update
         if (formData.password && formData.password.trim()) {
           const passwordHash = await bcrypt.hash(formData.password, 10);
-          updateObject.password_hash = passwordHash;
-          updateObject.current_password = formData.password;
+          updateObject.password = passwordHash;
 
           // Update the local clinic passwords for immediate display
           setClinicPasswords(prev => ({
@@ -220,7 +217,7 @@ export function ClinicManagementCRUD() {
         }
 
         const { error } = await supabase
-          .from('clinics')
+          .from('app_clinics.clinics')
           .update(updateObject)
           .eq('id', editingClinic.id);
 
@@ -252,20 +249,17 @@ export function ClinicManagementCRUD() {
         });
 
         const { data, error } = await supabase
-          .from('clinics')
+          .from('app_clinics.clinics')
           .insert({
-            clinic_name: formData.clinic_name,
-            clinic_code: formData.clinic_code,
-            email: formData.contact_email, // Fixed field mapping
-            phone: formData.contact_phone, // Fixed field mapping
+            name: formData.clinic_name,
+            code: formData.clinic_code,
+            email: formData.contact_email,
+            contact_number: formData.contact_phone,
             address: formData.address,
             region: formData.region,
-            location_code: formData.location_code,
-            status: formData.status,
-            password_hash: passwordHash,
-            current_password: tempPassword, // Store the actual password for admin visibility
-            password_must_be_changed: true,
-            first_login: true,
+            password: passwordHash,
+            is_active: formData.status === 'active',
+            subscription_status: formData.status,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -285,7 +279,7 @@ export function ClinicManagementCRUD() {
             ...prev,
             [data[0].id]: tempPassword
           }));
-          setSuccess(`Clinic '${data[0].clinic_name}' created successfully with code '${data[0].clinic_code}' and temporary password: ${tempPassword}`);
+          setSuccess(`Clinic '${data[0].name}' created successfully with code '${data[0].code}' and temporary password: ${tempPassword}`);
         } else {
           throw new Error('Clinic creation appeared successful but no data returned');
         }
@@ -305,48 +299,32 @@ export function ClinicManagementCRUD() {
   const handleEdit = (clinic: Clinic) => {
     setEditingClinic(clinic);
     setFormData({
-      clinic_name: clinic.clinic_name,
-      clinic_code: clinic.clinic_code,
-      contact_email: (clinic as any).email || '', // Fixed field mapping
-      contact_phone: (clinic as any).phone || '', // Fixed field mapping
+      clinic_name: clinic.name,
+      clinic_code: clinic.code,
+      contact_email: clinic.email || '',
+      contact_phone: clinic.contact_number || '',
       address: clinic.address || '',
       region: clinic.region || '',
-      location_code: clinic.location_code || '',
-      status: clinic.status as any,
-      password: clinicPasswords[clinic.id] || clinic.current_password || '', // Load current password
+      location_code: '',
+      status: clinic.is_active ? 'active' : 'inactive',
+      password: '',
       temporary_password: ''
     });
 
-    // Set province and clinic code type for CALABARZON region
-    if (clinic.location_code === '4A' && clinic.clinic_code) {
-      // Determine province based on clinic code prefix
-      let province = '';
-      if (clinic.clinic_code.startsWith('CVT')) province = 'Cavite';
-      else if (clinic.clinic_code.startsWith('BTG')) province = 'Batangas';
-      else if (clinic.clinic_code.startsWith('LGN')) province = 'Laguna';
-
-      if (province) {
-        setSelectedProvince(province);
-        setClinicCodeType('predefined');
-      } else {
-        setSelectedProvince('');
-        setClinicCodeType('custom');
-      }
-    } else {
-      setSelectedProvince('');
-      setClinicCodeType('predefined');
-    }
+    // Reset province and clinic code type
+    setSelectedProvince('');
+    setClinicCodeType('predefined');
 
     setShowForm(true);
   };
 
   const handleDelete = async (clinic: Clinic) => {
-    if (!confirm(`Are you sure you want to delete "${clinic.clinic_name}"?`)) return;
+    if (!confirm(`Are you sure you want to delete "${clinic.name}"?`)) return;
 
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .delete()
         .eq('id', clinic.id);
 
@@ -904,22 +882,22 @@ export function ClinicManagementCRUD() {
                   <tr key={clinic.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{clinic.clinic_name}</div>
-                        <div className="text-sm text-gray-500 font-mono">{clinic.clinic_code}</div>
+                        <div className="text-sm font-medium text-gray-900">{clinic.name}</div>
+                        <div className="text-sm text-gray-500 font-mono">{clinic.code}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {((clinic as any).email || clinic.contact_email) && (
+                        {clinic.email && (
                           <div className="flex items-center">
                             <Mail className="h-3 w-3 mr-1" />
-                            {(clinic as any).email || clinic.contact_email}
+                            {clinic.email}
                           </div>
                         )}
-                        {((clinic as any).phone || clinic.contact_phone) && (
+                        {clinic.contact_number && (
                           <div className="flex items-center mt-1">
                             <Phone className="h-3 w-3 mr-1" />
-                            {(clinic as any).phone || clinic.contact_phone}
+                            {clinic.contact_number}
                           </div>
                         )}
                       </div>
@@ -931,9 +909,6 @@ export function ClinicManagementCRUD() {
                             <MapPin className="h-3 w-3 mr-1" />
                             {clinic.region}
                           </div>
-                        )}
-                        {clinic.location_code && (
-                          <div className="text-xs text-gray-500">Code: {clinic.location_code}</div>
                         )}
                       </div>
                       {/* Show password if requested */}
@@ -948,17 +923,17 @@ export function ClinicManagementCRUD() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(clinic.status)}
+                      {getStatusBadge(clinic.is_active ? 'active' : 'inactive')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        {showPasswordFor === clinic.id && (clinicPasswords[clinic.id] || clinic.current_password) ? (
+                        {showPasswordFor === clinic.id && clinicPasswords[clinic.id] ? (
                           <div className="px-3 py-1 rounded-md text-xs font-mono" style={{
                             backgroundColor: 'var(--md-sys-color-warning-container)',
                             color: 'var(--md-sys-color-on-warning-container)',
                             border: '1px solid var(--md-sys-color-warning)'
                           }}>
-                            {clinicPasswords[clinic.id] || clinic.current_password}
+                            {clinicPasswords[clinic.id]}
                           </div>
                         ) : (
                           <div className="text-xs text-gray-400">••••••••</div>
