@@ -513,7 +513,7 @@ CREATE INDEX idx_clinics_region ON public.clinics(region);
 
 -- Security and authentication indexes
 CREATE INDEX idx_clinics_failed_logins ON public.clinics(failed_login_attempts) WHERE failed_login_attempts > 0;
-CREATE INDEX idx_clinics_locked ON public.clinics(locked_until) WHERE locked_until > NOW();
+CREATE INDEX idx_clinics_locked ON public.clinics(locked_until) WHERE locked_until IS NOT NULL;
 CREATE INDEX idx_clinics_two_factor ON public.clinics(two_factor_enabled) WHERE two_factor_enabled = true;
 
 -- Operational monitoring indexes
