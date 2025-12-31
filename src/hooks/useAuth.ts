@@ -148,7 +148,7 @@ export const useAuth = (): AuthState => {
       window.removeEventListener('auth-state-change', handleAuthStateChange as EventListener);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [isSessionValid, updateActivity]);
+  }, []);  // Only run on mount
 
   // Set up inactivity timeout check
   useEffect(() => {

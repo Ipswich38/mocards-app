@@ -12,7 +12,7 @@
 -- Drop existing tables if they exist (clean deployment)
 DROP TABLE IF EXISTS public.cards CASCADE;
 DROP TABLE IF EXISTS public.card_audit_log CASCADE;
-DROP TABLE IF EXISTS app_clinics.clinics CASCADE;
+DROP TABLE IF EXISTS public.clinics CASCADE;
 DROP TABLE IF EXISTS app_clinics.clinic_plans CASCADE;
 
 -- Drop existing sequences
@@ -22,7 +22,7 @@ DROP SEQUENCE IF EXISTS public.card_number_seq CASCADE;
 DO $$
 BEGIN
     DROP POLICY IF EXISTS "cards_access_policy" ON public.cards;
-    DROP POLICY IF EXISTS "clinics_access_policy" ON app_clinics.clinics;
+    DROP POLICY IF EXISTS "clinics_access_policy" ON public.clinics;
 EXCEPTION WHEN OTHERS THEN
     NULL;
 END $$;
@@ -80,7 +80,7 @@ CREATE TABLE app_clinics.clinic_plans (
 -- Production-grade clinic management with enterprise security
 
 -- Enterprise clinics table with full audit and security features
-CREATE TABLE app_clinics.clinics (
+CREATE TABLE public.clinics (
     -- Primary identification
     id SERIAL PRIMARY KEY,
     clinic_uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -181,7 +181,7 @@ CREATE TABLE public.cards (
     address TEXT DEFAULT '',
     contact_number VARCHAR(20) DEFAULT '',
     emergency_contact VARCHAR(20) DEFAULT '',
-    clinic_id INTEGER REFERENCES app_clinics.clinics(id) ON DELETE SET NULL,
+    clinic_id INTEGER REFERENCES public.clinics(id) ON DELETE SET NULL,
     status VARCHAR(20) DEFAULT 'inactive',
     perks_total INTEGER DEFAULT 10 CHECK (perks_total >= 0),
     perks_used INTEGER DEFAULT 0 CHECK (perks_used >= 0 AND perks_used <= perks_total),
@@ -228,7 +228,7 @@ CREATE TABLE public.card_audit_log (
 -- Comprehensive audit log for clinic operations
 CREATE TABLE app_clinics.clinic_audit_log (
     id SERIAL PRIMARY KEY,
-    clinic_id INTEGER REFERENCES app_clinics.clinics(id) ON DELETE CASCADE,
+    clinic_id INTEGER REFERENCES public.clinics(id) ON DELETE CASCADE,
     clinic_code VARCHAR(20) NOT NULL,
     operation VARCHAR(30) NOT NULL,
     operation_category VARCHAR(20) NOT NULL,
@@ -276,7 +276,7 @@ CREATE TABLE app_clinics.clinic_audit_log (
 -- Clinic login/session tracking for security monitoring
 CREATE TABLE app_clinics.clinic_sessions (
     id SERIAL PRIMARY KEY,
-    clinic_id INTEGER REFERENCES app_clinics.clinics(id) ON DELETE CASCADE,
+    clinic_id INTEGER REFERENCES public.clinics(id) ON DELETE CASCADE,
     session_id VARCHAR(100) UNIQUE NOT NULL,
 
     -- Session details
@@ -339,11 +339,11 @@ CREATE OR REPLACE FUNCTION update_clinic_card_count()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' AND NEW.clinic_id IS NOT NULL THEN
-        UPDATE app_clinics.clinics
+        UPDATE public.clinics
         SET cards_generated_count = cards_generated_count + 1
         WHERE id = NEW.clinic_id;
     ELSIF TG_OP = 'DELETE' AND OLD.clinic_id IS NOT NULL THEN
-        UPDATE app_clinics.clinics
+        UPDATE public.clinics
         SET cards_generated_count = cards_generated_count - 1
         WHERE id = OLD.clinic_id;
     END IF;
@@ -447,7 +447,7 @@ $$ LANGUAGE plpgsql;
 
 -- Create comprehensive clinic audit trigger
 CREATE TRIGGER clinic_audit_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON app_clinics.clinics
+    AFTER INSERT OR UPDATE OR DELETE ON public.clinics
     FOR EACH ROW EXECUTE FUNCTION audit_clinic_changes();
 
 -- Monthly card limit reset trigger
@@ -464,7 +464,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER clinic_monthly_reset_trigger
-    BEFORE UPDATE ON app_clinics.clinics
+    BEFORE UPDATE ON public.clinics
     FOR EACH ROW EXECUTE FUNCTION reset_monthly_card_limits();
 
 -- ===============================================
@@ -484,35 +484,35 @@ CREATE INDEX idx_cards_demo ON public.cards(is_demo) WHERE is_demo = true;
 -- ===============================================
 
 -- Primary clinic indexes for high-performance lookups
-CREATE UNIQUE INDEX idx_clinics_uuid ON app_clinics.clinics(clinic_uuid);
-CREATE UNIQUE INDEX idx_clinics_code ON app_clinics.clinics(code);
-CREATE UNIQUE INDEX idx_clinics_username ON app_clinics.clinics(username);
-CREATE UNIQUE INDEX idx_clinics_email ON app_clinics.clinics(email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX idx_clinics_uuid ON public.clinics(clinic_uuid);
+CREATE UNIQUE INDEX idx_clinics_code ON public.clinics(code);
+CREATE UNIQUE INDEX idx_clinics_username ON public.clinics(username);
+CREATE UNIQUE INDEX idx_clinics_email ON public.clinics(email) WHERE email IS NOT NULL;
 
 -- Business operation indexes
-CREATE INDEX idx_clinics_active ON app_clinics.clinics(is_active) WHERE is_active = true;
-CREATE INDEX idx_clinics_plan ON app_clinics.clinics(plan);
-CREATE INDEX idx_clinics_subscription_status ON app_clinics.clinics(subscription_status);
-CREATE INDEX idx_clinics_region ON app_clinics.clinics(region);
+CREATE INDEX idx_clinics_active ON public.clinics(is_active) WHERE is_active = true;
+CREATE INDEX idx_clinics_plan ON public.clinics(plan);
+CREATE INDEX idx_clinics_subscription_status ON public.clinics(subscription_status);
+CREATE INDEX idx_clinics_region ON public.clinics(region);
 
 -- Security and authentication indexes
-CREATE INDEX idx_clinics_failed_logins ON app_clinics.clinics(failed_login_attempts) WHERE failed_login_attempts > 0;
-CREATE INDEX idx_clinics_locked ON app_clinics.clinics(locked_until) WHERE locked_until > NOW();
-CREATE INDEX idx_clinics_two_factor ON app_clinics.clinics(two_factor_enabled) WHERE two_factor_enabled = true;
+CREATE INDEX idx_clinics_failed_logins ON public.clinics(failed_login_attempts) WHERE failed_login_attempts > 0;
+CREATE INDEX idx_clinics_locked ON public.clinics(locked_until) WHERE locked_until > NOW();
+CREATE INDEX idx_clinics_two_factor ON public.clinics(two_factor_enabled) WHERE two_factor_enabled = true;
 
 -- Operational monitoring indexes
-CREATE INDEX idx_clinics_card_limits ON app_clinics.clinics(cards_generated_count, max_cards_allowed);
-CREATE INDEX idx_clinics_monthly_usage ON app_clinics.clinics(current_month_cards, monthly_card_limit);
-CREATE INDEX idx_clinics_last_activity ON app_clinics.clinics(last_activity);
+CREATE INDEX idx_clinics_card_limits ON public.clinics(cards_generated_count, max_cards_allowed);
+CREATE INDEX idx_clinics_monthly_usage ON public.clinics(current_month_cards, monthly_card_limit);
+CREATE INDEX idx_clinics_last_activity ON public.clinics(last_activity);
 
 -- Financial and billing indexes
-CREATE INDEX idx_clinics_subscription_dates ON app_clinics.clinics(subscription_start_date, subscription_end_date);
-CREATE INDEX idx_clinics_balance ON app_clinics.clinics(current_balance) WHERE current_balance != 0;
-CREATE INDEX idx_clinics_billing_cycle ON app_clinics.clinics(billing_cycle, subscription_status);
+CREATE INDEX idx_clinics_subscription_dates ON public.clinics(subscription_start_date, subscription_end_date);
+CREATE INDEX idx_clinics_balance ON public.clinics(current_balance) WHERE current_balance != 0;
+CREATE INDEX idx_clinics_billing_cycle ON public.clinics(billing_cycle, subscription_status);
 
 -- Compliance indexes
-CREATE INDEX idx_clinics_gdpr ON app_clinics.clinics(gdpr_consent, data_retention_days);
-CREATE INDEX idx_clinics_terms_acceptance ON app_clinics.clinics(terms_accepted_at);
+CREATE INDEX idx_clinics_gdpr ON public.clinics(gdpr_consent, data_retention_days);
+CREATE INDEX idx_clinics_terms_acceptance ON public.clinics(terms_accepted_at);
 
 -- ===============================================
 -- ENTERPRISE AUDIT INDEXES
@@ -541,8 +541,8 @@ CREATE INDEX idx_clinic_sessions_ip ON app_clinics.clinic_sessions(ip_address);
 CREATE INDEX idx_clinic_sessions_created_at ON app_clinics.clinic_sessions(created_at);
 
 -- Composite indexes for complex enterprise queries
-CREATE INDEX idx_clinics_business_health ON app_clinics.clinics(subscription_status, is_active, plan, current_balance);
-CREATE INDEX idx_clinics_security_monitoring ON app_clinics.clinics(failed_login_attempts, locked_until, two_factor_enabled);
+CREATE INDEX idx_clinics_business_health ON public.clinics(subscription_status, is_active, plan, current_balance);
+CREATE INDEX idx_clinics_security_monitoring ON public.clinics(failed_login_attempts, locked_until, two_factor_enabled);
 CREATE INDEX idx_audit_security_analysis ON app_clinics.clinic_audit_log(operation_category, risk_level, created_at) WHERE operation_category = 'SECURITY';
 
 -- ===============================================
@@ -555,7 +555,7 @@ CREATE INDEX idx_audit_security_analysis ON app_clinics.clinic_audit_log(operati
 
 -- Enable RLS on all tables
 ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
-ALTER TABLE app_clinics.clinics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clinics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app_clinics.clinic_audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app_clinics.clinic_sessions ENABLE ROW LEVEL SECURITY;
 
@@ -564,16 +564,16 @@ CREATE POLICY "cards_admin_access" ON public.cards FOR ALL USING (
     current_setting('app.user_role', true) = 'admin'
 );
 
-CREATE POLICY "clinics_admin_access" ON app_clinics.clinics FOR ALL USING (
+CREATE POLICY "clinics_admin_access" ON public.clinics FOR ALL USING (
     current_setting('app.user_role', true) = 'admin'
 );
 
 -- Clinic self-access policies (clinics can only access their own data)
-CREATE POLICY "clinic_self_access" ON app_clinics.clinics FOR SELECT USING (
+CREATE POLICY "clinic_self_access" ON public.clinics FOR SELECT USING (
     current_setting('app.clinic_id', true)::integer = id
 );
 
-CREATE POLICY "clinic_self_update" ON app_clinics.clinics FOR UPDATE USING (
+CREATE POLICY "clinic_self_update" ON public.clinics FOR UPDATE USING (
     current_setting('app.clinic_id', true)::integer = id
 ) WITH CHECK (
     current_setting('app.clinic_id', true)::integer = id
@@ -616,7 +616,7 @@ INSERT INTO app_clinics.clinic_plans (name, description, max_cards, price_monthl
 -- ===============================================
 
 -- Insert production enterprise clinic (no longer demo)
-INSERT INTO app_clinics.clinics (
+INSERT INTO public.clinics (
     name, username, code, email, contact_number, address, region,
     plan, area_code, password_hash, admin_clinic, admin_contact_email, admin_contact_phone,
     max_cards_allowed, monthly_card_limit, subscription_status, billing_cycle,
@@ -658,7 +658,7 @@ VALUES (
 );
 
 -- Insert a secondary production clinic for testing multi-tenant features
-INSERT INTO app_clinics.clinics (
+INSERT INTO public.clinics (
     name, username, code, email, contact_number, address, region,
     plan, area_code, password_hash, admin_clinic, admin_contact_email,
     max_cards_allowed, monthly_card_limit, subscription_status, billing_cycle,
@@ -694,7 +694,7 @@ DECLARE
     i INTEGER;
 BEGIN
     -- Get the demo clinic ID
-    SELECT id INTO clinic_id_var FROM app_clinics.clinics WHERE code = 'DEMO001';
+    SELECT id INTO clinic_id_var FROM public.clinics WHERE code = 'DEMO001';
 
     -- Create batch ID
     batch_id_var := 'DEMO_BATCH_' || EXTRACT(EPOCH FROM NOW())::BIGINT;
@@ -784,7 +784,7 @@ SELECT '✅ API key management' as "API";
 SELECT '✅ Geographic restrictions' as "GEOFENCING";
 
 -- System health check
-SELECT COUNT(*) as "enterprise_clinics_created" FROM app_clinics.clinics WHERE plan IN ('enterprise', 'growth');
+SELECT COUNT(*) as "enterprise_clinics_created" FROM public.clinics WHERE plan IN ('enterprise', 'growth');
 SELECT COUNT(*) as "audit_tables_created" FROM information_schema.tables WHERE table_schema = 'app_clinics' AND table_name LIKE '%audit%';
 SELECT COUNT(*) as "security_indexes_created" FROM pg_indexes WHERE indexname LIKE '%security%';
 
