@@ -3,6 +3,9 @@ import { ResponsiveLayout, type ViewMode } from './components/layout/ResponsiveL
 import { ToastProvider } from './hooks/useToast';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { useLegacyAuth } from './features/authentication';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { DiagnosticPanel } from './components/DiagnosticPanel';
+import { SystemHealthMonitor } from './components/SystemHealthMonitor';
 
 // Lazy load components for code splitting
 const EnhancedCardLookupView = lazy(() => import('./components/views/EnhancedCardLookupView').then(module => ({ default: module.EnhancedCardLookupView })));
@@ -59,26 +62,32 @@ export default function App() {
   };
 
   return (
-    <ToastProvider>
-      <ResponsiveLayout
-        currentView={currentView}
-        onViewChange={handleViewChange}
-        isAuthenticated={isAuthenticated}
-        userType={user?.type as "admin" | "clinic" | undefined}
-      >
-        <Suspense fallback={
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="light-card p-8 w-full max-w-md text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Loading...</h2>
-              <p className="text-gray-600">Please wait while we load the application.</p>
+    <ErrorBoundary>
+      <ToastProvider>
+        <ResponsiveLayout
+          currentView={currentView}
+          onViewChange={handleViewChange}
+          isAuthenticated={isAuthenticated}
+          userType={user?.type as "admin" | "clinic" | undefined}
+        >
+          <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="light-card p-8 w-full max-w-md text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Loading...</h2>
+                <p className="text-gray-600">Please wait while we load the application.</p>
+              </div>
             </div>
-          </div>
-        }>
-          {renderCurrentView()}
-        </Suspense>
-      </ResponsiveLayout>
-      <ToastContainer />
-    </ToastProvider>
+          }>
+            {renderCurrentView()}
+          </Suspense>
+        </ResponsiveLayout>
+        <ToastContainer />
+
+        {/* Development Diagnostic Tools */}
+        <DiagnosticPanel />
+        <SystemHealthMonitor enabled={process.env.NODE_ENV !== 'production'} />
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
