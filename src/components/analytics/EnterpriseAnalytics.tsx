@@ -270,30 +270,30 @@ export function EnterpriseAnalytics() {
           <MetricCard
             title="Total Clinics"
             value={metrics.totalClinics.toLocaleString()}
-            change="+5.2% from last month"
+            change="Fresh deployment"
             icon={Building}
-            trend="up"
+            trend="stable"
           />
           <MetricCard
             title="Active Clinics"
             value={metrics.activeClinics.toLocaleString()}
-            change="95.1% of total"
+            change="Ready for growth"
             icon={Users}
-            trend="up"
+            trend="stable"
           />
           <MetricCard
             title="Total Cards"
             value={metrics.totalCards.toLocaleString()}
-            change="+12.8% from last month"
+            change="Zero-state deployment"
             icon={CreditCard}
-            trend="up"
+            trend="stable"
           />
           <MetricCard
             title="Activation Rate"
             value={`${metrics.cardActivationRate}%`}
             change="+2.3% improvement"
             icon={TrendingUp}
-            trend="up"
+            trend="stable"
           />
         </div>
 
@@ -304,7 +304,7 @@ export function EnterpriseAnalytics() {
             value={`${metrics.systemHealth.uptime}%`}
             change="Last 30 days"
             icon={Activity}
-            trend="up"
+            trend="stable"
           />
           <MetricCard
             title="Response Time"
@@ -325,7 +325,7 @@ export function EnterpriseAnalytics() {
             value={`${metrics.systemHealth.securityScore}/100`}
             change="Excellent"
             icon={Activity}
-            trend="up"
+            trend="stable"
           />
         </div>
 
