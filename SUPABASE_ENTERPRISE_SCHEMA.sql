@@ -175,7 +175,7 @@ CREATE TABLE public.clinics (
 -- Main cards table with enterprise features
 CREATE TABLE public.cards (
     id SERIAL PRIMARY KEY,
-    control_number VARCHAR(20) UNIQUE NOT NULL DEFAULT generate_card_control_number(),
+    control_number VARCHAR(20) UNIQUE NOT NULL,
     full_name VARCHAR(255) DEFAULT '',
     birth_date DATE DEFAULT '1990-01-01',
     address TEXT DEFAULT '',
@@ -328,6 +328,22 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Trigger function to auto-generate control numbers
+CREATE OR REPLACE FUNCTION generate_control_number_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.control_number IS NULL OR NEW.control_number = '' THEN
+        NEW.control_number := generate_card_control_number();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-generate control numbers on insert
+CREATE TRIGGER auto_generate_control_number
+    BEFORE INSERT ON public.cards
+    FOR EACH ROW EXECUTE FUNCTION generate_control_number_trigger();
 
 -- Create audit triggers
 CREATE TRIGGER cards_audit_trigger
@@ -765,7 +781,7 @@ $$ LANGUAGE plpgsql;
 -- ===============================================
 
 SELECT '🏆 ENTERPRISE-GRADE CLINIC MANAGEMENT DEPLOYED!' as "STATUS";
-SELECT 'Next card sequence: ' || generate_card_control_number() as "CARD_SEQUENCE";
+SELECT 'Next card sequence: ' || 'MOC' || LPAD(nextval('public.card_number_seq')::TEXT, 8, '0') as "CARD_SEQUENCE";
 
 -- Production clinic credentials
 SELECT '🔐 ENTERPRISE LOGINS:' as "AUTH_HEADER";
