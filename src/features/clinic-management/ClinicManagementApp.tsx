@@ -116,7 +116,7 @@ export function ClinicManagementApp({ onSuccess }: ClinicManagementAppProps) {
 
       // Test connection
       const { error: testError } = await supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .select('count')
         .limit(1);
 
@@ -131,7 +131,7 @@ export function ClinicManagementApp({ onSuccess }: ClinicManagementAppProps) {
 
       // Load clinics
       const { data: clinicsData, error: clinicsError } = await supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -199,7 +199,7 @@ export function ClinicManagementApp({ onSuccess }: ClinicManagementAppProps) {
       };
 
       const { data, error } = await supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .insert(newClinic)
         .select()
         .single();
@@ -261,7 +261,7 @@ export function ClinicManagementApp({ onSuccess }: ClinicManagementAppProps) {
       }
 
       const { error } = await supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .update(updates)
         .eq('id', editingClinic.id);
 
@@ -304,7 +304,7 @@ export function ClinicManagementApp({ onSuccess }: ClinicManagementAppProps) {
       const { supabase } = await import('../../lib/supabase');
 
       const { error } = await supabase
-        .from('clinics')
+        .from('app_clinics.clinics')
         .delete()
         .eq('id', clinic.id);
 
