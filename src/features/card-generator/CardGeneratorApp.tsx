@@ -16,6 +16,8 @@ interface GenerationForm {
   customAreaCode: string;
   clinicId: string;
   perksTotal: number;
+  customPerkName: string;
+  useCustomPerk: boolean;
 }
 
 interface Clinic {
@@ -69,7 +71,9 @@ export function CardGeneratorApp() {
     areaCode: '',
     customAreaCode: '',
     clinicId: '',
-    perksTotal: 10
+    perksTotal: 10,
+    customPerkName: '',
+    useCustomPerk: false
   });
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [perks, setPerks] = useState<Perk[]>([]);
@@ -114,21 +118,23 @@ export function CardGeneratorApp() {
   }, []);
 
   const generateCards = async () => {
-    // Validation
+    // Basic validation - only require region
     if (!form.region) {
-      alert('Please select a region');
+      console.log('Validation failed: No region selected');
       return;
     }
 
-    if (!form.areaCode) {
-      alert('Please select an area code');
+    if (form.areaCode === 'Custom' && !form.customAreaCode?.trim()) {
+      console.log('Validation failed: Custom area code required but not provided');
       return;
     }
 
-    if (form.areaCode === 'Custom' && !form.customAreaCode) {
-      alert('Please enter a custom area code');
+    if (form.useCustomPerk && !form.customPerkName?.trim()) {
+      console.log('Validation failed: Custom perk name required but not provided');
       return;
     }
+
+    console.log('Validation passed, starting generation...');
 
     const count = form.quantity;
     const finalAreaCode = form.areaCode === 'Custom' ? form.customAreaCode : form.areaCode;
@@ -186,10 +192,11 @@ export function CardGeneratorApp() {
           metadata: {
             generated_at: new Date().toISOString(),
             region: form.region,
-            area_code: finalAreaCode,
+            area_code: finalAreaCode || 'GENERAL',
             clinic_id: form.clinicId || null,
             perks_configured: form.perksTotal,
-            generator_version: '2.0'
+            custom_perk: form.useCustomPerk ? form.customPerkName : null,
+            generator_version: '2.1'
           }
         });
       }
@@ -425,10 +432,61 @@ export function CardGeneratorApp() {
                       <span className="text-sm text-gray-600">perks per card</span>
                     </div>
 
+                    {/* Custom Perk Option */}
+                    <div className="mt-3">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={form.useCustomPerk}
+                          onChange={(e) => setForm({ ...form, useCustomPerk: e.target.checked })}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Add custom perk name</span>
+                      </label>
+
+                      {form.useCustomPerk && (
+                        <div className="mt-3 space-y-2">
+                          <select
+                            value={form.customPerkName}
+                            onChange={(e) => setForm({ ...form, customPerkName: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select or type custom perk...</option>
+                            <option value="Free Teeth Whitening">Free Teeth Whitening</option>
+                            <option value="Free Orthodontic Consultation">Free Orthodontic Consultation</option>
+                            <option value="Free Oral Surgery Consultation">Free Oral Surgery Consultation</option>
+                            <option value="Free Periodontal Treatment">Free Periodontal Treatment</option>
+                            <option value="Free Dental Implant Consultation">Free Dental Implant Consultation</option>
+                            <option value="Free Wisdom Tooth Extraction">Free Wisdom Tooth Extraction</option>
+                            <option value="Free Root Canal Treatment">Free Root Canal Treatment</option>
+                            <option value="Free Dental Crown">Free Dental Crown</option>
+                            <option value="Free Denture Consultation">Free Denture Consultation</option>
+                            <option value="Custom">Custom (type your own)</option>
+                          </select>
+
+                          {form.customPerkName === 'Custom' && (
+                            <input
+                              type="text"
+                              placeholder="Enter custom perk name..."
+                              value=""
+                              onChange={(e) => setForm({ ...form, customPerkName: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              autoFocus
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Available Perks Display */}
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm font-medium text-gray-700 mb-2">Available Perks:</div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">
+                        {form.useCustomPerk && form.customPerkName ? 'Custom Perk + Default Perks:' : 'Available Default Perks:'}
+                      </div>
                       <div className="text-xs text-gray-600 space-y-1">
+                        {form.useCustomPerk && form.customPerkName && form.customPerkName !== 'Custom' && (
+                          <div className="text-blue-600 font-medium">• {form.customPerkName} (Custom)</div>
+                        )}
                         {perks.slice(0, 3).map(perk => (
                           <div key={perk.id}>• {perk.name} (₱{perk.value})</div>
                         ))}
@@ -443,9 +501,9 @@ export function CardGeneratorApp() {
                     <ul className="text-sm text-blue-700 space-y-1">
                       <li>• Control Number: MOC00000001, MOC00000002...</li>
                       <li>• Region: {form.region ? PHILIPPINES_REGIONS.find(r => r.code === form.region)?.name : 'Not selected'}</li>
-                      <li>• Area Code: {form.areaCode === 'Custom' ? form.customAreaCode || 'Custom (not set)' : form.areaCode || 'Not selected'}</li>
+                      <li>• Area Code: {form.areaCode === 'Custom' ? form.customAreaCode || 'Custom (not set)' : form.areaCode || 'GENERAL'}</li>
                       <li>• Clinic: {form.clinicId ? clinics.find(c => c.id.toString() === form.clinicId)?.name : 'General pool'}</li>
-                      <li>• Perks: {form.perksTotal} per card</li>
+                      <li>• Perks: {form.perksTotal} per card{form.useCustomPerk && form.customPerkName ? ` + ${form.customPerkName}` : ''}</li>
                       <li>• Status: Inactive (ready for activation)</li>
                       <li>• Expires: December 31, 2025</li>
                     </ul>
@@ -453,7 +511,7 @@ export function CardGeneratorApp() {
 
                   <button
                     onClick={handleGenerate}
-                    disabled={!form.region || !form.areaCode || (form.areaCode === 'Custom' && !form.customAreaCode)}
+                    disabled={!form.region || (form.areaCode === 'Custom' && !form.customAreaCode) || (form.useCustomPerk && !form.customPerkName.trim())}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-4 font-bold text-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
                   >
                     Generate {form.quantity} Card{form.quantity > 1 ? 's' : ''} 🚀
