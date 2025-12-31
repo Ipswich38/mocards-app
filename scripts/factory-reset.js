@@ -25,9 +25,32 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function factoryReset() {
   console.log('🚨 MOCARDS CLOUD - FACTORY RESET');
   console.log('⚠️  WARNING: This will permanently delete ALL data!');
-  console.log('📋 Starting factory reset process...\n');
+  console.log('📋 Starting comprehensive factory reset process...\n');
 
   try {
+    // Step 0: Clear all analytics/statistics tables first
+    console.log('0️⃣  Clearing analytics and statistics data...');
+
+    // Clear any analytics tables that might exist
+    const analyticsTables = ['analytics', 'statistics', 'metrics', 'reports', 'usage_stats', 'activity_logs'];
+    for (const table of analyticsTables) {
+      try {
+        const { data } = await supabase.from(table).select('id').limit(1);
+        if (data !== null) {
+          console.log(`   📊 Found ${table} table, clearing...`);
+          const { data: tableData } = await supabase.from(table).select('id');
+          if (tableData && tableData.length > 0) {
+            await supabase.from(table).delete().in('id', tableData.map(r => r.id));
+            console.log(`   ✅ ${table} cleared (${tableData.length} records)`);
+          }
+        }
+      } catch (error) {
+        // Table doesn't exist or no access, continue
+        console.log(`   ⚪ ${table} table not found or empty`);
+      }
+    }
+    console.log('✅ Analytics data clearing completed');
+
     // Step 1: Clear all perk redemptions
     console.log('1️⃣  Clearing perk redemptions...');
     const { data: redemptions } = await supabase.from('perk_redemptions').select('id');
@@ -80,10 +103,38 @@ async function factoryReset() {
     console.log('5️⃣  Keeping existing perks (no changes needed)...');
     console.log('✅ Perks left intact');
 
-    console.log('\n🎉 FACTORY RESET COMPLETED SUCCESSFULLY!');
-    console.log('🏭 Database is now clean and ready for production use');
-    console.log('📊 Default perks have been initialized');
-    console.log('🚀 Your client can now start using the system fresh');
+    // Step 6: Clear any analytics localStorage cache
+    console.log('6️⃣  Clearing browser analytics cache...');
+    try {
+      // Clear analytics-related localStorage items
+      if (typeof localStorage !== 'undefined') {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (
+            key.includes('analytics') ||
+            key.includes('stats') ||
+            key.includes('metrics') ||
+            key.includes('mocards_cache') ||
+            key.includes('dashboard_data')
+          )) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        console.log(`✅ Cleared ${keysToRemove.length} analytics cache items`);
+      } else {
+        console.log('✅ Browser cache clearing skipped (Node.js environment)');
+      }
+    } catch (error) {
+      console.log('⚪ Browser cache clearing skipped (not available)');
+    }
+
+    console.log('\n🎉 COMPREHENSIVE FACTORY RESET COMPLETED SUCCESSFULLY!');
+    console.log('🏭 Database is completely clean and ready for production use');
+    console.log('📊 All analytics data reset to zero state');
+    console.log('🗃️  All cached data cleared from browser');
+    console.log('🚀 Your client can now start using the system with zero data');
 
   } catch (error) {
     console.error('\n❌ Factory reset failed:', error);

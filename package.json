@@ -13,7 +13,9 @@
     "reset-db": "node scripts/quick-reset.cjs",
     "fresh-start": "npm run reset-db && echo '🎯 Database reset instructions provided!'",
     "factory-reset": "node scripts/factory-reset.js",
-    "production-ready": "npm run factory-reset && npm run build && echo '🚀 Ready for production!'"
+    "reset-analytics": "node scripts/reset-analytics.js",
+    "complete-reset": "npm run factory-reset && npm run reset-analytics && echo '🎯 Complete zero-state reset done!'",
+    "production-ready": "npm run complete-reset && npm run build && echo '🚀 Ready for production with zero data!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
