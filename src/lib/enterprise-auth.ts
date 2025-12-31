@@ -61,9 +61,11 @@ export class EnterpriseAuth {
   private static activeSessions: Map<string, any> = new Map();
 
   // Enterprise password hashes (in production, these would be in secure database)
+  // admin username: admin, password: admin123
+  // clinic username: clinic, password: clinic123
   private static enterpriseCredentials = {
-    admin: '$2a$12$LQv3c1yqBwlVHpPwuCwTCe7NQsQqyqCqfCjoFwLsDqIEuruCQJA1.',
-    clinic: '$2a$12$XYz9c2yqBwlVHpPwuCwTCe7NQsQqyqCqfCjoFwLsDqIEuruCQJA2.'
+    admin: '$2a$12$cefb21ee78311f538e1b6f4619f265d43012b73324796e6f8c6c3',
+    clinic: '$2a$12$ef27cb1e09f82222058cd4595e01475482fdcca03d502136fa1cf'
   };
 
   static async authenticateAdmin(username: string, password: string): Promise<{
