@@ -60,8 +60,55 @@ export function AdminPortalView() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [activeTab, setActiveTab] = useState<AdminTab>('generator');
 
+  // Debug function to test database connection
+  const testDatabaseConnection = async () => {
+    try {
+      console.log('[Admin Debug] Testing database connection...');
+      addToast(toastWarning('Database Test', 'Testing database connection...'));
 
+      // Test basic connection by getting cards
+      const testCards = await cardOperations.getAll();
+      console.log('[Admin Debug] Cards retrieved:', testCards);
 
+      // Test simple card creation with minimal data
+      const testCard: Omit<Card, 'id' | 'createdAt' | 'updatedAt'> = {
+        controlNumber: `TEST-${Date.now()}`,
+        fullName: 'Test Card',
+        status: 'inactive',
+        perksTotal: 1,
+        perksUsed: 0,
+        clinicId: '',
+        expiryDate: '2025-12-31',
+      };
+
+      console.log('[Admin Debug] Attempting to create test card:', testCard);
+      const createdTestCard = await cardOperations.create(testCard);
+      console.log('[Admin Debug] Test card created successfully:', createdTestCard);
+
+      addToast(toastSuccess('Database Test Passed', 'Database connection and card creation working correctly!'));
+      await reloadData();
+    } catch (error) {
+      console.error('[Admin Debug] Database test failed:', error);
+      addToast(toastError('Database Test Failed', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
+  };
+
+  // Enhanced Generator State - Simplified with quantity options
+  const [generatorForm, setGeneratorForm] = useState({
+    quantity: 1,
+    region: '',
+    areaCode: '',
+    customAreaCode: '',
+    perksTotal: 5, // Default perks per card
+  });
+
+  // Progress tracking state for card generation
+  const [generationProgress, setGenerationProgress] = useState<{
+    isGenerating: boolean;
+    progress: number;
+    total: number;
+    message: string;
+  }>({ isGenerating: false, progress: 0, total: 0, message: '' });
 
   // Perks Management State
   const [perksManagement, setPerksManagement] = useState({
@@ -301,6 +348,123 @@ export function AdminPortalView() {
     addToast(toastSuccess('Password Changed', 'Admin password has been updated successfully'));
   };
 
+  const handleGenerateCards = async () => {
+    if (!generatorForm.region || !generatorForm.areaCode) {
+      addToast(toastWarning('Missing Fields', 'Please fill all required fields'));
+      return;
+    }
+
+    // Handle custom area code
+    let finalAreaCode = generatorForm.areaCode;
+    if (generatorForm.areaCode === 'Custom' && generatorForm.customAreaCode) {
+      finalAreaCode = generatorForm.customAreaCode;
+    }
+
+    // Show progress popup
+    setGenerationProgress({
+      isGenerating: true,
+      progress: 0,
+      total: generatorForm.quantity,
+      message: 'Initializing card generation...'
+    });
+
+    try {
+      const { supabase } = await import('../../lib/supabase');
+
+      // Get existing cards to find next ID
+      setGenerationProgress(prev => ({ ...prev, message: 'Checking existing cards...' }));
+      const { data: existingCards } = await supabase
+        .from('cards')
+        .select('control_number')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      // Find next available control number
+      let nextId = 1;
+      if (existingCards && existingCards.length > 0) {
+        const lastCard = existingCards[0];
+        const match = lastCard.control_number?.match(/MOC(\d+)/);
+        if (match) {
+          nextId = parseInt(match[1]) + 1;
+        }
+      }
+
+      setGenerationProgress(prev => ({ ...prev, message: `Starting from card MOC${String(nextId).padStart(8, '0')}...` }));
+
+      const cardsToGenerate = [];
+
+      // Generate card data
+      for (let i = 0; i < generatorForm.quantity; i++) {
+        const cardId = nextId + i;
+        cardsToGenerate.push({
+          control_number: `MOC${String(cardId).padStart(8, '0')}`,
+          full_name: '',
+          birth_date: '1990-01-01',
+          address: '',
+          contact_number: '',
+          emergency_contact: '',
+          clinic_id: null,
+          category_id: null,
+          status: 'inactive',
+          perks_total: generatorForm.perksTotal,
+          perks_used: 0,
+          issue_date: new Date().toISOString().split('T')[0],
+          expiry_date: '2025-12-31',
+          qr_code_data: `MOC${String(cardId).padStart(8, '0')}`,
+          tenant_id: null,
+          metadata: { region: generatorForm.region, areaCode: finalAreaCode }
+        });
+      }
+
+      // Insert in batches
+      const batchSize = 100;
+      let totalInserted = 0;
+
+      for (let i = 0; i < cardsToGenerate.length; i += batchSize) {
+        const batch = cardsToGenerate.slice(i, i + batchSize);
+
+        setGenerationProgress(prev => ({
+          ...prev,
+          progress: totalInserted,
+          message: `Generating cards ${totalInserted + 1}-${Math.min(totalInserted + batchSize, generatorForm.quantity)}...`
+        }));
+
+        const { error } = await supabase
+          .from('cards')
+          .insert(batch);
+
+        if (error) {
+          throw new Error(`Batch insertion failed: ${error.message}`);
+        }
+
+        totalInserted += batch.length;
+
+        // Small delay for large batches
+        if (generatorForm.quantity > 100) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
+
+      setGenerationProgress(prev => ({
+        ...prev,
+        progress: generatorForm.quantity,
+        message: 'Cards generated successfully!'
+      }));
+
+      // Close progress after 2 seconds
+      setTimeout(() => {
+        setGenerationProgress({ isGenerating: false, progress: 0, total: 0, message: '' });
+      }, 2000);
+
+      addToast(toastSuccess('Cards Generated', `Created ${generatorForm.quantity} cards successfully`));
+      await reloadData();
+
+    } catch (error: any) {
+      console.error('[Admin] Card generation failed:', error);
+      setGenerationProgress({ isGenerating: false, progress: 0, total: 0, message: '' });
+      addToast(toastError('Generation Failed', error.message || 'An unexpected error occurred'));
+    }
+  };
 
   // Perks Management Functions
   const handlePerkSave = async () => {
@@ -855,6 +1019,131 @@ export function AdminPortalView() {
           {/* Generator Tab - New Modular Card Generator */}
           {activeTab === 'generator' && (
             <CardGeneratorApp />
+          )}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {[1, 500, 1000].map((qty) => (
+                    <button
+                      key={qty}
+                      onClick={() => setGeneratorForm({ ...generatorForm, quantity: qty })}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        generatorForm.quantity === qty
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {qty === 1 ? '1 Card' : `${qty} Cards`}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value={generatorForm.quantity}
+                    onChange={(e) => setGeneratorForm({ ...generatorForm, quantity: parseInt(e.target.value) || 1 })}
+                    className="light-input w-32"
+                    placeholder="Custom quantity"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">Custom quantity (1-10000)</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                  <select
+                    value={generatorForm.region}
+                    onChange={(e) => setGeneratorForm({ ...generatorForm, region: e.target.value })}
+                    className="light-select"
+                  >
+                    <option value="">Select Region</option>
+                    {PHILIPPINES_REGIONS.map((region) => (
+                      <option key={region.code} value={region.code}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Area Code</label>
+                  <select
+                    value={generatorForm.areaCode}
+                    onChange={(e) => setGeneratorForm({ ...generatorForm, areaCode: e.target.value })}
+                    className="light-select"
+                  >
+                    <option value="">Select Area Code</option>
+                    {AREA_CODES.map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {generatorForm.areaCode === 'Custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Custom Area Code</label>
+                    <input
+                      type="text"
+                      value={generatorForm.customAreaCode}
+                      onChange={(e) => setGeneratorForm({ ...generatorForm, customAreaCode: e.target.value })}
+                      className="light-input"
+                      placeholder="Enter custom area code (e.g., XYZ001)"
+                    />
+                  </div>
+                )}
+
+                {/* Perks Configuration */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Perks per Card</label>
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={generatorForm.perksTotal}
+                      onChange={(e) => setGeneratorForm({ ...generatorForm, perksTotal: parseInt(e.target.value) || 1 })}
+                      className="light-input w-20"
+                    />
+                    <span className="text-sm text-gray-600">benefits/perks per card</span>
+                    <button
+                      onClick={() => setPerksManagement({ ...perksManagement, showModal: true })}
+                      className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-4 py-2 rounded-lg shadow-lg hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>Manage Perks</span>
+                    </button>
+                  </div>
+
+                  {/* Active Perks Display */}
+                  <div className="mt-2 text-sm">
+                    <span className="text-gray-600">Available Perks: </span>
+                    {perks.filter(p => p.isActive).length > 0 ? (
+                      <span className="text-green-600 font-medium">
+                        {perks.filter(p => p.isActive).map(p => p.name).join(', ')}
+                      </span>
+                    ) : (
+                      <span className="text-orange-600">No active perks configured</span>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="flex space-x-3">
+                <button onClick={handleGenerateCards} className="light-button-primary">
+                  {generatorForm.quantity === 1 ? 'Generate 1 Card' : `Generate ${generatorForm.quantity} Cards`}
+                </button>
+                <button onClick={testDatabaseConnection} className="light-button-secondary">
+                  <Database className="h-4 w-4 mr-2" />
+                  Test DB
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Activation Tab */}
@@ -2234,6 +2523,52 @@ export function AdminPortalView() {
         </div>
       </div>
 
+      {/* Card Generation Progress Modal */}
+      {generationProgress.isGenerating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 w-full max-w-md">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+                <CreditCard className="h-8 w-8 text-blue-600" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Generating Cards
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {generationProgress.message}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width: `${(generationProgress.progress / generationProgress.total) * 100}%`
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>{generationProgress.progress} cards</span>
+                  <span>{generationProgress.total} total</span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {Math.round((generationProgress.progress / generationProgress.total) * 100)}% complete
+                </div>
+              </div>
+
+              {generationProgress.progress === generationProgress.total && (
+                <div className="flex items-center justify-center text-green-600">
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  <span className="font-medium">Generation Complete!</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Perks Management Modal */}
       {perksManagement.showModal && (
