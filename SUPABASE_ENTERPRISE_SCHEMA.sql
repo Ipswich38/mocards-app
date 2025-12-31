@@ -1,8 +1,9 @@
 -- ===============================================
--- MOCARDS ENTERPRISE PRODUCTION SCHEMA
+-- MOCARDS ENTERPRISE PRODUCTION SCHEMA - UPDATED FOR CLINIC MANAGEMENT APP
 -- ===============================================
 -- Enterprise-grade schema with sequences, constraints, and audit trails
 -- Optimized for high-volume card number generation
+-- UPDATED: Clinic schema aligned with ClinicManagementApp requirements
 
 -- ===============================================
 -- STEP 1: CLEAN SLATE
@@ -73,17 +74,21 @@ CREATE TABLE app_clinics.clinic_plans (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enterprise clinics table
+-- Enterprise clinics table - UPDATED FOR CLINIC MANAGEMENT APP
 CREATE TABLE app_clinics.clinics (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
     code VARCHAR(20) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
     contact_number VARCHAR(20),
     address TEXT,
-    region VARCHAR(100),
-    plan_id INTEGER REFERENCES app_clinics.clinic_plans(id),
+    region VARCHAR(100) NOT NULL,
+    plan VARCHAR(20) NOT NULL DEFAULT 'starter',
+    area_code VARCHAR(10) NOT NULL,
+    custom_area_code VARCHAR(10),
     password_hash TEXT NOT NULL,
+    admin_clinic VARCHAR(255),
     is_active BOOLEAN DEFAULT true,
     subscription_status VARCHAR(20) DEFAULT 'active',
     max_cards_allowed INTEGER DEFAULT 1000,
@@ -94,7 +99,8 @@ CREATE TABLE app_clinics.clinics (
 
     -- Enterprise constraints
     CONSTRAINT valid_subscription_status CHECK (subscription_status IN ('active', 'suspended', 'cancelled')),
-    CONSTRAINT valid_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+    CONSTRAINT valid_plan CHECK (plan IN ('starter', 'growth', 'pro')),
+    CONSTRAINT valid_email CHECK (email IS NULL OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
 -- ===============================================
@@ -245,22 +251,25 @@ INSERT INTO app_clinics.clinic_plans (name, description, max_cards, price_monthl
 ('Business', 'Growing business plan', 5000, 149.99, '{"support": "priority", "analytics": true, "api_access": true}'),
 ('Enterprise', 'Full enterprise solution', 50000, 499.99, '{"support": "dedicated", "analytics": true, "api_access": true, "white_label": true}');
 
--- Insert demo clinic with enterprise features
+-- Insert demo clinic with updated schema fields
 INSERT INTO app_clinics.clinics (
-    name, code, email, contact_number, address, region,
-    plan_id, password_hash, max_cards_allowed
+    name, username, code, email, contact_number, address, region,
+    plan, area_code, password_hash, admin_clinic, max_cards_allowed
 )
-SELECT
+VALUES (
     'MOCARDS Demo Enterprise Clinic',
+    'demo',
     'DEMO001',
     'demo@mocards.enterprise',
     '+63917123456',
     '123 Enterprise Ave, Makati Business District, Metro Manila',
     'National Capital Region (NCR)',
-    id,
+    'growth',
+    'NCR001',
     'demo123',
+    'Dr. Demo Admin',
     5000
-FROM app_clinics.clinic_plans WHERE name = 'Business';
+);
 
 -- Generate initial demo cards with batch tracking
 DO $$
@@ -338,7 +347,7 @@ $$ LANGUAGE plpgsql;
 
 SELECT '🏆 ENTERPRISE SCHEMA DEPLOYED!' as "STATUS";
 SELECT 'Next card number: ' || generate_card_control_number() as "CARD_SEQUENCE";
-SELECT 'Demo clinic: DEMO001 / demo123' as "LOGIN";
+SELECT 'Demo clinic: Username=demo / Password=demo123 / Code=DEMO001' as "LOGIN";
 SELECT COUNT(*) || ' demo cards created' as "DEMO_DATA" FROM public.cards WHERE is_demo = true;
 
 -- Test bulk generation function
