@@ -101,6 +101,14 @@ export function AdminPortalView() {
     perksTotal: 5, // Default perks per card
   });
 
+  // Progress tracking state for card generation
+  const [generationProgress, setGenerationProgress] = useState<{
+    isGenerating: boolean;
+    progress: number;
+    total: number;
+    message: string;
+  }>({ isGenerating: false, progress: 0, total: 0, message: '' });
+
   // Perks Management State
   const [perksManagement, setPerksManagement] = useState({
     showModal: false,
@@ -351,48 +359,109 @@ export function AdminPortalView() {
       finalAreaCode = generatorForm.customAreaCode;
     }
 
+    // Show progress popup
+    setGenerationProgress({
+      isGenerating: true,
+      progress: 0,
+      total: generatorForm.quantity,
+      message: 'Initializing card generation...'
+    });
+
     try {
-      console.log('[Admin] BEFORE Generation - Current cards count:', cards.length);
-      console.log('[Admin] Generating', generatorForm.quantity, 'cards with region:', generatorForm.region, 'areaCode:', finalAreaCode);
-      console.log('[Admin] Generator form data:', {
-        quantity: generatorForm.quantity,
-        region: generatorForm.region,
-        areaCode: finalAreaCode,
-        perksTotal: generatorForm.perksTotal
-      });
+      const { supabase } = await import('../../lib/supabase');
 
-      const generatedCards = await cardOperations.generateCards(
-        generatorForm.quantity,
-        generatorForm.region,
-        finalAreaCode,
-        generatorForm.perksTotal
-      );
+      // Get existing cards to find next ID
+      setGenerationProgress(prev => ({ ...prev, message: 'Checking existing cards...' }));
+      const { data: existingCards } = await supabase
+        .from('app_cards.cards')
+        .select('control_number')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      console.log('[Admin] Cards generated successfully:', generatedCards);
-      console.log('[Admin] Generated cards count:', generatedCards.length);
-
-      if (generatedCards.length === 0) {
-        console.error('[Admin] WARNING: No cards were created! Check the generator logs above for errors.');
-        addToast(toastError('Generation Issue', 'No cards were created. Check the console for details and try again.'));
-      } else {
-        addToast(toastSuccess('Cards Generated', `Created ${generatedCards.length} cards with ${generatorForm.perksTotal} perks each`));
+      // Find next available control number
+      let nextId = 1;
+      if (existingCards && existingCards.length > 0) {
+        const lastCard = existingCards[0];
+        const match = lastCard.control_number?.match(/MOC(\d+)/);
+        if (match) {
+          nextId = parseInt(match[1]) + 1;
+        }
       }
 
-      console.log('[Admin] Calling reloadData to refresh dashboard...');
-      await reloadData(); // Refresh the data
+      setGenerationProgress(prev => ({ ...prev, message: `Starting from card MOC${String(nextId).padStart(8, '0')}...` }));
 
-      console.log('[Admin] AFTER Generation - New cards count should be updated via reloadData');
+      const cardsToGenerate = [];
 
-    } catch (error) {
-      console.error('[Admin] Card generation failed with error:', error);
-      if (error instanceof Error) {
-        console.error('[Admin] Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
+      // Generate card data
+      for (let i = 0; i < generatorForm.quantity; i++) {
+        const cardId = nextId + i;
+        cardsToGenerate.push({
+          control_number: `MOC${String(cardId).padStart(8, '0')}`,
+          full_name: '',
+          birth_date: '1990-01-01',
+          address: '',
+          contact_number: '',
+          emergency_contact: '',
+          clinic_id: null,
+          category_id: null,
+          status: 'inactive',
+          perks_total: generatorForm.perksTotal,
+          perks_used: 0,
+          issue_date: new Date().toISOString().split('T')[0],
+          expiry_date: '2025-12-31',
+          qr_code_data: `MOC${String(cardId).padStart(8, '0')}`,
+          tenant_id: null,
+          metadata: { region: generatorForm.region, areaCode: finalAreaCode }
         });
       }
-      addToast(toastError('Generation Failed', error instanceof Error ? error.message : 'Failed to generate cards'));
+
+      // Insert in batches
+      const batchSize = 100;
+      let totalInserted = 0;
+
+      for (let i = 0; i < cardsToGenerate.length; i += batchSize) {
+        const batch = cardsToGenerate.slice(i, i + batchSize);
+
+        setGenerationProgress(prev => ({
+          ...prev,
+          progress: totalInserted,
+          message: `Generating cards ${totalInserted + 1}-${Math.min(totalInserted + batchSize, generatorForm.quantity)}...`
+        }));
+
+        const { error } = await supabase
+          .from('app_cards.cards')
+          .insert(batch);
+
+        if (error) {
+          throw new Error(`Batch insertion failed: ${error.message}`);
+        }
+
+        totalInserted += batch.length;
+
+        // Small delay for large batches
+        if (generatorForm.quantity > 100) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
+
+      setGenerationProgress(prev => ({
+        ...prev,
+        progress: generatorForm.quantity,
+        message: 'Cards generated successfully!'
+      }));
+
+      // Close progress after 2 seconds
+      setTimeout(() => {
+        setGenerationProgress({ isGenerating: false, progress: 0, total: 0, message: '' });
+      }, 2000);
+
+      addToast(toastSuccess('Cards Generated', `Created ${generatorForm.quantity} cards successfully`));
+      await reloadData();
+
+    } catch (error: any) {
+      console.error('[Admin] Card generation failed:', error);
+      setGenerationProgress({ isGenerating: false, progress: 0, total: 0, message: '' });
+      addToast(toastError('Generation Failed', error.message || 'An unexpected error occurred'));
     }
   };
 
@@ -954,7 +1023,7 @@ export function AdminPortalView() {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {[1, 50, 100, 250, 500, 1000].map((qty) => (
+                  {[1, 500, 1000].map((qty) => (
                     <button
                       key={qty}
                       onClick={() => setGeneratorForm({ ...generatorForm, quantity: qty })}
@@ -2455,6 +2524,53 @@ export function AdminPortalView() {
           )}
         </div>
       </div>
+
+      {/* Card Generation Progress Modal */}
+      {generationProgress.isGenerating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 w-full max-w-md">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+                <CreditCard className="h-8 w-8 text-blue-600" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Generating Cards
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {generationProgress.message}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width: `${(generationProgress.progress / generationProgress.total) * 100}%`
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>{generationProgress.progress} cards</span>
+                  <span>{generationProgress.total} total</span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {Math.round((generationProgress.progress / generationProgress.total) * 100)}% complete
+                </div>
+              </div>
+
+              {generationProgress.progress === generationProgress.total && (
+                <div className="flex items-center justify-center text-green-600">
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  <span className="font-medium">Generation Complete!</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Perks Management Modal */}
       {perksManagement.showModal && (
