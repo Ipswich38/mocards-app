@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { EnterpriseAuth } from '../../lib/enterprise-auth';
 import { CardGeneratorApp } from '../../features/card-generator/CardGeneratorApp';
 import { ClinicManagementApp } from '../../features/clinic-management/ClinicManagementApp';
+import { EnterpriseAnalytics } from '../analytics/EnterpriseAnalytics';
 import { useAuth } from '../../hooks/useAuth';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import {
@@ -21,7 +23,8 @@ import {
   Trash2,
   Save,
   X,
-  Filter
+  Filter,
+  BarChart3,
 } from 'lucide-react';
 import {
   cardOperations,
@@ -39,13 +42,13 @@ import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 import { supabase } from '../../lib/supabase';
 import { DatabaseDebugger } from '../DatabaseDebugger';
 
-type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
+type AdminTab = 'analytics' | 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
 
 export function AdminPortalView() {
   const { isAuthenticated, login, logout } = useAuth();
   useAutoRefresh({ enabled: true, showNotifications: true });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [activeTab, setActiveTab] = useState<AdminTab>('generator');
+  const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
 
 
 
@@ -206,15 +209,23 @@ export function AdminPortalView() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple authentication check - in production this would connect to Supabase
-    // For now, check against hardcoded credentials matching the database
-    if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
-      login('admin', { username: loginForm.username });
-      addToast(toastSuccess('Welcome', 'Admin access granted'));
-    } else {
-      addToast(toastError('Login Failed', 'Invalid credentials'));
+    // Enterprise authentication with security monitoring
+    try {
+      const result = await EnterpriseAuth.authenticateAdmin(loginForm.username, loginForm.password);
+
+      if (result.success && result.user && result.token) {
+        login('admin', result.user);
+        // Store session token for validation
+        localStorage.setItem('mocards_auth_token', result.token);
+        addToast(toastSuccess('Welcome', 'Secure admin access granted'));
+      } else {
+        addToast(toastError('Login Failed', result.message || 'Invalid credentials'));
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      addToast(toastError('Login Failed', 'Authentication system error'));
     }
   };
 
@@ -471,8 +482,9 @@ export function AdminPortalView() {
 
 
   const tabs = [
+    { id: 'analytics' as const, label: 'Analytics', icon: BarChart3, color: 'blue' },
     { id: 'generator' as const, label: 'Generator', icon: Plus, color: 'emerald' },
-    { id: 'activation' as const, label: 'Activation', icon: Zap, color: 'blue' },
+    { id: 'activation' as const, label: 'Activation', icon: Zap, color: 'cyan' },
     { id: 'appointments' as const, label: 'Appointments', icon: Calendar, color: 'rose' },
     { id: 'clinic-management' as const, label: 'Manage Clinics', icon: Building, color: 'indigo' },
     { id: 'endorsement' as const, label: 'Endorsement', icon: UserCheck, color: 'orange' },
@@ -620,6 +632,11 @@ export function AdminPortalView() {
       {/* Tab Content */}
       <div className="light-card">
         <div className="p-6">
+          {/* Analytics Tab - Enterprise Analytics Dashboard */}
+          {activeTab === 'analytics' && (
+            <EnterpriseAnalytics />
+          )}
+
           {/* Generator Tab - New Modular Card Generator */}
           {activeTab === 'generator' && (
             <CardGeneratorApp onSuccess={reloadData} />

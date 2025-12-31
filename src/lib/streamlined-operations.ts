@@ -742,41 +742,31 @@ export const streamlinedOps = {
 
   // Authentication helper (simplified)
   async authenticateAdmin(username: string, password: string) {
-    const { data, error } = await supabase
-      .from('admin_accounts')
-      .select('*')
-      .eq('username', username)
-      .eq('is_active', true)
-      .single();
+    // Import enterprise authentication
+    const { EnterpriseAuth } = await import('./enterprise-auth');
 
-    if (error) throw error;
+    // Use enterprise authentication system
+    const result = await EnterpriseAuth.authenticateAdmin(username, password);
 
-    // In production, use proper password hashing verification
-    // For production purposes, using simple comparison
-    if (password === 'admin123') { // TODO: Replace with bcrypt verification
-      return data as AdminAccount;
-    } else {
-      throw new Error('Invalid password');
+    if (!result.success) {
+      throw new Error(result.message || 'Authentication failed');
     }
+
+    return result.user as AdminAccount;
   },
 
   async authenticateClinic(clinicCode: string, password: string) {
-    const { data, error } = await supabase
-      .from('clinics')
-      .select('*')
-      .eq('clinic_code', clinicCode)
-      .eq('status', 'active')
-      .single();
+    // Import enterprise authentication
+    const { EnterpriseAuth } = await import('./enterprise-auth');
 
-    if (error) throw error;
+    // Use enterprise authentication system
+    const result = await EnterpriseAuth.authenticateClinic(clinicCode, password);
 
-    // In production, use proper password hashing verification
-    // For production purposes, using simple comparison
-    if (password === 'clinic123') { // TODO: Replace with bcrypt verification
-      return data as Clinic;
-    } else {
-      throw new Error('Invalid password');
+    if (!result.success) {
+      throw new Error(result.message || 'Authentication failed');
     }
+
+    return result.user as Clinic;
   },
 
   // Dashboard statistics
