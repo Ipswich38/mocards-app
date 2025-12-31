@@ -15,7 +15,11 @@
     "factory-reset": "node scripts/factory-reset.js",
     "reset-analytics": "node scripts/reset-analytics.js",
     "complete-reset": "npm run factory-reset && npm run reset-analytics && echo '🎯 Complete zero-state reset done!'",
-    "production-ready": "npm run complete-reset && npm run build && echo '🚀 Ready for production with zero data!'"
+    "test-e2e": "node scripts/end-to-end-test.js",
+    "bulletproof-deploy": "node scripts/bulletproof-deploy.js",
+    "production-ready": "npm run complete-reset && npm run build && echo '🚀 Ready for production with zero data!'",
+    "business-ready": "npm run test-e2e && npm run build && echo '💼 Business functionality verified and ready!'",
+    "client-ready": "npm run complete-reset && npm run bulletproof-deploy && echo '🎯 100% CLIENT READY!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",

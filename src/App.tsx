@@ -6,6 +6,8 @@ import { useLegacyAuth } from './features/authentication';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { DiagnosticPanel } from './components/DiagnosticPanel';
 import { SystemHealthMonitor } from './components/SystemHealthMonitor';
+import { healthChecker } from './lib/healthCheck';
+import { logBusinessEvent } from './lib/productionMonitoring';
 
 // Lazy load components for code splitting
 const EnhancedCardLookupView = lazy(() => import('./components/views/EnhancedCardLookupView').then(module => ({ default: module.EnhancedCardLookupView })));
@@ -16,12 +18,55 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
   const { isAuthenticated, user } = useLegacyAuth();
 
+  // Initialize production monitoring and health checks
+  useEffect(() => {
+    // Start health monitoring
+    healthChecker.startMonitoring(60000); // Check every minute
+
+    // Log application startup
+    logBusinessEvent('app_startup', 1, {
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      viewportSize: `${window.innerWidth}x${window.innerHeight}`
+    });
+
+    // Perform initial health check
+    healthChecker.performHealthCheck().then(health => {
+      console.log('🏥 Initial health check completed:', health.overall);
+      if (health.overall === 'critical') {
+        console.error('🚨 Critical system issues detected on startup');
+      }
+    });
+
+    // Log app version and build info
+    console.log('🚀 MOCARDS CLOUD - Production Ready', {
+      timestamp: new Date().toISOString(),
+      build: 'production',
+      monitoring: 'active'
+    });
+
+    // Cleanup on unmount
+    return () => {
+      healthChecker.stopMonitoring();
+    };
+  }, []);
+
   // Redirect to card lookup when user logs out and reset view to allow portal switching
   useEffect(() => {
     if (!isAuthenticated && (currentView === 'admin-access' || currentView === 'clinic-portal')) {
       setCurrentView('enhanced-lookup');
     }
   }, [isAuthenticated]); // Removed currentView from dependencies to prevent infinite loops
+
+  // Log view changes for analytics
+  useEffect(() => {
+    logBusinessEvent('view_change', 1, {
+      from: 'previous_view',
+      to: currentView,
+      authenticated: isAuthenticated,
+      userType: user?.type
+    });
+  }, [currentView, isAuthenticated, user?.type]);
 
   const renderCurrentView = () => {
     switch (currentView) {
