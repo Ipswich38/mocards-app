@@ -373,7 +373,7 @@ export function AdminPortalView() {
       // Get existing cards to find next ID
       setGenerationProgress(prev => ({ ...prev, message: 'Checking existing cards...' }));
       const { data: existingCards } = await supabase
-        .from('app_cards.cards')
+        .from('cards')
         .select('control_number')
         .order('created_at', { ascending: false })
         .limit(1);
@@ -429,7 +429,7 @@ export function AdminPortalView() {
         }));
 
         const { error } = await supabase
-          .from('app_cards.cards')
+          .from('cards')
           .insert(batch);
 
         if (error) {
