@@ -77,6 +77,7 @@ export function CardGeneratorApp() {
   });
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [perks, setPerks] = useState<Perk[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [progress, setProgress] = useState<GenerationProgress>({
     isGenerating: false,
     progress: 0,
@@ -85,36 +86,58 @@ export function CardGeneratorApp() {
     completed: false
   });
 
-  // Load clinics and perks data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const { supabase } = await import('../../lib/supabase');
+  // Test database connection and load data
+  const testConnectionAndLoadData = async () => {
+    try {
+      setConnectionStatus('checking');
+      const { supabase } = await import('../../lib/supabase');
 
-        // Load clinics
-        const { data: clinicsData } = await supabase
-          .from('clinics')
-          .select('id, name, code, region')
-          .eq('is_active', true);
+      // Test basic connection
+      const { error: testError } = await supabase
+        .from('cards')
+        .select('count')
+        .limit(1);
 
-        if (clinicsData) {
-          setClinics(clinicsData);
-        }
-
-        // Set some default perks (we can expand this later)
-        setPerks([
-          { id: '1', name: 'Free Dental Cleaning', description: 'Complete professional dental cleaning', value: 1500, isActive: true },
-          { id: '2', name: 'Free Consultation', description: 'General dental consultation', value: 800, isActive: true },
-          { id: '3', name: 'Dental X-Ray', description: 'Digital dental x-ray', value: 1200, isActive: true },
-          { id: '4', name: '20% Treatment Discount', description: '20% off any treatment', value: 20, isActive: true },
-          { id: '5', name: 'Free Fluoride Treatment', description: 'Fluoride application', value: 600, isActive: true },
-        ]);
-      } catch (error) {
-        console.error('Error loading data:', error);
+      if (testError) {
+        console.error('❌ Database connection test failed:', testError);
+        setConnectionStatus('error');
+        return;
       }
-    };
 
-    loadData();
+      console.log('✅ Database connection successful');
+      setConnectionStatus('connected');
+
+      // Load clinics from app_clinics schema
+      const { data: clinicsData, error: clinicsError } = await supabase
+        .from('clinics')
+        .select('id, name, code, region')
+        .eq('is_active', true);
+
+      if (clinicsError) {
+        console.log('⚠️ Clinics data not available:', clinicsError);
+      } else if (clinicsData) {
+        setClinics(clinicsData);
+        console.log('✅ Loaded', clinicsData.length, 'clinics');
+      }
+
+      // Set default perks
+      setPerks([
+        { id: '1', name: 'Free Dental Cleaning', description: 'Complete professional dental cleaning', value: 1500, isActive: true },
+        { id: '2', name: 'Free Consultation', description: 'General dental consultation', value: 800, isActive: true },
+        { id: '3', name: 'Dental X-Ray', description: 'Digital dental x-ray', value: 1200, isActive: true },
+        { id: '4', name: '20% Treatment Discount', description: '20% off any treatment', value: 20, isActive: true },
+        { id: '5', name: 'Free Fluoride Treatment', description: 'Fluoride application', value: 600, isActive: true },
+      ]);
+
+    } catch (error) {
+      console.error('💥 Connection and data loading failed:', error);
+      setConnectionStatus('error');
+    }
+  };
+
+  // Load data on mount
+  useEffect(() => {
+    testConnectionAndLoadData();
   }, []);
 
   const generateCards = async () => {
@@ -134,125 +157,157 @@ export function CardGeneratorApp() {
       return;
     }
 
-    console.log('Validation passed, starting generation...');
+    console.log('✅ Validation passed, starting enterprise card generation...');
 
     const count = form.quantity;
     const finalAreaCode = form.areaCode === 'Custom' ? form.customAreaCode : form.areaCode;
+    const clinicId = form.clinicId ? parseInt(form.clinicId) : null;
 
     setProgress({
       isGenerating: true,
       progress: 0,
       total: count,
-      message: `Preparing to generate ${count} cards...`,
+      message: `🚀 Initializing enterprise card generation...`,
       completed: false
     });
 
     try {
       const { supabase } = await import('../../lib/supabase');
 
-      // Get next available control number
-      setProgress(prev => ({ ...prev, message: 'Finding next available card number...' }));
-      const { data: lastCard } = await supabase
-        .from('cards')
-        .select('control_number')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      let nextId = 1;
-      if (lastCard && lastCard.length > 0) {
-        const match = lastCard[0].control_number?.match(/MOC(\d+)/);
-        if (match) {
-          nextId = parseInt(match[1]) + 1;
-        }
-      }
+      // Create custom batch ID with metadata
+      const batchId = `BATCH_${form.region}_${Date.now()}`;
 
       setProgress(prev => ({
         ...prev,
-        message: `Starting from card MOC${String(nextId).padStart(8, '0')}...`
+        message: `🏭 Using enterprise bulk generation function...`
       }));
 
-      // Generate card data with enhanced metadata
-      const cardsToInsert = [];
-      for (let i = 0; i < count; i++) {
-        const cardId = nextId + i;
-        cardsToInsert.push({
-          control_number: `MOC${String(cardId).padStart(8, '0')}`,
-          full_name: '',
-          birth_date: '1990-01-01',
-          address: '',
-          contact_number: '',
-          emergency_contact: '',
-          clinic_id: form.clinicId ? parseInt(form.clinicId) : null,
-          status: 'inactive',
-          perks_total: form.perksTotal,
-          perks_used: 0,
-          issue_date: new Date().toISOString().split('T')[0],
-          expiry_date: '2025-12-31',
-          qr_code_data: `MOC${String(cardId).padStart(8, '0')}`,
-          metadata: {
-            generated_at: new Date().toISOString(),
-            region: form.region,
-            area_code: finalAreaCode || 'GENERAL',
-            clinic_id: form.clinicId || null,
-            perks_configured: form.perksTotal,
-            custom_perk: form.useCustomPerk ? form.customPerkName : null,
-            generator_version: '2.1'
-          }
+      // Method 1: Use the enterprise bulk_generate_cards function
+      console.log('🔧 Attempting enterprise bulk generation...');
+
+      const { data: bulkResult, error: bulkError } = await supabase
+        .rpc('bulk_generate_cards', {
+          p_quantity: count,
+          p_clinic_id: clinicId,
+          p_batch_name: batchId
         });
-      }
 
-      // Insert in batches for large quantities
-      const batchSize = 100;
-      let inserted = 0;
+      if (bulkError) {
+        console.log('❌ Enterprise function failed, falling back to manual generation:', bulkError);
 
-      for (let i = 0; i < cardsToInsert.length; i += batchSize) {
-        const batch = cardsToInsert.slice(i, i + batchSize);
-        const batchEnd = Math.min(i + batchSize, count);
-
+        // Method 2: Fallback to manual generation with simplified data
         setProgress(prev => ({
           ...prev,
-          progress: inserted,
-          message: `Generating cards ${inserted + 1}-${batchEnd}...`
+          message: `🔄 Using fallback generation method...`
         }));
 
-        const { error } = await supabase
-          .from('cards')
-          .insert(batch);
-
-        if (error) {
-          throw new Error(`Failed to insert batch: ${error.message}`);
+        const cardsToInsert = [];
+        for (let i = 0; i < count; i++) {
+          cardsToInsert.push({
+            clinic_id: clinicId,
+            perks_total: form.perksTotal,
+            batch_id: batchId,
+            metadata: {
+              generated_at: new Date().toISOString(),
+              region: form.region,
+              area_code: finalAreaCode || 'GENERAL',
+              clinic_id: clinicId,
+              perks_configured: form.perksTotal,
+              custom_perk: form.useCustomPerk ? form.customPerkName : null,
+              generator_version: '2.2_fallback'
+            }
+          });
         }
 
-        inserted += batch.length;
+        // Insert in smaller batches for better reliability
+        const batchSize = 50;
+        let inserted = 0;
 
-        // Small delay for large batches
-        if (count > 100) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+        for (let i = 0; i < cardsToInsert.length; i += batchSize) {
+          const batch = cardsToInsert.slice(i, i + batchSize);
+          const batchEnd = Math.min(i + batchSize, count);
+
+          setProgress(prev => ({
+            ...prev,
+            progress: inserted,
+            message: `📝 Creating cards ${inserted + 1} to ${batchEnd}...`
+          }));
+
+          const { error } = await supabase
+            .from('cards')
+            .insert(batch);
+
+          if (error) {
+            throw new Error(`❌ Batch insertion failed: ${error.message}`);
+          }
+
+          inserted += batch.length;
+
+          // Small delay for large batches
+          if (count > 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+
+          setProgress(prev => ({
+            ...prev,
+            progress: inserted,
+            message: inserted === count ? '✅ Finalizing card generation...' : `📝 Creating cards ${inserted + 1} to ${Math.min(inserted + batchSize, count)}...`
+          }));
+        }
+
+        console.log('✅ Manual generation completed successfully');
+      } else {
+        console.log('✅ Enterprise bulk generation successful:', bulkResult);
+
+        // Simulate progress for user experience
+        const progressSteps = Math.min(count, 10);
+        for (let step = 0; step <= progressSteps; step++) {
+          const progressValue = Math.floor((step / progressSteps) * count);
+          setProgress(prev => ({
+            ...prev,
+            progress: progressValue,
+            message: step === progressSteps
+              ? '✅ Enterprise generation completed!'
+              : `🏭 Enterprise generation: ${Math.round((step / progressSteps) * 100)}%`
+          }));
+
+          if (step < progressSteps) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
         }
       }
 
+      // Final success state
       setProgress({
         isGenerating: false,
         progress: count,
         total: count,
-        message: `Successfully generated ${count} cards!`,
+        message: `🎉 Successfully generated ${count} cards with batch ID: ${batchId}`,
         completed: true
       });
 
-      // Auto-close success message after 3 seconds
+      console.log(`🎯 Generation complete! Batch ID: ${batchId}`);
+
+      // Auto-close success message after 4 seconds
       setTimeout(() => {
         setProgress(prev => ({ ...prev, completed: false }));
         setShowGenerator(false);
-      }, 3000);
+      }, 4000);
 
     } catch (error: any) {
+      console.error('💥 Card generation failed:', error);
       setProgress({
         isGenerating: false,
         progress: 0,
         total: 0,
-        message: `Error: ${error.message}`,
+        message: `❌ Generation failed: ${error.message}`,
         completed: false
       });
+
+      // Auto-hide error after 5 seconds
+      setTimeout(() => {
+        setProgress(prev => ({ ...prev, message: '', completed: false }));
+      }, 5000);
     }
   };
 
@@ -274,13 +329,44 @@ export function CardGeneratorApp() {
           <div>
             <h2 className="text-3xl font-bold mb-2">Card Generator Pro</h2>
             <p className="text-blue-100 text-lg">
-              Generate unlimited MOC cards with real-time progress tracking
+              Generate unlimited MOC cards with enterprise-grade reliability
             </p>
+            <div className="mt-2 flex items-center justify-center space-x-2">
+              {connectionStatus === 'checking' && (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span className="text-blue-100 text-sm">Testing database connection...</span>
+                </>
+              )}
+              {connectionStatus === 'connected' && (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-green-100 text-sm">Database connected</span>
+                </>
+              )}
+              {connectionStatus === 'error' && (
+                <>
+                  <X className="h-4 w-4" />
+                  <span className="text-red-200 text-sm">Database connection failed</span>
+                  <button
+                    onClick={testConnectionAndLoadData}
+                    className="text-white underline hover:text-blue-100 ml-2"
+                  >
+                    Retry
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           <button
             onClick={() => setShowGenerator(true)}
-            className="bg-white text-blue-600 rounded-2xl px-8 py-4 font-bold text-lg hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl"
+            disabled={connectionStatus !== 'connected'}
+            className={`rounded-2xl px-8 py-4 font-bold text-lg transition-all transform shadow-xl ${
+              connectionStatus === 'connected'
+                ? 'bg-white text-blue-600 hover:bg-gray-50 hover:scale-105'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+            }`}
           >
             <Zap className="h-6 w-6 mr-3 inline" />
             Generate Cards Now
