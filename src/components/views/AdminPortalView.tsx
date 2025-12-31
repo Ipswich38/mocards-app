@@ -854,7 +854,7 @@ export function AdminPortalView() {
         <div className="p-6">
           {/* Generator Tab - New Modular Card Generator */}
           {activeTab === 'generator' && (
-            <CardGeneratorApp />
+            <CardGeneratorApp onSuccess={reloadData} />
           )}
 
           {/* Activation Tab */}

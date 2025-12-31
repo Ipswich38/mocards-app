@@ -63,7 +63,11 @@ const AREA_CODES = [
   'Custom'
 ];
 
-export function CardGeneratorApp() {
+interface CardGeneratorAppProps {
+  onSuccess?: () => Promise<void>;
+}
+
+export function CardGeneratorApp({ onSuccess }: CardGeneratorAppProps) {
   const [showGenerator, setShowGenerator] = useState(false);
   const [form, setForm] = useState<GenerationForm>({
     quantity: 1,
@@ -277,16 +281,41 @@ export function CardGeneratorApp() {
         }
       }
 
-      // Final success state
+      console.log(`🎯 Generation complete! Batch ID: ${batchId}`);
+
+      // Verify generation success
+      console.log('🔍 Verifying card generation...');
+      const { data: verificationData } = await supabase
+        .from('cards')
+        .select('id')
+        .eq('batch_id', batchId);
+
+      const actualGenerated = verificationData?.length || 0;
+      console.log(`📊 Verification: Expected ${count}, Found ${actualGenerated} cards`);
+
+      if (actualGenerated !== count) {
+        console.warn(`⚠️ Generation mismatch! Expected: ${count}, Actual: ${actualGenerated}`);
+      }
+
+      // Refresh parent dashboard data
+      if (onSuccess) {
+        console.log('🔄 Refreshing dashboard data...');
+        try {
+          await onSuccess();
+          console.log('✅ Dashboard data refreshed successfully');
+        } catch (error) {
+          console.error('❌ Failed to refresh dashboard data:', error);
+        }
+      }
+
+      // Final success state with verification
       setProgress({
         isGenerating: false,
         progress: count,
         total: count,
-        message: `🎉 Successfully generated ${count} cards with batch ID: ${batchId}`,
+        message: `🎉 Generated ${actualGenerated}/${count} cards • Batch: ${batchId} • Dashboard refreshed!`,
         completed: true
       });
-
-      console.log(`🎯 Generation complete! Batch ID: ${batchId}`);
 
       // Auto-close success message after 4 seconds
       setTimeout(() => {
