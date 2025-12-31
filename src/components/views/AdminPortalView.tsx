@@ -42,6 +42,7 @@ import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 import { supabase } from '../../lib/supabase';
 import { DatabaseDebugger } from '../DatabaseDebugger';
+import EnterpriseAnalyticsManager from '../admin/EnterpriseAnalyticsManager';
 
 type AdminTab = 'analytics' | 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
 
@@ -1127,6 +1128,9 @@ export function AdminPortalView() {
                   </div>
                 </div>
               </div>
+
+              {/* Enterprise Analytics Manager */}
+              <EnterpriseAnalyticsManager />
             </div>
           )}
         </div>

@@ -1,0 +1,24 @@
+{
+  "success": false,
+  "resetId": "analytics_reset_1767179695910_1dg5r923l",
+  "startTime": "2025-12-31T11:14:55.910Z",
+  "clearedTables": [],
+  "updatedTables": [
+    "cards",
+    "clinics",
+    "users"
+  ],
+  "errors": [
+    "Failed to clear analytics_events: Could not find the table 'public.analytics_events' in the schema cache",
+    "Failed to clear analytics_metrics: Could not find the table 'public.analytics_metrics' in the schema cache",
+    "Failed to clear analytics_sessions: Could not find the table 'public.analytics_sessions' in the schema cache",
+    "Failed to clear analytics_dashboards: Could not find the table 'public.analytics_dashboards' in the schema cache",
+    "Failed to clear analytics_reports: Could not find the table 'public.analytics_reports' in the schema cache",
+    "Failed to clear card_usage_analytics: Could not find the table 'public.card_usage_analytics' in the schema cache",
+    "Failed to clear clinic_performance_metrics: Could not find the table 'public.clinic_performance_metrics' in the schema cache",
+    "Failed to clear appointment_analytics: Could not find the table 'public.appointment_analytics' in the schema cache",
+    "Failed to clear revenue_analytics: Could not find the table 'public.revenue_analytics' in the schema cache",
+    "Failed to clear user_behavior_analytics: Could not find the table 'public.user_behavior_analytics' in the schema cache"
+  ],
+  "duration": 14194
+}
