@@ -11,13 +11,16 @@
     "safeguard": "npm run health-check && npm run build",
     "deploy-safe": "npm run safeguard && echo '✅ Safe to deploy!'",
     "reset-db": "node scripts/quick-reset.cjs",
-    "fresh-start": "npm run reset-db && echo '🎯 Database reset instructions provided!'"
+    "fresh-start": "npm run reset-db && echo '🎯 Database reset instructions provided!'",
+    "factory-reset": "node scripts/factory-reset.js",
+    "production-ready": "npm run factory-reset && npm run build && echo '🚀 Ready for production!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.0.0",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",

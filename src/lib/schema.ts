@@ -6,7 +6,7 @@
 // ENUMS & TYPES
 // ============================================================================
 
-export type ClinicPlan = 'starter' | 'growth' | 'pro';
+export type ClinicPlan = 'starter' | 'growth' | 'pro' | 'enterprise';
 export type CardStatus = 'active' | 'inactive';
 export type AppointmentStatus = 'pending' | 'accepted' | 'declined' | 'rescheduled' | 'completed' | 'cancelled';
 export type UserRole = 'admin' | 'clinic' | 'staff';
@@ -193,6 +193,12 @@ export const PLAN_CONFIG = {
     price: 799,
     name: 'Pro Plan',
     features: ['Up to 2,000 cards', 'Full analytics', '24/7 support', 'API access', 'Custom branding']
+  },
+  enterprise: {
+    limit: 3000,
+    price: 999,
+    name: 'Enterprise Plan',
+    features: ['Up to 3,000 cards', 'Enterprise analytics', 'Dedicated support', 'White-label solution', 'Custom integrations']
   }
 } as const;
 
@@ -201,12 +207,14 @@ export const PLAN_LIMITS = {
   starter: PLAN_CONFIG.starter.limit,
   growth: PLAN_CONFIG.growth.limit,
   pro: PLAN_CONFIG.pro.limit,
+  enterprise: PLAN_CONFIG.enterprise.limit,
 } as const;
 
 export const PLAN_PRICING = {
   starter: PLAN_CONFIG.starter.price,
   growth: PLAN_CONFIG.growth.price,
   pro: PLAN_CONFIG.pro.price,
+  enterprise: PLAN_CONFIG.enterprise.price,
 } as const;
 
 // Philippines Regions for MOC Cards

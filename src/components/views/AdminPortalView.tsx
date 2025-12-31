@@ -5,6 +5,7 @@ import { ClinicManagementApp } from '../../features/clinic-management/ClinicMana
 import { EnterpriseAnalytics } from '../analytics/EnterpriseAnalytics';
 import { useAuth } from '../../hooks/useAuth';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
+import { useEnterpriseSync } from '../../hooks/useEnterpriseSync';
 import {
   Shield,
   Database,
@@ -47,6 +48,7 @@ type AdminTab = 'analytics' | 'generator' | 'activation' | 'endorsement' | 'appo
 export function AdminPortalView() {
   const { isAuthenticated, login, logout } = useAuth();
   useAutoRefresh({ enabled: true, showNotifications: true });
+  const { registerSyncCallback, syncAfterCardGenerationBroadcast } = useEnterpriseSync();
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
 
@@ -208,6 +210,26 @@ export function AdminPortalView() {
       addToast(toastError('Error', 'Failed to reload data'));
     }
   };
+
+  // Register enterprise sync callback
+  useEffect(() => {
+    if (isAuthenticated) {
+      const unregister = registerSyncCallback('admin_portal_data', async () => {
+        console.log('🔄 Enterprise sync triggered - reloading admin portal data');
+        await reloadData();
+      });
+
+      return unregister;
+    }
+  }, [isAuthenticated, registerSyncCallback]);
+
+  // Refresh data when switching to master-list tab to ensure sync
+  useEffect(() => {
+    if (activeTab === 'master-list' && isAuthenticated) {
+      console.log('🔄 Refreshing data for master list sync');
+      reloadData();
+    }
+  }, [activeTab, isAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -639,7 +661,12 @@ export function AdminPortalView() {
 
           {/* Generator Tab - New Modular Card Generator */}
           {activeTab === 'generator' && (
-            <CardGeneratorApp onSuccess={reloadData} />
+            <CardGeneratorApp onSuccess={async () => {
+              console.log('🎯 Card generation successful - forcing data reload');
+              await reloadData();
+              await syncAfterCardGenerationBroadcast();
+              addToast(toastSuccess('Sync Complete', 'Master list updated with new cards'));
+            }} />
           )}
 
           {/* Activation Tab */}
@@ -813,19 +840,24 @@ export function AdminPortalView() {
                     <tbody>
                       {cards
                         .filter(card => {
+                          const cardFullName = card.fullName || '';
+                          const cardControlNumber = card.controlNumber || '';
                           const matchesSearch = !searchTerm ||
-                            card.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            card.controlNumber.toLowerCase().includes(searchTerm.toLowerCase());
+                            cardFullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            cardControlNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (cardControlNumber.includes(searchTerm.toUpperCase()));
                           const matchesStatus = statusFilter === 'all' || card.status === statusFilter;
                           return matchesSearch && matchesStatus;
                         })
                         .map((card) => {
                           const clinic = clinics.find(c => c.id === card.clinicId);
                           const isEditing = editingCard === card.controlNumber;
+                          const cardFullName = card.fullName || 'Unnamed Card';
+                          const cardControlNumber = card.controlNumber || '';
 
                           return (
-                            <tr key={card.controlNumber} className="light-table-row">
-                              <td className="p-4 font-mono text-sm">{card.controlNumber}</td>
+                            <tr key={cardControlNumber} className="light-table-row">
+                              <td className="p-4 font-mono text-sm">{cardControlNumber}</td>
                               <td className="p-4">
                                 {isEditing ? (
                                   <input
@@ -835,7 +867,7 @@ export function AdminPortalView() {
                                     className="light-input text-sm"
                                   />
                                 ) : (
-                                  card.fullName
+                                  cardFullName
                                 )}
                               </td>
                               <td className="p-4">
