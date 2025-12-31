@@ -68,37 +68,26 @@ export function EnterpriseAnalytics() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const mockMetrics: AnalyticsMetrics = {
-        totalClinics: 247,
-        activeClinics: 235,
-        totalCards: 89750,
-        cardsGenerated30d: 12845,
-        cardActivationRate: 87.5,
-        averageCardsPerClinic: 363.4,
-        topRegions: [
-          { region: 'NCR', clinics: 89, cards: 32456 },
-          { region: 'CALABARZON', clinics: 45, cards: 18290 },
-          { region: 'Central Luzon', clinics: 38, cards: 15678 },
-          { region: 'Central Visayas', clinics: 31, cards: 12890 },
-          { region: 'Western Visayas', clinics: 25, cards: 9876 }
-        ],
+        totalClinics: 0,
+        activeClinics: 0,
+        totalCards: 0,
+        cardsGenerated30d: 0,
+        cardActivationRate: 0,
+        averageCardsPerClinic: 0,
+        topRegions: [],
         monthlyGrowth: [
-          { month: 'Jan', clinics: 198, cards: 65432 },
-          { month: 'Feb', clinics: 210, cards: 69875 },
-          { month: 'Mar', clinics: 225, cards: 74320 },
-          { month: 'Apr', clinics: 235, cards: 79845 },
-          { month: 'May', clinics: 247, cards: 89750 }
+          { month: 'Jan', clinics: 0, cards: 0 },
+          { month: 'Feb', clinics: 0, cards: 0 },
+          { month: 'Mar', clinics: 0, cards: 0 },
+          { month: 'Apr', clinics: 0, cards: 0 },
+          { month: 'May', clinics: 0, cards: 0 }
         ],
-        clinicPerformance: [
-          { clinicName: 'Smile Plus Dental Center', cardsGenerated: 1250, activationRate: 94.2, revenue: 156250 },
-          { clinicName: 'Perfect Teeth Clinic', cardsGenerated: 980, activationRate: 91.5, revenue: 122500 },
-          { clinicName: 'Dental Care Pro', cardsGenerated: 875, activationRate: 89.1, revenue: 109375 },
-          { clinicName: 'Elite Dental Services', cardsGenerated: 760, activationRate: 87.8, revenue: 95000 }
-        ],
+        clinicPerformance: [],
         systemHealth: {
-          uptime: 99.97,
-          responseTime: 120,
-          errorRate: 0.03,
-          securityScore: 98.5
+          uptime: 99.99,
+          responseTime: 45,
+          errorRate: 0.00,
+          securityScore: 100.0
         }
       };
 
