@@ -2,6 +2,7 @@
   "name": "mocards",
   "private": true,
   "version": "1.0.0",
+  "deployTimestamp": "2026-01-01T09:45:00Z",
   "type": "module",
   "scripts": {
     "dev": "vite",
