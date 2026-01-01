@@ -588,23 +588,23 @@ export function AdminPortalView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 px-3 sm:px-0">
       {/* Header */}
-      <div className="light-card mb-6">
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
-                <Shield className="h-6 w-6 text-red-600" />
+      <div className="light-card mb-3 sm:mb-6">
+        <div className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Admin Control Room</h1>
-                <p className="text-gray-600">MOCARDS System Administration</p>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Admin Control Room</h1>
+                <p className="text-sm sm:text-base text-gray-600">MOCARDS System Administration</p>
               </div>
             </div>
             <button
               onClick={logout}
-              className="light-button-secondary flex items-center space-x-2"
+              className="light-button-secondary flex items-center justify-center space-x-2 w-full sm:w-auto"
             >
               <Settings className="h-4 w-4" />
               <span>Logout</span>
@@ -614,7 +614,7 @@ export function AdminPortalView() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-3 sm:mb-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -634,33 +634,80 @@ export function AdminPortalView() {
       </div>
 
       {/* Tabs */}
-      <div className="light-card mb-6">
-        <div className="p-6">
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+      <div className="light-card mb-3 sm:mb-6">
+        <div className="p-3 sm:p-6">
+          {/* Mobile Dropdown */}
+          <div className="md:hidden">
+            <div className="relative">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as AdminTab)}
+                className="w-full light-select py-3 pr-10 text-base font-medium"
+              >
+                {tabs.map((tab) => (
+                  <option key={tab.id} value={tab.id}>
+                    {tab.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all duration-200 ${
-                    isActive ? 'light-tab-active' : 'light-tab'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="font-medium">{tab.label}</span>
-                </button>
-              );
-            })}
+          {/* Desktop Tabs */}
+          <div className="hidden md:block">
+            <div className="bg-gray-100 p-1 rounded-xl overflow-x-auto">
+              <div className="flex space-x-1 min-w-max">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-2 py-3 px-4 rounded-lg transition-all duration-200 whitespace-nowrap ${
+                        isActive ? 'light-tab-active' : 'light-tab'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="font-medium">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Tablet Horizontal Scroll */}
+          <div className="hidden sm:block md:hidden">
+            <div className="bg-gray-100 p-1 rounded-xl overflow-x-auto scrollbar-hide">
+              <div className="flex space-x-1 pb-1" style={{ width: 'max-content' }}>
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-2 py-2.5 px-3 rounded-lg transition-all duration-200 whitespace-nowrap text-sm ${
+                        isActive ? 'light-tab-active' : 'light-tab'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="font-medium">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tab Content */}
       <div className="light-card">
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {/* Analytics Tab - Enterprise Analytics Dashboard */}
           {activeTab === 'analytics' && (
             <EnterpriseAnalytics />

@@ -215,17 +215,17 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6">
-        <div className="max-w-2xl w-full mb-12 sm:mb-16 text-center">
-          <h1 className="display-large mb-6 sm:mb-8 leading-tight" style={{ color: 'var(--md-sys-color-on-surface)' }}>
+      <main className="flex-1 flex flex-col items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="max-w-2xl w-full mb-8 sm:mb-12 lg:mb-16 text-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 lg:mb-8 leading-tight" style={{ color: 'var(--md-sys-color-on-surface)' }}>
             Dental Loyalty<br/>Reimagined.
           </h1>
-          <p className="headline-small leading-relaxed px-4 sm:px-0" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <p className="text-lg sm:text-xl lg:text-2xl leading-relaxed px-2 sm:px-4 lg:px-0" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>
             The premium rewards platform for modern dental clinics and their valued patients.
           </p>
         </div>
 
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Patient Card */}
           <div
             className={`card-interactive transition-all duration-200 ${
@@ -236,16 +236,16 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
               borderColor: activeTab === 'patient' ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline-variant)'
             }}
           >
-            <div className="p-6 sm:p-8 lg:p-10">
-              <div className="w-14 h-14 flex items-center justify-center text-2xl mb-6" style={{
+            <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-xl sm:text-2xl mb-4 sm:mb-6" style={{
                 backgroundColor: 'var(--md-sys-color-primary-container)',
                 color: 'var(--md-sys-color-on-primary-container)',
                 borderRadius: 'var(--md-sys-shape-corner-large)'
               }}>
                 ✦
               </div>
-              <h3 className="headline-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>Patient Access</h3>
-              <p className="body-large mb-8" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Check your card balance, available perks, and transaction history.</p>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>Patient Access</h3>
+              <p className="text-base sm:text-lg mb-6 sm:mb-8" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Check your card balance, available perks, and transaction history.</p>
 
               {activeTab === 'patient' && (
                 <form onSubmit={handlePatientLookup} className="space-y-5" onClick={e => e.stopPropagation()}>
@@ -282,16 +282,16 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
               borderColor: activeTab === 'clinic' ? 'var(--md-sys-color-secondary)' : 'var(--md-sys-color-outline-variant)'
             }}
           >
-            <div className="p-6 sm:p-8 lg:p-10">
-              <div className="w-14 h-14 flex items-center justify-center text-2xl mb-6" style={{
+            <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-xl sm:text-2xl mb-4 sm:mb-6" style={{
                 backgroundColor: 'var(--md-sys-color-secondary-container)',
                 color: 'var(--md-sys-color-on-secondary-container)',
                 borderRadius: 'var(--md-sys-shape-corner-large)'
               }}>
                 ◈
               </div>
-              <h3 className="headline-large mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>Clinic Portal</h3>
-              <p className="body-large mb-8" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Manage cards, activate new patients, and process redemptions.</p>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3" style={{ color: 'var(--md-sys-color-on-surface)' }}>Clinic Portal</h3>
+              <p className="text-base sm:text-lg mb-6 sm:mb-8" style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Manage cards, activate new patients, and process redemptions.</p>
 
               {activeTab === 'clinic' && (
                 <form onSubmit={handleClinicLogin} className="space-y-6" onClick={e => e.stopPropagation()}>

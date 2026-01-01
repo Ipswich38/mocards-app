@@ -457,23 +457,23 @@ export function ClinicPortalView() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 px-3 sm:px-0">
       {/* Header */}
-      <div className="light-card mb-6">
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                <Stethoscope className="h-6 w-6 text-blue-600" />
+      <div className="light-card mb-3 sm:mb-6">
+        <div className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{currentClinic.name}</h1>
-                <p className="text-gray-600">{currentClinic.address} • {currentClinic.code}</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{currentClinic.name}</h1>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">{currentClinic.address} • {currentClinic.code}</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="light-button-secondary flex items-center space-x-2"
+              className="light-button-secondary flex items-center justify-center space-x-2 w-full sm:w-auto"
             >
               <Settings className="h-4 w-4" />
               <span>Logout</span>
@@ -483,26 +483,44 @@ export function ClinicPortalView() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="light-card mb-6">
-        <div className="p-2">
-          <div className="flex space-x-2">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{tab.name}</span>
-                </button>
-              );
-            })}
+      <div className="light-card mb-3 sm:mb-6">
+        <div className="p-2 sm:p-3">
+          {/* Mobile Dropdown */}
+          <div className="md:hidden">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full light-select py-3 pr-10 text-base font-medium"
+            >
+              {tabs.map((tab) => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Desktop/Tablet Tabs */}
+          <div className="hidden md:block">
+            <div className="flex space-x-2 overflow-x-auto">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{tab.name}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
