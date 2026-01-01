@@ -43,6 +43,7 @@ import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 import { supabase } from '../../lib/supabase';
 import { DatabaseDebugger } from '../DatabaseDebugger';
 import EnterpriseAnalyticsManager from '../admin/EnterpriseAnalyticsManager';
+import { AppointmentCalendar } from '../AppointmentCalendar';
 
 type AdminTab = 'analytics' | 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
 
@@ -228,6 +229,11 @@ export function AdminPortalView() {
   useEffect(() => {
     if (activeTab === 'master-list' && isAuthenticated) {
       console.log('🔄 Refreshing data for master list sync');
+      reloadData();
+    }
+    // Also refresh when accessing appointments tab
+    if (activeTab === 'appointments' && isAuthenticated) {
+      console.log('🔄 Refreshing appointment data sync');
       reloadData();
     }
   }, [activeTab, isAuthenticated]);
@@ -761,6 +767,19 @@ export function AdminPortalView() {
               <button onClick={handleEndorsement} className="light-button-primary">
                 Assign Cards to Clinic
               </button>
+            </div>
+          )}
+
+          {/* Appointments Tab */}
+          {activeTab === 'appointments' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Appointment Management</h2>
+                <div className="text-sm text-gray-600">
+                  Manage appointments across all clinics
+                </div>
+              </div>
+              <AppointmentCalendar token={adminCredentials.username} />
             </div>
           )}
 

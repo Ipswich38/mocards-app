@@ -30,11 +30,13 @@ interface Appointment {
   patient_name: string;
   patient_email?: string;
   patient_phone?: string;
-  appointment_date: string;
-  appointment_time: string;
+  date: string;
+  time: string;
   service_type: string;
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+  status: 'pending' | 'scheduled' | 'confirmed' | 'completed' | 'cancelled';
   notes?: string;
+  card_control_number?: string;
+  perk_requested?: string;
   created_at: string;
   updated_at: string;
 }
@@ -86,8 +88,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
     patient_name: '',
     patient_email: '',
     patient_phone: '',
-    appointment_date: '',
-    appointment_time: '',
+    date: '',
+    time: '',
     service_type: '',
     status: 'scheduled' as const,
     notes: '',
@@ -128,8 +130,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
           patient_name: 'John Doe',
           patient_email: 'john@example.com',
           patient_phone: '+63 912 345 6789',
-          appointment_date: new Date().toISOString().split('T')[0],
-          appointment_time: '09:00',
+          date: new Date().toISOString().split('T')[0],
+          time: '09:00',
           service_type: 'Consultation',
           status: 'scheduled',
           notes: 'First time patient',
@@ -143,8 +145,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
           patient_name: 'Jane Smith',
           patient_email: 'jane@example.com',
           patient_phone: '+63 912 345 6790',
-          appointment_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-          appointment_time: '14:30',
+          date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          time: '14:30',
           service_type: 'Cleaning',
           status: 'confirmed',
           notes: 'Regular cleaning appointment',
@@ -165,9 +167,9 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
 
       const statsData = {
         total: mockAppointments.length,
-        today: mockAppointments.filter(a => a.appointment_date === today).length,
+        today: mockAppointments.filter(a => a.date === today).length,
         thisWeek: mockAppointments.filter(a => {
-          const appointmentDate = new Date(a.appointment_date);
+          const appointmentDate = new Date(a.date);
           return appointmentDate >= startOfWeek && appointmentDate <= endOfWeek;
         }).length,
         scheduled: mockAppointments.filter(a => a.status === 'scheduled').length,
@@ -258,8 +260,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
       patient_name: '',
       patient_email: '',
       patient_phone: '',
-      appointment_date: '',
-      appointment_time: '',
+      date: '',
+      time: '',
       service_type: '',
       status: 'scheduled',
       notes: '',
@@ -293,8 +295,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
     const csvContent = [
       ['Date', 'Time', 'Patient', 'Email', 'Phone', 'Service', 'Status', 'Clinic', 'Notes'].join(','),
       ...filteredAppointments.map(appointment => [
-        appointment.appointment_date,
-        appointment.appointment_time,
+        appointment.date,
+        appointment.time,
         appointment.patient_name,
         appointment.patient_email || '',
         appointment.patient_phone || '',
@@ -573,9 +575,9 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {new Date(appointment.appointment_date).toLocaleDateString()}
+                          {new Date(appointment.date).toLocaleDateString()}
                         </div>
-                        <div className="text-sm text-gray-500">{appointment.appointment_time}</div>
+                        <div className="text-sm text-gray-500">{appointment.time}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -734,8 +736,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
                     <input
                       type="date"
                       required
-                      value={appointmentForm.appointment_date}
-                      onChange={(e) => setAppointmentForm(prev => ({ ...prev, appointment_date: e.target.value }))}
+                      value={appointmentForm.date}
+                      onChange={(e) => setAppointmentForm(prev => ({ ...prev, date: e.target.value }))}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -744,8 +746,8 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
                     <label className="block text-sm font-medium text-gray-700">Time *</label>
                     <select
                       required
-                      value={appointmentForm.appointment_time}
-                      onChange={(e) => setAppointmentForm(prev => ({ ...prev, appointment_time: e.target.value }))}
+                      value={appointmentForm.time}
+                      onChange={(e) => setAppointmentForm(prev => ({ ...prev, time: e.target.value }))}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select time</option>
