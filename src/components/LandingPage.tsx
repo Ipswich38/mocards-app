@@ -52,7 +52,7 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
             onPasswordChange({
               clinicId: clinic.id,
               clinicCode: clinic.clinic_code,
-              clinicName: clinic.clinic_name,
+              clinicName: clinic.name,
               token: `clinic-${clinic.id}`,
               requirePasswordChange: true,
               isFirstLogin: clinic.first_login
@@ -61,7 +61,7 @@ export function LandingPage({ onClinicView, onSuperAdminView, onCardholderView, 
             onClinicView({
               clinicId: clinic.id,
               clinicCode: clinic.clinic_code,
-              clinicName: clinic.clinic_name,
+              clinicName: clinic.name,
               token: `clinic-${clinic.id}` // Simple token for demo
             });
           }
