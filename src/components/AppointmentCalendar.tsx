@@ -302,7 +302,7 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
         appointment.patient_phone || '',
         appointment.service_type,
         appointment.status,
-        appointment.clinic.clinic_name,
+        appointment.clinic.name,
         appointment.notes || ''
       ].join(','))
     ].join('\n');
@@ -496,7 +496,7 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
               <option value="all">All Clinics</option>
               {clinics.map(clinic => (
                 <option key={clinic.id} value={clinic.id}>
-                  {clinic.clinic_name}
+                  {clinic.name}
                 </option>
               ))}
             </select>
@@ -608,7 +608,7 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                        <div className="text-sm text-gray-900">{appointment.clinic.clinic_name}</div>
+                        <div className="text-sm text-gray-900">{appointment.clinic.name}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -691,7 +691,7 @@ export function AppointmentCalendar({ }: AppointmentCalendarProps) {
                     <option value="">Select clinic</option>
                     {clinics.map(clinic => (
                       <option key={clinic.id} value={clinic.id}>
-                        {clinic.clinic_name}
+                        {clinic.name}
                       </option>
                     ))}
                   </select>

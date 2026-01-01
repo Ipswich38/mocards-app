@@ -23,7 +23,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Core Types
 export interface Clinic {
   id: string;
-  clinic_name: string;
+  name: string;
   clinic_code: string;
   contact_person?: string;
   email?: string;
@@ -545,7 +545,7 @@ export const streamlinedOps = {
     const { data, error } = await supabase
       .from('clinics')
       .select('*')
-      .order('clinic_name');
+      .order('name');
 
     if (error) throw error;
     return data as Clinic[];
@@ -556,7 +556,7 @@ export const streamlinedOps = {
       .from('clinics')
       .select('*')
       .eq('status', 'active')
-      .order('clinic_name');
+      .order('name');
 
     if (error) throw error;
     return data as Clinic[];
@@ -630,7 +630,7 @@ export const streamlinedOps = {
       .from('cards')
       .select(`
         *,
-        clinics(clinic_name),
+        clinics(name),
         card_perks(*)
       `)
       .eq('control_number', controlNumber.toUpperCase())
@@ -639,7 +639,7 @@ export const streamlinedOps = {
 
     if (error) throw error;
     return data as Card & {
-      clinics: { clinic_name: string } | null;
+      clinics: { name: string } | null;
       card_perks: CardPerk[];
     };
   },
@@ -966,7 +966,7 @@ export const streamlinedOps = {
       .from('cards')
       .select(`
         *,
-        clinics(clinic_name, clinic_code),
+        clinics(name, clinic_code),
         card_batches(batch_number),
         card_perks(*)
       `)
@@ -975,7 +975,7 @@ export const streamlinedOps = {
 
     if (error) throw error;
     return data as Card & {
-      clinics: { clinic_name: string; clinic_code: string } | null;
+      clinics: { name: string; clinic_code: string } | null;
       card_batches: { batch_number: string } | null;
       card_perks: CardPerk[];
     };
@@ -1012,7 +1012,7 @@ export const streamlinedOps = {
       .from('cards')
       .select(`
         *,
-        clinics(clinic_name, clinic_code),
+        clinics(name, clinic_code),
         card_batches(batch_number)
       `)
       .order('created_at', { ascending: false })
@@ -1020,7 +1020,7 @@ export const streamlinedOps = {
 
     if (error) throw error;
     return data as (Card & {
-      clinics: { clinic_name: string; clinic_code: string } | null;
+      clinics: { name: string; clinic_code: string } | null;
       card_batches: { batch_number: string } | null;
     })[];
   },
@@ -1495,7 +1495,7 @@ export const codeUtils = {
       .select(`
         *,
         clinics (
-          clinic_name,
+          name,
           clinic_code
         )
       `)
@@ -1541,7 +1541,7 @@ export const codeUtils = {
       .select(`
         *,
         clinics (
-          clinic_name,
+          name,
           clinic_code
         )
       `)
@@ -1755,7 +1755,7 @@ export const codeUtils = {
       .select(`
         *,
         clinics (
-          clinic_name,
+          name,
           clinic_code
         ),
         card_batches (

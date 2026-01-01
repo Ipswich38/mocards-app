@@ -9,7 +9,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export interface Clinic {
   id: string;
   clinic_code: string;
-  clinic_name: string;
+  name: string;
   password_hash: string;
   password_must_be_changed?: boolean;
   first_login?: boolean;
@@ -678,7 +678,7 @@ export const dbOperations = {
       .from('clinics')
       .select('*')
       .eq('status', 'active')
-      .order('clinic_name');
+      .order('name');
 
     if (error) throw error;
     return data as Clinic[];
