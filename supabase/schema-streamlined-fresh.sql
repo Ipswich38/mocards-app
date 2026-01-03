@@ -5,15 +5,24 @@
 -- Focus: Core features only - Cards, Clinics, Appointments, Perks
 
 -- ============================================================================
--- COMPLETE RESET - DROP ALL EXISTING TABLES (IF EXIST)
+-- COMPLETE RESET - DROP ALL EXISTING OBJECTS (IF EXIST)
 -- ============================================================================
 
--- Drop all views first
+-- Drop all views AND tables that might be views (handle conflicts)
 DROP VIEW IF EXISTS active_regions CASCADE;
 DROP VIEW IF EXISTS active_clinic_codes CASCADE;
 DROP VIEW IF EXISTS clinic_codes_by_region CASCADE;
+DROP VIEW IF EXISTS available_clinic_codes CASCADE;
+DROP VIEW IF EXISTS cards_with_clinics CASCADE;
 
--- Drop all tables (order matters for foreign keys)
+-- Drop tables that might exist as views
+DROP TABLE IF EXISTS clinic_codes_by_region CASCADE;
+DROP TABLE IF EXISTS active_regions CASCADE;
+DROP TABLE IF EXISTS active_clinic_codes CASCADE;
+DROP TABLE IF EXISTS available_clinic_codes CASCADE;
+DROP TABLE IF EXISTS cards_with_clinics CASCADE;
+
+-- Drop all existing tables (comprehensive cleanup)
 DROP TABLE IF EXISTS perk_redemptions CASCADE;
 DROP TABLE IF EXISTS perk_usage_analytics CASCADE;
 DROP TABLE IF EXISTS clinic_perk_customizations CASCADE;
@@ -25,6 +34,7 @@ DROP TABLE IF EXISTS card_transactions CASCADE;
 DROP TABLE IF EXISTS card_code_history CASCADE;
 DROP TABLE IF EXISTS card_perks CASCADE;
 DROP TABLE IF EXISTS cards CASCADE;
+DROP TABLE IF EXISTS card_batches CASCADE;
 DROP TABLE IF EXISTS user_session_state CASCADE;
 DROP TABLE IF EXISTS system_versions CASCADE;
 DROP TABLE IF EXISTS code_generation_settings CASCADE;
@@ -36,6 +46,23 @@ DROP TABLE IF EXISTS perk_datalates CASCADE;
 DROP TABLE IF EXISTS clinics CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS mocards_admin_users CASCADE;
+
+-- Drop any legacy tables that might exist
+DROP TABLE IF EXISTS legacy_cards CASCADE;
+DROP TABLE IF EXISTS legacy_clinics CASCADE;
+DROP TABLE IF EXISTS legacy_appointments CASCADE;
+DROP TABLE IF EXISTS analytics_data CASCADE;
+DROP TABLE IF EXISTS enterprise_data CASCADE;
+DROP TABLE IF EXISTS security_logs CASCADE;
+
+-- Drop any functions that might exist
+DROP FUNCTION IF EXISTS search_card_universal CASCADE;
+DROP FUNCTION IF EXISTS generate_batch_number CASCADE;
+DROP FUNCTION IF EXISTS generate_control_number CASCADE;
+DROP FUNCTION IF EXISTS generate_passcode CASCADE;
+DROP FUNCTION IF EXISTS normalize_code CASCADE;
+DROP FUNCTION IF EXISTS update_appointment_status CASCADE;
+DROP FUNCTION IF EXISTS reschedule_appointment CASCADE;
 
 -- Drop all custom types
 DROP TYPE IF EXISTS clinic_plan CASCADE;
