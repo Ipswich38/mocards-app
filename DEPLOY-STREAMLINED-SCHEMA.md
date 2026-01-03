@@ -8,28 +8,28 @@ If you encounter errors like:
 
 This confirms the existing schema chaos! Choose the appropriate cleanup method:
 
-## 🔧 CLEANUP OPTIONS (Choose One)
+## 🔧 CLEANUP OPTIONS (Try in Order)
 
-### Option 1: Simple Cleanup (Recommended)
+### Option 1: Simple Fix (Try This First!)
 ```sql
 -- Execute in Supabase SQL Editor:
--- File: supabase/schema-simple-cleanup.sql
+-- File: supabase/schema-simple-fix.sql
 ```
-**Best for:** Most conflict scenarios, handles function overloads safely
+**Best for:** Fixes the specific "is not a view" error by dropping tables first
 
-### Option 2: Advanced Cleanup
+### Option 2: Bulletproof Cleanup (If Option 1 fails)
 ```sql
 -- Execute in Supabase SQL Editor:
--- File: supabase/schema-cleanup-first.sql
+-- File: supabase/schema-bulletproof-cleanup.sql
 ```
-**Best for:** When you want more control over the cleanup process
+**Best for:** Handles all object type conflicts with type checking
 
-### Option 3: Nuclear Option (If others fail)
+### Option 3: Nuclear Option (Last Resort)
 ```sql
 -- Execute in Supabase SQL Editor:
 -- File: supabase/schema-nuclear-cleanup.sql
 ```
-**Best for:** Complete fresh start, eliminates ALL possible conflicts
+**Best for:** Complete schema reset when all else fails
 
 ## 🚀 Step 2: Deploy Fresh Schema
 
