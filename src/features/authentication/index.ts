@@ -22,4 +22,4 @@ export { securityService } from './services/securityService';
 export { useAuth, AuthProvider, useLegacyAuth } from './hooks/useAuth';
 
 // Components (will be added when we create them)
-// export { LoginForm, RegisterForm, SecurityDashboard } from './components';
+// export { LoginForm, RegisterForm } from './components';

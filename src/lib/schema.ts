@@ -235,19 +235,31 @@ export const PHILIPPINES_REGIONS = [
   { code: '13', name: 'Caraga Region (Region 13)' },
   { code: 'NCR', name: 'National Capital Region (NCR)' },
   { code: 'CAR', name: 'Cordillera Administrative Region (CAR)' },
+  { code: 'CUSTOM', name: 'Custom Region' },
 ] as const;
 
-// Area Codes for Major Cities and Provinces
+// Area Codes for Major Cities and Provinces - Complete 016 range
 export const AREA_CODES = [
-  // Central Valley Codes
+  // Central Valley Codes (CVT001 to CVT016)
   'CVT001', 'CVT002', 'CVT003', 'CVT004', 'CVT005',
   'CVT006', 'CVT007', 'CVT008', 'CVT009', 'CVT010',
-  // Batangas Codes
+  'CVT011', 'CVT012', 'CVT013', 'CVT014', 'CVT015', 'CVT016',
+
+  // Batangas Codes (BTG001 to BTG016)
   'BTG001', 'BTG002', 'BTG003', 'BTG004', 'BTG005',
   'BTG006', 'BTG007', 'BTG008', 'BTG009', 'BTG010',
-  // Laguna Codes
+  'BTG011', 'BTG012', 'BTG013', 'BTG014', 'BTG015', 'BTG016',
+
+  // Laguna Codes (LGN001 to LGN016)
   'LGN001', 'LGN002', 'LGN003', 'LGN004', 'LGN005',
   'LGN006', 'LGN007', 'LGN008', 'LGN009', 'LGN010',
+  'LGN011', 'LGN012', 'LGN013', 'LGN014', 'LGN015', 'LGN016',
+
+  // MIMAROPA Region 4B Codes (MIM001 to MIM016)
+  'MIM001', 'MIM002', 'MIM003', 'MIM004', 'MIM005',
+  'MIM006', 'MIM007', 'MIM008', 'MIM009', 'MIM010',
+  'MIM011', 'MIM012', 'MIM013', 'MIM014', 'MIM015', 'MIM016',
+
   // Special Codes
   'Others',
   'Custom'
@@ -318,6 +330,20 @@ export const APP_CONFIG = {
   backupFrequency: 'daily',
   auditRetentionDays: 365,
 
+  // Cloud-native configuration
+  cloud: {
+    stateless: true,
+    horizontalScaling: true,
+    connectionPooling: true,
+    cacheStrategy: 'redis',
+    sessionStorage: 'supabase',
+    fileStorage: 'supabase-storage',
+    realTimeUpdates: true,
+    autoBackup: true,
+    multiRegion: false, // Single region for simplicity
+    cdnEnabled: true
+  },
+
   // Production sync settings
   sync: {
     appointmentRealTime: true,
@@ -326,7 +352,7 @@ export const APP_CONFIG = {
     crossPortalPermissions: true
   },
 
-  // Feature flags for production
+  // Feature flags for production - Cloud-native simplified
   features: {
     adminPortal: true,
     clinicPortal: true,
@@ -335,9 +361,11 @@ export const APP_CONFIG = {
     appointmentManagement: true,
     realTimeSync: true,
     historyTracking: true,
-    securityDashboard: true,
     mobileOptimized: true,
-    pwaSupport: true
+    pwaSupport: true,
+    cloudNative: true,
+    statelessDesign: true,
+    autoScaling: true
   }
 } as const;
 

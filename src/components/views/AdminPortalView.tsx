@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { EnterpriseAuth } from '../../lib/enterprise-auth';
 import { CardGeneratorApp } from '../../features/card-generator/CardGeneratorApp';
 import { ClinicManagementApp } from '../../features/clinic-management/ClinicManagementApp';
-import { EnterpriseAnalytics } from '../analytics/EnterpriseAnalytics';
 import { useAuth } from '../../hooks/useAuth';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useEnterpriseSync } from '../../hooks/useEnterpriseSync';
@@ -25,7 +24,6 @@ import {
   Save,
   X,
   Filter,
-  BarChart3,
 } from 'lucide-react';
 import {
   cardOperations,
@@ -42,17 +40,16 @@ import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning, toastError } from '../../lib/toast';
 import { supabase } from '../../lib/supabase';
 import { DatabaseDebugger } from '../DatabaseDebugger';
-import EnterpriseAnalyticsManager from '../admin/EnterpriseAnalyticsManager';
 import { AppointmentCalendar } from '../AppointmentCalendar';
 
-type AdminTab = 'analytics' | 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
+type AdminTab = 'generator' | 'activation' | 'endorsement' | 'appointments' | 'clinic-management' | 'master-list' | 'debug' | 'settings';
 
 export function AdminPortalView() {
   const { isAuthenticated, login, logout } = useAuth();
   useAutoRefresh({ enabled: true, showNotifications: true });
   const { registerSyncCallback, syncAfterCardGenerationBroadcast } = useEnterpriseSync();
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
+  const [activeTab, setActiveTab] = useState<AdminTab>('generator');
 
 
 
@@ -511,7 +508,6 @@ export function AdminPortalView() {
 
 
   const tabs = [
-    { id: 'analytics' as const, label: 'Analytics', icon: BarChart3, color: 'blue' },
     { id: 'generator' as const, label: 'Generator', icon: Plus, color: 'emerald' },
     { id: 'activation' as const, label: 'Activation', icon: Zap, color: 'cyan' },
     { id: 'appointments' as const, label: 'Appointments', icon: Calendar, color: 'rose' },
@@ -708,10 +704,6 @@ export function AdminPortalView() {
       {/* Tab Content */}
       <div className="light-card">
         <div className="p-3 sm:p-6">
-          {/* Analytics Tab - Enterprise Analytics Dashboard */}
-          {activeTab === 'analytics' && (
-            <EnterpriseAnalytics />
-          )}
 
           {/* Generator Tab - New Modular Card Generator */}
           {activeTab === 'generator' && (
@@ -1195,8 +1187,6 @@ export function AdminPortalView() {
                 </div>
               </div>
 
-              {/* Enterprise Analytics Manager */}
-              <EnterpriseAnalyticsManager />
             </div>
           )}
         </div>

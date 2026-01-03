@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLegacyAuth } from '../../features/authentication';
 import {
   Stethoscope, Calendar, Settings, LogIn, User,
-  CheckCircle, XCircle, Phone, Clock, Mail
+  CheckCircle, XCircle, Phone, Clock, Mail, CreditCard, Gift
 } from 'lucide-react';
-import { appointmentOperations } from '../../lib/data';
+import { appointmentOperations, cardOperations, perkRedemptionOperations } from '../../lib/data';
 import { useToast } from '../../hooks/useToast';
 import { toastSuccess, toastWarning } from '../../lib/toast';
 
@@ -29,16 +29,20 @@ export function StreamlinedClinicPortalView() {
   const [currentClinic, setCurrentClinic] = useState<any>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [appointments, setAppointments] = useState<AppointmentRequest[]>([]);
+  const [allCards, setAllCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('appointments');
 
   const { addToast } = useToast();
 
-  // Load appointments
+  // Load appointments AND all cards
   useEffect(() => {
-    const loadAppointments = async () => {
+    const loadData = async () => {
       if (currentClinic) {
         try {
           setLoading(true);
+
+          // Load appointments
           const realAppointments = await appointmentOperations.getByClinicId(currentClinic.id);
           const formattedAppointments: AppointmentRequest[] = realAppointments.map(apt => ({
             id: apt.id,
@@ -56,15 +60,20 @@ export function StreamlinedClinicPortalView() {
             processedAt: undefined
           }));
           setAppointments(formattedAppointments);
+
+          // Load ALL cards in the system (as requested by client)
+          const allSystemCards = await cardOperations.getAll();
+          setAllCards(allSystemCards);
+
         } catch (error) {
-          console.error('Failed to load appointments:', error);
+          console.error('Failed to load data:', error);
         } finally {
           setLoading(false);
         }
       }
     };
 
-    loadAppointments();
+    loadData();
   }, [currentClinic]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -136,6 +145,60 @@ export function StreamlinedClinicPortalView() {
       addToast(toastWarning('Appointment Declined', 'Patient will be notified'));
     } catch (error) {
       addToast(toastWarning('Error', 'Failed to decline appointment'));
+    }
+  };
+
+  const handleRedeemPerk = async (card: any, perkIndex: number) => {
+    const perk = card.perks[perkIndex];
+    if (perk.claimed) {
+      addToast(toastWarning('Perk Already Used', 'This perk has already been redeemed'));
+      return;
+    }
+
+    const patientName = prompt('Enter patient name for perk redemption:');
+    if (!patientName) return;
+
+    const serviceType = prompt('Enter service type provided (e.g., "Consultation", "Cleaning"):');
+    if (!serviceType) return;
+
+    const handledBy = prompt('Enter staff member name who processed this:');
+    if (!handledBy) return;
+
+    try {
+      // Create redemption record
+      await perkRedemptionOperations.create({
+        cardControlNumber: card.control_number || card.unified_control_number || card.card_number,
+        perkId: `perk_${perkIndex}`,
+        perkName: perk.type || `Perk ${perkIndex + 1}`,
+        clinicId: currentClinic?.id || '',
+        claimantName: patientName,
+        handledBy,
+        serviceType,
+        usedAt: new Date().toISOString(),
+        value: perk.value || 1,
+        notes: `Redeemed at ${currentClinic?.name}`
+      });
+
+      // Update card perks used count
+      const currentPerksUsed = card.perks ? card.perks.filter((p: any) => p.claimed).length : 0;
+      await cardOperations.updatePerks(card.control_number || card.unified_control_number || card.card_number, currentPerksUsed + 1);
+
+      // Update local state to reflect the change
+      setAllCards(prev => prev.map(c =>
+        c.id === card.id
+          ? {
+              ...c,
+              perks: c.perks.map((p: any, i: number) =>
+                i === perkIndex ? { ...p, claimed: true, claimed_at: new Date().toISOString() } : p
+              )
+            }
+          : c
+      ));
+
+      addToast(toastSuccess('Perk Redeemed', `Successfully redeemed ${perk.type || 'perk'} for ${patientName}`));
+    } catch (error) {
+      console.error('Failed to redeem perk:', error);
+      addToast(toastWarning('Redemption Failed', 'Failed to redeem perk. Please try again.'));
     }
   };
 
@@ -231,7 +294,7 @@ export function StreamlinedClinicPortalView() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="light-card p-6">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -265,15 +328,60 @@ export function StreamlinedClinicPortalView() {
             </div>
             <div className="ml-4">
               <p className="text-2xl font-bold text-gray-900">{appointments.length}</p>
-              <p className="text-sm text-gray-600">Total Requests</p>
+              <p className="text-sm text-gray-600">Total Appointments</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="light-card p-6">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <CreditCard className="h-6 w-6 text-purple-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-2xl font-bold text-gray-900">{allCards.length}</p>
+              <p className="text-sm text-gray-600">Total Cards</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pending Appointments */}
-      {pendingAppointments.length > 0 && (
-        <div className="light-card mb-6">
+      {/* Navigation Tabs */}
+      <div className="light-card mb-6">
+        <div className="p-3">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab('appointments')}
+              className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium transition-colors ${
+                activeTab === 'appointments'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Calendar className="h-4 w-4" />
+              <span>Appointments</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('cards')}
+              className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium transition-colors ${
+                activeTab === 'cards'
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>All Cards ({allCards.length})</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'appointments' ? (
+        <>
+          {/* Pending Appointments */}
+          {pendingAppointments.length > 0 && (
+            <div className="light-card mb-6">
           <div className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Clock className="h-5 w-5 mr-2 text-yellow-600" />
@@ -411,9 +519,9 @@ export function StreamlinedClinicPortalView() {
         </div>
       )}
 
-      {/* Empty State */}
-      {appointments.length === 0 && (
-        <div className="light-card">
+          {/* Empty State */}
+          {appointments.length === 0 && (
+            <div className="light-card">
           <div className="p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Calendar className="h-8 w-8 text-gray-400" />
@@ -424,6 +532,148 @@ export function StreamlinedClinicPortalView() {
               <br />
               When patients request appointments, they will appear here.
             </p>
+          </div>
+            </div>
+          )}
+        </>
+      ) : (
+        /* Cards Tab */
+        <div className="light-card">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <CreditCard className="h-5 w-5 mr-2 text-purple-600" />
+                All MOC Cards in System ({allCards.length})
+              </h2>
+              <div className="text-sm text-gray-600">
+                24/7 access to all cards for clinic services
+              </div>
+            </div>
+
+            {allCards.length > 0 ? (
+              <div className="space-y-4">
+                {allCards.map((card) => {
+                  const perksUsed = card.perks ? card.perks.filter((p: any) => p.claimed).length : 0;
+                  const perksTotal = card.perks ? card.perks.length : 5;
+                  const cardStatus = card.status === 'activated' || card.status === 'active' ? 'active' :
+                    (card.expires_at && new Date(card.expires_at) < new Date() ? 'expired' : 'inactive');
+
+                  return (
+                    <div key={card.id} className="border border-purple-200 rounded-xl p-6 bg-purple-50">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                            <CreditCard className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">
+                              {card.cardholder_name || 'Card Holder'}
+                            </h3>
+                            <p className="text-sm text-gray-600 font-mono">
+                              {card.control_number || card.unified_control_number || card.card_number}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          cardStatus === 'active' ? 'bg-green-100 text-green-800' :
+                          cardStatus === 'expired' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {cardStatus}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-600">Clinic</p>
+                          <p className="font-medium">
+                            {card.clinic_name || (card.assigned_clinic_id ? 'Assigned Clinic' : 'Not Assigned')}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Expires</p>
+                          <p className="font-medium">
+                            {card.expires_at ? new Date(card.expires_at).toLocaleDateString() : '2025-12-31'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Perks Used</p>
+                          <p className="font-medium">{perksUsed} / {perksTotal}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Available</p>
+                          <p className="font-medium text-green-600">{perksTotal - perksUsed} perks</p>
+                        </div>
+                      </div>
+
+                      {/* Perks Display */}
+                      {card.perks && card.perks.length > 0 && (
+                        <div className="bg-white p-4 rounded-lg border border-purple-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-gray-900 flex items-center">
+                              <Gift className="h-4 w-4 mr-2 text-purple-600" />
+                              Card Benefits
+                            </h4>
+                            <span className="text-sm text-purple-700">
+                              {perksTotal - perksUsed} remaining
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {card.perks.map((perk: any, index: number) => (
+                              <div
+                                key={index}
+                                className={`p-2 rounded-lg border text-sm ${
+                                  perk.claimed
+                                    ? 'bg-gray-100 text-gray-600 border-gray-300'
+                                    : 'bg-green-50 text-green-800 border-green-200'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{perk.type || `Perk ${index + 1}`}</span>
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      perk.claimed ? 'bg-gray-200 text-gray-600' : 'bg-green-200 text-green-700'
+                                    }`}>
+                                      {perk.claimed ? 'Used' : 'Available'}
+                                    </span>
+                                    {!perk.claimed && (
+                                      <button
+                                        onClick={() => handleRedeemPerk(card, index)}
+                                        className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors"
+                                        title="Redeem this perk"
+                                      >
+                                        Redeem
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                                {perk.claimed_at && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Used: {new Date(perk.claimed_at).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="text-xs text-gray-500 mt-4">
+                        Created: {new Date(card.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Cards Found</h3>
+                <p className="text-gray-600">No MOC cards are currently in the system.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
