@@ -109,17 +109,37 @@ DROP TABLE IF EXISTS business_intelligence CASCADE;
 DROP TABLE IF EXISTS complex_reports CASCADE;
 
 -- ============================================================================
--- FUNCTION CLEANUP
+-- FUNCTION CLEANUP - Handle Overloaded Functions
 -- ============================================================================
 
-DROP FUNCTION IF EXISTS search_card_universal CASCADE;
-DROP FUNCTION IF EXISTS generate_batch_number CASCADE;
-DROP FUNCTION IF EXISTS generate_control_number CASCADE;
-DROP FUNCTION IF EXISTS generate_passcode CASCADE;
-DROP FUNCTION IF EXISTS normalize_code CASCADE;
-DROP FUNCTION IF EXISTS update_appointment_status CASCADE;
-DROP FUNCTION IF EXISTS reschedule_appointment CASCADE;
-DROP FUNCTION IF EXISTS get_card_by_identifier CASCADE;
+-- Drop functions with specific signatures to avoid "not unique" errors
+DO $$
+DECLARE
+    func_record RECORD;
+BEGIN
+    -- Drop all functions by iterating through them
+    FOR func_record IN
+        SELECT proname, oidvectortypes(proargtypes) as args
+        FROM pg_proc
+        WHERE proname IN (
+            'search_card_universal',
+            'generate_batch_number',
+            'generate_control_number',
+            'generate_passcode',
+            'normalize_code',
+            'update_appointment_status',
+            'reschedule_appointment',
+            'get_card_by_identifier'
+        )
+        AND pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+    LOOP
+        BEGIN
+            EXECUTE format('DROP FUNCTION IF EXISTS %I(%s) CASCADE', func_record.proname, func_record.args);
+        EXCEPTION WHEN OTHERS THEN
+            NULL; -- Ignore errors
+        END;
+    END LOOP;
+END $$;
 
 -- ============================================================================
 -- TYPE CLEANUP

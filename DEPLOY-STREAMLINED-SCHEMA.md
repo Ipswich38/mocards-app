@@ -1,34 +1,35 @@
 # 🚀 DEPLOY STREAMLINED SCHEMA - Step by Step
 
-## ⚠️ IMPORTANT: Handle the Table/View Conflict Error
+## ⚠️ HANDLING DEPLOYMENT CONFLICTS
 
-If you get this error:
+If you encounter errors like:
+- `"clinic_codes_by_region" is not a view`
+- `function name "generate_control_number" is not unique`
+
+This confirms the existing schema chaos! Choose the appropriate cleanup method:
+
+## 🔧 CLEANUP OPTIONS (Choose One)
+
+### Option 1: Simple Cleanup (Recommended)
+```sql
+-- Execute in Supabase SQL Editor:
+-- File: supabase/schema-simple-cleanup.sql
 ```
-Error: Failed to run sql query: ERROR: 42809: "clinic_codes_by_region" is not a view
-```
+**Best for:** Most conflict scenarios, handles function overloads safely
 
-This means there's a naming conflict between existing tables and views. Follow these steps:
-
-## 🔧 Step 1: Clean Up Existing Objects
-
-Run this first to safely remove all conflicting objects:
-
+### Option 2: Advanced Cleanup
 ```sql
 -- Execute in Supabase SQL Editor:
 -- File: supabase/schema-cleanup-first.sql
 ```
+**Best for:** When you want more control over the cleanup process
 
-**OR manually run:**
-
+### Option 3: Nuclear Option (If others fail)
 ```sql
--- Handle table/view conflicts manually
-DROP TABLE IF EXISTS clinic_codes_by_region CASCADE;
-DROP TABLE IF EXISTS active_regions CASCADE;
-DROP TABLE IF EXISTS active_clinic_codes CASCADE;
-DROP VIEW IF EXISTS clinic_codes_by_region CASCADE;
-DROP VIEW IF EXISTS active_regions CASCADE;
-DROP VIEW IF EXISTS active_clinic_codes CASCADE;
+-- Execute in Supabase SQL Editor:
+-- File: supabase/schema-nuclear-cleanup.sql
 ```
+**Best for:** Complete fresh start, eliminates ALL possible conflicts
 
 ## 🚀 Step 2: Deploy Fresh Schema
 
