@@ -4,51 +4,22 @@ import { ToastProvider } from './hooks/useToast';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { useLegacyAuth } from './features/authentication';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { DiagnosticPanel } from './components/DiagnosticPanel';
-import { SystemHealthMonitor } from './components/SystemHealthMonitor';
-import { healthChecker } from './lib/healthCheck';
-import { logBusinessEvent } from './lib/productionMonitoring';
 
-// Lazy load components for code splitting
-const EnhancedCardLookupView = lazy(() => import('./components/views/EnhancedCardLookupView').then(module => ({ default: module.EnhancedCardLookupView })));
-const ClinicPortalView = lazy(() => import('./components/views/ClinicPortalView').then(module => ({ default: module.ClinicPortalView })));
-const AdminPortalView = lazy(() => import('./components/views/AdminPortalView').then(module => ({ default: module.AdminPortalView })));
+// Lazy load STREAMLINED components for code splitting
+const StreamlinedCardLookupView = lazy(() => import('./components/views/StreamlinedCardLookupView').then(module => ({ default: module.StreamlinedCardLookupView })));
+const StreamlinedClinicPortalView = lazy(() => import('./components/views/StreamlinedClinicPortalView').then(module => ({ default: module.StreamlinedClinicPortalView })));
+const StreamlinedAdminPortalView = lazy(() => import('./components/views/StreamlinedAdminPortalView').then(module => ({ default: module.StreamlinedAdminPortalView })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
   const { isAuthenticated, user } = useLegacyAuth();
 
-  // Initialize production monitoring and health checks
+  // Simple app initialization
   useEffect(() => {
-    // Start health monitoring
-    healthChecker.startMonitoring(60000); // Check every minute
-
-    // Log application startup
-    logBusinessEvent('app_startup', 1, {
+    console.log('🚀 MOCARDS - Simple & Clean', {
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      viewportSize: `${window.innerWidth}x${window.innerHeight}`
+      version: '2.0.0'
     });
-
-    // Perform initial health check
-    healthChecker.performHealthCheck().then(health => {
-      console.log('🏥 Initial health check completed:', health.overall);
-      if (health.overall === 'critical') {
-        console.error('🚨 Critical system issues detected on startup');
-      }
-    });
-
-    // Log app version and build info
-    console.log('🚀 MOCARDS CLOUD - Production Ready', {
-      timestamp: new Date().toISOString(),
-      build: 'production',
-      monitoring: 'active'
-    });
-
-    // Cleanup on unmount
-    return () => {
-      healthChecker.stopMonitoring();
-    };
   }, []);
 
   // Redirect to card lookup when user logs out and reset view to allow portal switching
@@ -58,26 +29,21 @@ export default function App() {
     }
   }, [isAuthenticated]); // Removed currentView from dependencies to prevent infinite loops
 
-  // Log view changes for analytics
+  // Simple view tracking
   useEffect(() => {
-    logBusinessEvent('view_change', 1, {
-      from: 'previous_view',
-      to: currentView,
-      authenticated: isAuthenticated,
-      userType: user?.type
-    });
-  }, [currentView, isAuthenticated, user?.type]);
+    console.log(`📍 View changed to: ${currentView}`);
+  }, [currentView]);
 
   const renderCurrentView = () => {
     switch (currentView) {
       case 'enhanced-lookup':
-        return <EnhancedCardLookupView />;
+        return <StreamlinedCardLookupView />;
       case 'clinic-portal':
-        return <ClinicPortalView />;
+        return <StreamlinedClinicPortalView />;
       case 'admin-access':
-        return <AdminPortalView />;
+        return <StreamlinedAdminPortalView />;
       default:
-        return <EnhancedCardLookupView />;
+        return <StreamlinedCardLookupView />;
     }
   };
 
@@ -129,9 +95,7 @@ export default function App() {
         </ResponsiveLayout>
         <ToastContainer />
 
-        {/* Development Diagnostic Tools */}
-        <DiagnosticPanel />
-        <SystemHealthMonitor enabled={process.env.NODE_ENV !== 'production'} />
+        {/* Clean and Simple - No Diagnostic Bloat */}
       </ToastProvider>
     </ErrorBoundary>
   );
