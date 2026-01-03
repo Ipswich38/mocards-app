@@ -9,13 +9,13 @@ import { SystemHealthMonitor } from './components/SystemHealthMonitor';
 import { healthChecker } from './lib/healthCheck';
 import { logBusinessEvent } from './lib/productionMonitoring';
 
-// Lazy load components for code splitting
-const EnhancedCardLookupView = lazy(() => import('./components/views/EnhancedCardLookupView').then(module => ({ default: module.EnhancedCardLookupView })));
-const ClinicPortalView = lazy(() => import('./components/views/ClinicPortalView').then(module => ({ default: module.ClinicPortalView })));
-const AdminPortalView = lazy(() => import('./components/views/AdminPortalView').then(module => ({ default: module.AdminPortalView })));
+// Lazy load SIMPLIFIED components for code splitting
+const SimpleCardLookupView = lazy(() => import('./components/views/SimpleCardLookupView').then(module => ({ default: module.SimpleCardLookupView })));
+const SimpleClinicPortalView = lazy(() => import('./components/views/SimpleClinicPortalView').then(module => ({ default: module.SimpleClinicPortalView })));
+const SimpleAdminPortalView = lazy(() => import('./components/views/SimpleAdminPortalView').then(module => ({ default: module.SimpleAdminPortalView })));
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>('enhanced-lookup');
+  const [currentView, setCurrentView] = useState<ViewMode>('card-lookup');
   const { isAuthenticated, user } = useLegacyAuth();
 
   // Initialize production monitoring and health checks
@@ -54,7 +54,7 @@ export default function App() {
   // Redirect to card lookup when user logs out and reset view to allow portal switching
   useEffect(() => {
     if (!isAuthenticated && (currentView === 'admin-access' || currentView === 'clinic-portal')) {
-      setCurrentView('enhanced-lookup');
+      setCurrentView('card-lookup');
     }
   }, [isAuthenticated]); // Removed currentView from dependencies to prevent infinite loops
 
@@ -70,21 +70,21 @@ export default function App() {
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'enhanced-lookup':
-        return <EnhancedCardLookupView />;
+      case 'card-lookup':
+        return <SimpleCardLookupView />;
       case 'clinic-portal':
-        return <ClinicPortalView />;
+        return <SimpleClinicPortalView />;
       case 'admin-access':
-        return <AdminPortalView />;
+        return <SimpleAdminPortalView />;
       default:
-        return <EnhancedCardLookupView />;
+        return <SimpleCardLookupView />;
     }
   };
 
   // Handle view change with authentication restrictions
   const handleViewChange = (view: ViewMode) => {
-    // Enhanced lookup is always accessible
-    if (view === 'enhanced-lookup') {
+    // Card lookup is always accessible
+    if (view === 'card-lookup') {
       setCurrentView(view);
       return;
     }
