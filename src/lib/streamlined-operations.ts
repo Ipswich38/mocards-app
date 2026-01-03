@@ -16,7 +16,7 @@ if (!supabaseAnonKey || supabaseAnonKey === 'your-anon-key') {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: false, // Disable session persistence for admin operations
-    autoRefreshToken: false,
+    autoRefreshToken: true,  // Enable auto refresh to prevent token expiration
   },
 });
 
