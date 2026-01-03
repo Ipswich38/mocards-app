@@ -6,7 +6,7 @@ import { PWAInstallPrompt } from '../ui/PWAInstallPrompt';
 import { CloudSyncIndicator } from '../ui/CloudSyncIndicator';
 import { useBreakpoint, useScreenSize } from '../../hooks/useMediaQuery';
 
-export type ViewMode = 'card-lookup' | 'clinic-portal' | 'admin-access';
+export type ViewMode = 'enhanced-lookup' | 'clinic-portal' | 'admin-access';
 
 interface ResponsiveLayoutProps {
   currentView: ViewMode;
@@ -45,24 +45,24 @@ export function ResponsiveLayout({ currentView, onViewChange, children, isAuthen
 
   const navItems = [
     {
-      id: 'card-lookup' as ViewMode,
+      id: 'enhanced-lookup' as ViewMode,
       label: 'Card Lookup',
       icon: Search,
-      description: 'View card details only',
+      description: 'Verify card validity and search',
       disabled: false, // Always accessible
     },
     {
       id: 'clinic-portal' as ViewMode,
       label: 'Clinic Portal',
       icon: Stethoscope,
-      description: 'View appointment requests only',
+      description: 'Clinic management',
       disabled: getNavItemDisabled('clinic-portal'),
     },
     {
       id: 'admin-access' as ViewMode,
       label: 'Admin Access',
       icon: Shield,
-      description: 'Generate cards, assign to clinics, send appointments',
+      description: 'System administration',
       disabled: getNavItemDisabled('admin-access'),
     },
   ];
