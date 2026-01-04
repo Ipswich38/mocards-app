@@ -21,7 +21,9 @@
     "bulletproof-deploy": "node scripts/bulletproof-deploy.js",
     "production-ready": "npm run complete-reset && npm run build && echo '🚀 Ready for production with zero data!'",
     "business-ready": "npm run test-e2e && npm run build && echo '💼 Business functionality verified and ready!'",
-    "client-ready": "npm run complete-reset && npm run bulletproof-deploy && echo '🎯 100% CLIENT READY!'"
+    "client-ready": "npm run complete-reset && npm run bulletproof-deploy && echo '🎯 100% CLIENT READY!'",
+    "pure-reset": "node scripts/pure-system-reset.js",
+    "pure-ready": "npm run pure-reset && npm run build && echo '🎯 PURE MOCARDS SYSTEM READY!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
